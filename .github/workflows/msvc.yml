@@ -1,0 +1,16 @@
+name: Compile source code (MSVC)
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: microsoft/setup-msbuild@v1.0.3
+    - name: Build
+      run: |
+        mkdir out
+        cd out
+        cmake -A Win32 ..
+        msbuild GameCheats.sln /p:Platform=Win32 /p:Configuration=Release
