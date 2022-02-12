@@ -17,6 +17,8 @@ namespace X86
 		SubGbEb = 0x2A,
 		SubGvEv = 0x2B,
 		SubALIb = 0x2C,
-		SubrAXIz = 0x2D
+		SubrAXIz = 0x2D,
+
+		Nop = 0x90
 	};
 }
