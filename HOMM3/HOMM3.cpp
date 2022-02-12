@@ -1,0 +1,48 @@
+#include "HOMM3-PCH.hpp"
+#include "../HackLib/Process.hpp"
+#include "../HackLib/OpCodes.hpp"
+
+/*
+	More resources in Heroes of Might & Magic III - HD Edition
+	Tested with Steam version SHA-256
+	608da95c6dae5de21b2135701 365e18d3de173d3f0fd9753812afe6a5b13fa05
+*/
+
+struct Resources
+{
+	uint32_t Wood, Mercury, Ore, Sulfur, Crystal, Gems, Gold = 0xC0DE;
+};
+
+std::ostream& operator << (std::ostream& os, const Resources& r)
+{
+	os << "Wood:    " << r.Wood << std::endl;
+	os << "Mercury: " << r.Mercury << std::endl;
+	os << "Ore:     " << r.Ore << std::endl;
+	os << "Sulfur:  " << r.Sulfur << std::endl;
+	os << "Crystal: " << r.Crystal << std::endl;
+	os << "Gems:    " << r.Gems << std::endl;
+	os << "Gold:    " << r.Gold;
+	return os;
+}
+
+int wmain()
+{
+	try
+	{
+		Process process(L"HOMM3 2.0.exe");
+		BYTE* basePointer = process.BaseAddress() + 0x00281E78;
+		BYTE* resourcePointer = process.FindPointer(basePointer, { 0x94 });
+		
+		Resources resources = process.Read<Resources>(resourcePointer);
+		std::cout << resources << std::endl;
+
+		process.Write(resourcePointer, Resources());
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+		return -1;
+	}
+
+	return 0;
+}
