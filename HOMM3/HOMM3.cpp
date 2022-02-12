@@ -10,7 +10,26 @@
 
 struct Resources
 {
-	uint32_t Wood, Mercury, Ore, Sulfur, Crystal, Gems, Gold = 0xC0DE;
+	uint32_t Wood = 0;
+	uint32_t Mercury = 0;
+	uint32_t Ore = 0;
+	uint32_t Sulfur = 0;
+	uint32_t Crystal = 0; 
+	uint32_t Gems = 0;
+	uint32_t Gold = 0;
+
+	Resources& operator += (uint32_t value)
+	{
+		Wood += value;
+		Mercury += value;
+		Ore += value;
+		Sulfur += value;
+		Crystal += value;
+		Gems += value;
+		Gold += value;
+
+		return *this;
+	}
 };
 
 std::ostream& operator << (std::ostream& os, const Resources& r)
@@ -34,9 +53,16 @@ int wmain()
 		BYTE* resourcePointer = process.FindPointer(basePointer, { 0x94 });
 		
 		Resources resources = process.Read<Resources>(resourcePointer);
+		
+		std::cout << "Before:" << std::endl;
+		std::cout << resources << std::endl;
+		
+		resources += 0xBEEF;
+
+		std::cout << "After:" << std::endl;
 		std::cout << resources << std::endl;
 
-		process.Write(resourcePointer, Resources());
+		process.Write(resourcePointer, resources);
 	}
 	catch (const std::exception& e)
 	{
