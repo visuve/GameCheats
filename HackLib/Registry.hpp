@@ -13,10 +13,10 @@ public:
 	bool IsPredefined() const;
 
 	template <typename T>
-	T Read(std::wstring_view valueName) = delete;
+	T Read(std::wstring_view valueName) const = delete;
 
 	template <>
-	std::wstring Read(std::wstring_view valueName)
+	std::wstring Read(std::wstring_view valueName) const
 	{
 		DWORD valueSize = 0;
 
@@ -56,7 +56,7 @@ public:
 	}
 
 	template <>
-	DWORD Read(std::wstring_view valueName)
+	DWORD Read(std::wstring_view valueName) const
 	{
 		DWORD value = 0;
 		DWORD valueSize = sizeof(DWORD);
@@ -81,10 +81,10 @@ public:
 	}
 
 	template <typename T>
-	void Write(std::wstring_view valueName, T value) = delete;
+	void Write(std::wstring_view valueName, T value) const = delete;
 
 	template <>
-	void Write(std::wstring_view valueName, std::wstring_view value)
+	void Write(std::wstring_view valueName, std::wstring_view value) const
 	{
 		// Includes null terminator
 		DWORD valueSize = value.size() * sizeof(wchar_t) + sizeof(wchar_t);
@@ -104,7 +104,7 @@ public:
 	}
 
 	template <>
-	void Write(std::wstring_view valueName, DWORD value)
+	void Write(std::wstring_view valueName, DWORD value) const
 	{
 		LONG result = ::RegSetValueExW(
 			_key,
