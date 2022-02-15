@@ -1,4 +1,4 @@
-name: Compile source code (MSVC)
+name: MSVC build
 
 on: [push, pull_request]
 
@@ -8,9 +8,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: microsoft/setup-msbuild@v1.0.3
-    - name: Build
-      run: |
+    - run: |
         mkdir out
         cd out
         cmake -A Win32 ..
-        msbuild GameCheats.sln /p:Platform=Win32 /p:Configuration=Release
+        msbuild GameCheats.sln /p:Platform=Win32 /p:Configuration=Release /m
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Executables
+        path: out/Release/*.exe
+        if-no-files-found: error
