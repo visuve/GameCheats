@@ -9,6 +9,7 @@
 		<dir name="HackLib"/>
 		<dir name="MaxPayne"/>
 		<dir name="HOMM3"/>
+		<dir name="R6BO"/>
 	</paths>
 	<libraries>
 		<library>windows</library>
