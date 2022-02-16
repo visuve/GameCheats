@@ -3,6 +3,8 @@
 #include "NonCopyable.hpp"
 #include "Exceptions.hpp"
 
+#include <filesystem>
+
 class Registry
 {
 public:
@@ -53,6 +55,12 @@ public:
 		value.resize(valueSize / sizeof(wchar_t) - 1);
 
 		return value;
+	}
+
+	template <>
+	std::filesystem::path Read(std::wstring_view valueName) const
+	{
+		return Read<std::wstring>(valueName);
 	}
 
 	template <>

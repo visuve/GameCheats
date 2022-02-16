@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <fstream>
 #include <regex>
+#include <functional>
+#include <chrono>
 
 /*
 	More terrorists in Rainbow Six - Black Ops
@@ -13,7 +15,7 @@
 	06ee11a05a029a9827c093caa67de63c395c03082f7bc843ac302eadb9ff6373
 
 	NOTES:
-	1. Remember to build and run x86, the registry redirection will go wrong otherwise!
+	1. Remember to build and run x86
 	2. The non-persistent hacks have to be applied when the "Custom Mission" menu is open
 		- The UI might not reflect the values immediately, but they are there
 	3. The game appears to crash with terrorist count above 100
@@ -21,76 +23,83 @@
 		in order to work properly. This is on my todo list
 */
 
-void SetTerroristMaxRegistry(const Registry& reg, DWORD value)
-{
-	const auto keys =
-	{
-		L"CustomMissionNumberOfTerrorists",
-		L"MaximumNumberOfTerrorists",
-		L"MultiplayerNumberOfTerrorists",
-		L"SelectedNumberOfTerrorists"
-	};
 
-	for (std::wstring_view key : keys)
+using PathFunction = std::function<void(const std::filesystem::path&)>;
+
+void ProcessDirectory(const std::filesystem::path path, const std::span<PathFunction>& functions, bool recursive = true)
+{
+	for (const auto& iter : std::filesystem::recursive_directory_iterator(path))
 	{
-		if (reg.Read<DWORD>(key) != value)
+		for (const PathFunction& function : functions)
 		{
-			reg.Write(key, value);
+			function(iter.path());
 		}
 	}
 }
 
-void SetTerroristMaxTxtOverride(const Registry& reg, DWORD value)
+void BackupRename(const std::filesystem::path& path)
 {
-	std::filesystem::path modsPath =
-		reg.Read<std::wstring>(L"InstallationPath") + reg.Read<std::wstring>(L"ModsPath");
-
-	std::filesystem::path missionPath =
-		reg.Read<std::wstring>(L"MissionPath");
-
-	auto maxTerroristsGlobalOverridePath = missionPath / L"MaxTerrorists.txt";
-	auto backup = missionPath / L"MaxTerrorists.bak";
-	
-	if (!std::filesystem::exists(backup))
+	if (!std::filesystem::exists(path))
 	{
-		std::filesystem::rename(maxTerroristsGlobalOverridePath, backup);
+		return;
 	}
 
-	std::ofstream output;
-	output.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-	output.open(maxTerroristsGlobalOverridePath);
+	const auto now = std::chrono::system_clock::now();
+	const auto sinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
 
-	for (const auto& iter : std::filesystem::recursive_directory_iterator(modsPath))
-	{
-		auto path = iter.path();
-		auto filename = path.filename();
-		auto extension = filename.extension().string();
+	std::wstring extension = std::format(L".{}.bak", sinceEpoch.count());
+	auto backupPath = std::filesystem::path(path).replace_extension(extension);
 
-		if (std::regex_search(extension, std::regex("lwf|mis|tht", std::regex::icase)))
-		{
-			output << filename << "\t\t" << value << std::endl;
-		}
-		
-		// We do not want mod specific overrides
-		if (filename == L"MaxTerrorists.txt")
-		{
-			backup = path;
-			backup.replace_extension(L".bak");
-			std::filesystem::rename(path, backup);
-		}
-	}
+	std::filesystem::rename(path, backupPath);
 }
 
 void ApplyHacks(bool persistent)
 {
 	if (persistent)
 	{
-		Registry registry(
-			HKEY_CURRENT_USER,
-			L"Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\Red Storm Entertainment\\Black Ops");
+		constexpr DWORD NewTerroristMax = 100;
 
-		SetTerroristMaxRegistry(registry, 100);
-		SetTerroristMaxTxtOverride(registry, 100);
+		Registry reg(HKEY_CURRENT_USER, L"Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\Red Storm Entertainment\\Black Ops");
+
+		std::filesystem::path modsPath = reg.Read<std::wstring>(L"InstallationPath") + reg.Read<std::wstring>(L"ModsPath");
+		auto maxTerroristTxtPath = reg.Read<std::filesystem::path>(L"MissionPath") / L"MaxTerrorists.txt";
+
+		BackupRename(maxTerroristTxtPath);
+
+		std::ofstream maxTerroristTxtFile;
+		maxTerroristTxtFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		maxTerroristTxtFile.open(maxTerroristTxtPath);
+
+		const auto terroristMaxFileOverwrite = [&maxTerroristTxtFile](const std::filesystem::path& path)
+		{
+			const std::wstring extension = path.extension();
+
+			if (std::regex_search(extension, std::wregex(L"lwf|mis|tht", std::regex::icase)))
+			{
+				maxTerroristTxtFile << path.filename() << "\t\t" << NewTerroristMax << std::endl;
+			}
+		};
+
+		const auto disableModSpecificMaxTerroristsOverride = [](const std::filesystem::path& path)
+		{
+			if (path.filename() == L"MaxTerrorists.txt")
+			{
+				BackupRename(path);
+			}
+		};
+
+		PathFunction functions[] =
+		{
+			terroristMaxFileOverwrite,
+			disableModSpecificMaxTerroristsOverride
+		};
+
+		ProcessDirectory(modsPath, functions, true);
+
+		reg.Write<DWORD>(L"CustomMissionNumberOfTerrorists", NewTerroristMax);
+		reg.Write<DWORD>(L"MaximumNumberOfTerrorists", NewTerroristMax);
+		reg.Write<DWORD>(L"MultiplayerNumberOfTerrorists", NewTerroristMax);
+		reg.Write<DWORD>(L"SelectedNumberOfTerrorists", NewTerroristMax);
 	}
 	else
 	{
