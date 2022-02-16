@@ -1,13 +1,4 @@
 #include "R6BO-PCH.hpp"
-#include "../HackLib/Registry.hpp"
-#include "../HackLib/Process.hpp"
-#include "../HackLib/OpCodes.hpp"
-
-#include <filesystem>
-#include <fstream>
-#include <regex>
-#include <functional>
-#include <chrono>
 
 /*
 	More terrorists in Rainbow Six - Black Ops

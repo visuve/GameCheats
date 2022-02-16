@@ -1,6 +1,4 @@
 #include "HOMM3-PCH.hpp"
-#include "../HackLib/Process.hpp"
-#include "../HackLib/OpCodes.hpp"
 
 /*
 	More resources in Heroes of Might & Magic III - HD Edition

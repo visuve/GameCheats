@@ -1,6 +1,4 @@
 #include "MaxPayne-PCH.hpp"
-#include "../HackLib/Process.hpp"
-#include "../HackLib/OpCodes.hpp"
 
 /*
 	Infinite ammo in Max Payne
