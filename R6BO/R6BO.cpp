@@ -18,48 +18,101 @@
 	1. Remember to build and run x86
 	2. The non-persistent hacks have to be applied when the "Custom Mission" menu is open
 		- The UI might not reflect the values immediately, but they are there
-	3. The game appears to crash with terrorist count above 100
-	4. The mission file needs to have enough spawnable terrorists between the BeginTeams & EndTeams blocks
-		in order to work properly. This is on my todo list
+	3. The persistent hacks create lots of backups of the mission files etc
 */
 
-
-using PathFunction = std::function<void(const std::filesystem::path&)>;
-
-void ProcessDirectory(const std::filesystem::path path, const std::span<PathFunction>& functions, bool recursive = true)
+namespace R6BO
 {
-	for (const auto& iter : std::filesystem::recursive_directory_iterator(path))
+	// The game crashes when terrorist count is above 100
+	constexpr DWORD NewTerroristMax = 100;
+
+	using PathFunction = std::function<void(const std::filesystem::path&)>;
+
+	void ProcessDirectory(const std::filesystem::path path, const std::span<PathFunction>& functions, bool recursive = true)
 	{
-		for (const PathFunction& function : functions)
+		for (const auto& iter : std::filesystem::recursive_directory_iterator(path))
 		{
-			function(iter.path());
+			for (const PathFunction& function : functions)
+			{
+				function(iter.path());
+			}
 		}
 	}
-}
 
-void BackupRename(const std::filesystem::path& path)
-{
-	if (!std::filesystem::exists(path))
+	std::filesystem::path BackupRename(const std::filesystem::path& path)
 	{
-		return;
+		const auto now = std::chrono::system_clock::now();
+		const auto sinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
+
+		std::wstring extension = std::format(L".{}.bak", sinceEpoch.count());
+		auto backupPath = std::filesystem::path(path).replace_extension(extension);
+
+		std::filesystem::rename(path, backupPath);
+
+		return backupPath;
 	}
 
-	const auto now = std::chrono::system_clock::now();
-	const auto sinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
-
-	std::wstring extension = std::format(L".{}.bak", sinceEpoch.count());
-	auto backupPath = std::filesystem::path(path).replace_extension(extension);
-
-	std::filesystem::rename(path, backupPath);
-}
-
-void ApplyHacks(bool persistent)
-{
-	if (persistent)
+	// This function is quite a dog vomit
+	void TweakMissionFile(const std::filesystem::path& path)
 	{
-		constexpr DWORD NewTerroristMax = 100;
+		std::ifstream oldMissionFile;
+		oldMissionFile.exceptions(std::ifstream::badbit);
+		oldMissionFile.open(path);
 
-		Registry reg(HKEY_CURRENT_USER, L"Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\Red Storm Entertainment\\Black Ops");
+		std::regex memberRegex(R"("Random(\d+)Team"(.+))");
+		std::smatch match;
+
+		std::string line;
+		DWORD highestId = 0;
+		DWORD highestLineNum = 0;
+		std::string highestLine;
+
+		// Find the highest ID and it's line in the file
+		for (DWORD lineNum = 0; std::getline(oldMissionFile, line); ++lineNum)
+		{
+			if (std::regex_search(line, match, memberRegex))
+			{
+				DWORD id = std::stoul(match[1]);
+
+				if (id > highestId)
+				{
+					highestId = id;
+					highestLine = line;
+					highestLineNum = lineNum;
+				}
+			}
+		}
+
+		oldMissionFile.close();
+		oldMissionFile.open(BackupRename(path));
+
+		std::ofstream newMissionFile;
+		newMissionFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+		newMissionFile.open(path);
+
+		for (DWORD lineNum = 0; std::getline(oldMissionFile, line); ++lineNum)
+		{
+			newMissionFile << line << std::endl;
+
+			if (lineNum != highestLineNum)
+			{
+				continue;
+			}
+
+			while (++highestId <= NewTerroristMax)
+			{
+				newMissionFile << std::regex_replace(
+					highestLine, memberRegex, std::format("\"Random{}Team\"$2", highestId)) << std::endl;
+			}
+		}
+
+	}
+
+	void ApplyPersistentHacks()
+	{
+		Registry reg(
+			HKEY_CURRENT_USER,
+			L"Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\Red Storm Entertainment\\Black Ops");
 
 		std::filesystem::path modsPath = reg.Read<std::wstring>(L"InstallationPath") + reg.Read<std::wstring>(L"ModsPath");
 		auto maxTerroristTxtPath = reg.Read<std::filesystem::path>(L"MissionPath") / L"MaxTerrorists.txt";
@@ -70,28 +123,35 @@ void ApplyHacks(bool persistent)
 		maxTerroristTxtFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		maxTerroristTxtFile.open(maxTerroristTxtPath);
 
-		const auto terroristMaxFileOverwrite = [&maxTerroristTxtFile](const std::filesystem::path& path)
-		{
-			const std::wstring extension = path.extension();
-
-			if (std::regex_search(extension, std::wregex(L"lwf|mis|tht", std::regex::icase)))
-			{
-				maxTerroristTxtFile << path.filename() << "\t\t" << NewTerroristMax << std::endl;
-			}
-		};
+		const std::wregex missionFileRegex(L"lwf|mis|tht", std::regex::icase);
 
 		const auto disableModSpecificMaxTerroristsOverride = [](const std::filesystem::path& path)
 		{
 			if (path.filename() == L"MaxTerrorists.txt")
 			{
 				BackupRename(path);
+				std::cout << "Disabled: " << path << std::endl;
+			}
+		};
+
+		const auto tweakMissionFiles = [&](const std::filesystem::path& path)
+		{
+			const std::wstring extension = path.extension();
+
+			if (std::regex_search(extension, missionFileRegex))
+			{
+				TweakMissionFile(path);
+
+				maxTerroristTxtFile << path.filename() << "\t\t" << NewTerroristMax << std::endl;
+
+				std::cout << "Tweaked: " << std::endl;
 			}
 		};
 
 		PathFunction functions[] =
 		{
-			terroristMaxFileOverwrite,
-			disableModSpecificMaxTerroristsOverride
+			disableModSpecificMaxTerroristsOverride,
+			tweakMissionFiles
 		};
 
 		ProcessDirectory(modsPath, functions, true);
@@ -100,8 +160,10 @@ void ApplyHacks(bool persistent)
 		reg.Write<DWORD>(L"MaximumNumberOfTerrorists", NewTerroristMax);
 		reg.Write<DWORD>(L"MultiplayerNumberOfTerrorists", NewTerroristMax);
 		reg.Write<DWORD>(L"SelectedNumberOfTerrorists", NewTerroristMax);
+
 	}
-	else
+
+	void HackRunningProcess()
 	{
 		Process process(L"R6BO.exe");
 
@@ -137,7 +199,16 @@ int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
-		ApplyHacks(argc > 1 && std::wstring(argv[1]) == L"persistent");
+
+		if (argc > 1 && std::wstring(argv[1]) == L"persistent")
+		{
+			R6BO::ApplyPersistentHacks();
+		}
+		else
+		{
+			R6BO::HackRunningProcess();
+		}
+
 		return 0;
 	}
 	catch (const std::exception& e)
