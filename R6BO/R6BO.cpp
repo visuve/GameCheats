@@ -144,7 +144,7 @@ namespace R6BO
 
 				maxTerroristTxtFile << path.filename() << "\t\t" << NewTerroristMax << std::endl;
 
-				std::cout << "Tweaked: " << std::endl;
+				std::cout << "Tweaked: " << path << std::endl;
 			}
 		};
 
@@ -192,6 +192,14 @@ namespace R6BO
 		process.Write<DWORD>(backgroundSelected, 100);
 		process.Write<DWORD>(uiMax, 100);
 		process.Write<DWORD>(uiSelected, 100);
+
+		// Increasing ammo :-)
+		BYTE* sub = process.BaseAddress() + 0x00215D1F;
+
+		if (process.Read<BYTE>(sub) == X86::SubGvEv)
+		{
+			process.Write<BYTE>(sub, X86::AddGvEv);
+		}
 	}
 }
 
