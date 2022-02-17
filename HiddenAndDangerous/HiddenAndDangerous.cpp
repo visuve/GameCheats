@@ -39,14 +39,9 @@ int wmain(int argc, wchar_t** argv)
 		}
 		else if (argument == L"infammo")
 		{
-			BYTE* fireFunction1 = process.Address(0x00059D90);
-			process.Fill<X86::OpCode, 0x00059DB4 - 0x00059D90>(fireFunction1, X86::Nop);
-
-			BYTE* fireFunction2 = process.Address(0x00059DC0);
-			process.Fill<X86::OpCode, 0x00059DE4 - 0x00059DC0>(fireFunction2, X86::Nop);
-
-			BYTE* fireFunction3 = process.Address(0x00059DF0);
-			process.Fill<X86::OpCode, 0x00059E0A - 0x00059DF0>(fireFunction3, X86::Nop);
+			process.Fill<X86::OpCode, 0x00059D90, 0x00059DB4>(X86::Nop);
+			process.Fill<X86::OpCode, 0x00059DC0, 0x00059DE4>(X86::Nop);
+			process.Fill<X86::OpCode, 0x00059DF0, 0x00059E0A>(X86::Nop);
 		}
 		else
 		{

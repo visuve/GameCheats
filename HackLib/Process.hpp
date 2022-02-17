@@ -51,13 +51,17 @@ public:
 		_ASSERT_EXPR(bytesWritten == sizeof(T), L"WriteProcessMemory size mismatch!");
 	}
 
-	template<typename T, size_t N>
-	void Fill(BYTE* pointer, T value) const
+	template<typename T, DWORD start, DWORD end>
+	void Fill(T value) const
 	{
-		T data[N];
-		constexpr SIZE_T bytes = N * sizeof(T);
+		constexpr SIZE_T bytes = end - start;
+		constexpr SIZE_T elements = bytes / sizeof(T);
+		static_assert(bytes % sizeof(T) == 0);
+
+		T data[elements];
 		std::memset(data, value, bytes);
 		
+		BYTE* pointer = Address(start);
 		SIZE_T bytesWritten = 0;
 
 		if (!WriteProcessMemory(_handle, pointer, data, bytes, &bytesWritten))
