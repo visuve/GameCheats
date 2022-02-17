@@ -175,6 +175,7 @@ namespace X86
 		XchgEvGv = 0x87,
 		
 		MovEbGb = 0x88,
+		MovEvGv = 0x89,
 		MovGbEb = 0x8A,
 		MovGvEv = 0x8B,
 		MovEwSw = 0x8C,
