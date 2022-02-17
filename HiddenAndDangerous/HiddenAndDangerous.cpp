@@ -39,8 +39,9 @@ int wmain(int argc, wchar_t** argv)
 		}
 		else if (argument == L"infammo")
 		{
+			// This tends to render reloading completely impossible
 			process.Fill<X86::OpCode, 0x00059D90, 0x00059DB4>(X86::Nop);
-			process.Fill<X86::OpCode, 0x00059DC0, 0x00059DE4>(X86::Nop);
+			// process.Fill<X86::OpCode, 0x00059DC0, 0x00059DE4>(X86::Nop);
 			process.Fill<X86::OpCode, 0x00059DF0, 0x00059E0A>(X86::Nop);
 		}
 		else

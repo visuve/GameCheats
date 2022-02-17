@@ -43,12 +43,25 @@ public:
 	{
 		SIZE_T bytesWritten = 0;
 
-		if (!WriteProcessMemory(_handle, pointer, &value, sizeof(T), &bytesWritten))
+		if (!WriteProcessMemory(_handle, pointer, &value, sizeof(value), &bytesWritten))
 		{
 			throw Win32Exception("WriteProcessMemory");
 		}
 
-		_ASSERT_EXPR(bytesWritten == sizeof(T), L"WriteProcessMemory size mismatch!");
+		_ASSERT_EXPR(bytesWritten == sizeof(value), L"WriteProcessMemory size mismatch!");
+	}
+
+	template<size_t N>
+	void WriteBytes(BYTE* pointer, const BYTE(&bytes)[N]) const
+	{
+		SIZE_T bytesWritten = 0;
+
+		if (!WriteProcessMemory(_handle, pointer, bytes, N, &bytesWritten))
+		{
+			throw Win32Exception("WriteProcessMemory");
+		}
+
+		_ASSERT_EXPR(bytesWritten == N, L"WriteProcessMemory size mismatch!");
 	}
 
 	template<typename T, DWORD start, DWORD end>
