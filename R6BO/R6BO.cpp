@@ -161,13 +161,13 @@ namespace R6BO
 		// Skips any overrides with registry forced values
 		BYTE* jnb = process.BaseAddress() + 0x0010A0AE;
 
-		if (process.Read<BYTE>(jnb) == X86::JnbJb)
+		if (process.Read<X86::OpCode>(jnb) == X86::JnbJb)
 		{
-			process.Write<BYTE>(jnb, X86::JbeJb);
+			process.Write<X86::OpCode>(jnb, X86::JbeJb);
 		}
 
 		// Forces selected & maximum values
-		BYTE* base = process.BaseAddress() + 0x0046CDA4;
+		BYTE* base = process.Address(0x0046CDA4);
 
 		BYTE* backgroundMax = process.FindPointer(base, { 0x10, 0x420 });
 		BYTE* backgroundSelected = process.FindPointer(base, { 0x99C });
@@ -187,9 +187,9 @@ namespace R6BO
 		// Increasing ammo :-)
 		BYTE* sub = process.BaseAddress() + 0x00215D1F;
 
-		if (process.Read<BYTE>(sub) == X86::SubGvEv)
+		if (process.Read<X86::OpCode>(sub) == X86::SubGvEv)
 		{
-			process.Write<BYTE>(sub, X86::AddGvEv);
+			process.Write<X86::OpCode>(sub, X86::AddGvEv);
 		}
 	}
 }

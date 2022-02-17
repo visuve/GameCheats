@@ -2,7 +2,7 @@
 
 /*
 	Infinite ammo in Max Payne
-	Tested wit version v1.05 (Steam) with SHA-256
+	Tested with version v1.05 (Steam) with SHA-256
 	e0b3b859c28adbf510dfc6285e1667173aaa7b05ac66a62403eb96d50eefae7b
 */
 
@@ -11,14 +11,14 @@ int wmain()
 	try
 	{
 		Process process(L"maxpayne.exe");
-		BYTE* gunReloadOp = process.BaseAddress() + 0x34829D;
+		BYTE* gunReloadOp = process.Address(0x34829D);
 
-		if (process.Read<BYTE>(gunReloadOp) != X86::SubGvEv) // sub edx, eax
+		if (process.Read<X86::OpCode>(gunReloadOp) != X86::SubGvEv) // sub edx, eax
 		{
 			throw LogicException("Gun reloading OP-code is not SUB");
 		}
 
-		process.Write<BYTE>(gunReloadOp, X86::AddGvEv); // add edx, eax
+		process.Write<X86::OpCode>(gunReloadOp, X86::AddGvEv); // add edx, eax
 	}
 	catch (const std::exception& e)
 	{
