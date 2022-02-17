@@ -19,7 +19,7 @@ namespace R6BO
 
 	using PathFunction = std::function<void(const std::filesystem::path&)>;
 
-	void ProcessDirectory(const std::filesystem::path path, const std::span<PathFunction>& functions, bool recursive = true)
+	void ProcessDirectory(const std::filesystem::path path, const std::span<PathFunction>& functions)
 	{
 		for (const auto& iter : std::filesystem::recursive_directory_iterator(path))
 		{
@@ -145,7 +145,7 @@ namespace R6BO
 			tweakMissionFiles
 		};
 
-		ProcessDirectory(modsPath, functions, true);
+		ProcessDirectory(modsPath, functions);
 
 		reg.Write<DWORD>(L"CustomMissionNumberOfTerrorists", NewTerroristMax);
 		reg.Write<DWORD>(L"MaximumNumberOfTerrorists", NewTerroristMax);
@@ -198,7 +198,6 @@ int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
-
 		if (argc > 1 && std::wstring(argv[1]) == L"persistent")
 		{
 			R6BO::ApplyPersistentHacks();
