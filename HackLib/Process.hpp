@@ -15,6 +15,7 @@ public:
 	virtual ~Process() = default;
 
 	BYTE* BaseAddress() const;
+	BYTE* Address(DWORD offset) const;
 
 	template<typename T>
 	void Read(BYTE* pointer, T& value, SIZE_T size = sizeof(T)) const
@@ -38,24 +39,33 @@ public:
 	}
 
 	template<typename T>
-	void Write(BYTE* pointer, T value, SIZE_T size = sizeof(T)) const
+	void Write(BYTE* pointer, T value) const
 	{
 		SIZE_T bytesWritten = 0;
 
-		if (!WriteProcessMemory(_handle, pointer, &value, size, &bytesWritten))
+		if (!WriteProcessMemory(_handle, pointer, &value, sizeof(T), &bytesWritten))
 		{
 			throw Win32Exception("WriteProcessMemory");
 		}
 
-		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
+		_ASSERT_EXPR(bytesWritten == sizeof(T), L"WriteProcessMemory size mismatch!");
 	}
 
 	template<typename T, size_t N>
 	void Fill(BYTE* pointer, T value) const
 	{
 		T data[N];
-		std::memset(data, value, sizeof(data));
-		Write(pointer, data, sizeof(data));
+		constexpr SIZE_T bytes = N * sizeof(T);
+		std::memset(data, value, bytes);
+		
+		SIZE_T bytesWritten = 0;
+
+		if (!WriteProcessMemory(_handle, pointer, data, bytes, &bytesWritten))
+		{
+			throw Win32Exception("WriteProcessMemory");
+		}
+
+		_ASSERT_EXPR(bytesWritten == bytes, L"WriteProcessMemory size mismatch!");
 	}
 
 	template<size_t N>

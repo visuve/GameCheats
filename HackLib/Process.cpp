@@ -73,3 +73,8 @@ BYTE* Process::BaseAddress() const
 {
 	return _module.modBaseAddr;
 }
+
+BYTE* Process::Address(DWORD offset) const
+{
+	return _module.modBaseAddr + offset;
+}
