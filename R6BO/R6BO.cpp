@@ -157,21 +157,11 @@ namespace R6BO
 	{
 		Process process(L"R6BO.exe");
 
-		if (process.Read<X86::OpCode>(0x0010A0AE) != X86::JnbJb)
-		{
-			throw LogicException("Cannot override UI limit!");
-		}
-
 		// Skips any overrides with registry forced values
-		process.Write<X86::OpCode>(0x0010A0AE, X86::JbeJb);
-
-		if (process.Read<X86::OpCode>(0x00215D1F) != X86::SubGvEv)
-		{
-			throw LogicException("Gun firing OP-code is not SUB");
-		}
+		process.ChangeByte<0x0010A0AE>(X86::JnbJb, X86::JbeJb);
 
 		// Increasing ammo :-)
-		process.Write<X86::OpCode>(0x00215D1F, X86::AddGvEv);
+		process.ChangeByte<0x00215D1F>(X86::SubGvEv, X86::AddGvEv);
 
 		// Forces selected & maximum values
 		constexpr size_t base = 0x0046CDA4;

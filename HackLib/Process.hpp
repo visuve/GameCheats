@@ -18,6 +18,19 @@ public:
 
 	uint8_t* Address(size_t offset) const;
 
+	template<typename ... T>
+	uint8_t* ResolvePointer(size_t base, T ... offsets) const
+	{
+		uint8_t* pointer = Address(base);
+
+		for (size_t offset : { offsets... })
+		{
+			pointer = Read<uint8_t*>(pointer) + offset;
+		}
+
+		return pointer;
+	}
+
 	template<typename T>
 	void Read(uint8_t* pointer, T* value, size_t size) const
 	{
@@ -104,17 +117,27 @@ public:
 		_ASSERT_EXPR(bytesWritten == bytes, L"WriteProcessMemory size mismatch!");
 	}
 
-	template<typename ... T>
-	uint8_t* ResolvePointer(size_t base, T ... offsets) const
+	template<size_t Offset>
+	void ChangeByte(uint8_t from, uint8_t to)
 	{
-		uint8_t* pointer = Address(base);
+		const uint8_t current = Read<uint8_t>(Offset);
 
-		for (size_t offset : { offsets... })
+		if (current != from)
 		{
-			pointer = Read<uint8_t*>(pointer) + offset;
-		}
+			char message[0x40] = {};
+			
+			std::snprintf(
+				message,
+				sizeof(message) - 1,
+				"Error @ 0x%zX. Expected 0x%02X, got 0x%02X.",
+				Offset,
+				from,
+				current);
 
-		return pointer;
+			throw LogicException(message);
+		}
+		
+		Write<uint8_t>(Offset, to);
 	}
 
 private:
