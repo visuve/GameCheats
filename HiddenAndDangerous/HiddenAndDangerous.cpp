@@ -19,32 +19,30 @@ int wmain(int argc, wchar_t** argv)
 
 		Process process(L"hde.exe");
 
-		BYTE* ammoBase = process.Address(0x000FA57C);
-
 		if (argument == L"totalammo")
 		{
-			for (DWORD x : { 0x164, 0x160, 0x15C, 0x158 })
+			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
-				BYTE* player = process.FindPointer(ammoBase, { 0x220, 0xC, 0x68, x, 0x5C, 0x4, 0x18 });
-				process.Write<DWORD>(player, 999);
+				uint8_t* player = process.ResolvePointer(0x000FA57Cu, 0x220u, 0xCu, 0x68u, x, 0x5Cu, 0x4u, 0x18u);
+				process.Write(player, 999u);
 			}
 		}
 		else if (argument == L"magammo")
 		{
-			for (DWORD x : { 0x164, 0x160, 0x15C, 0x158 })
+			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
-				BYTE* player = process.FindPointer(ammoBase, { 0x220, 0xC, 0x68, x, 0x5C, 0x4, 0x1C });
-				process.Write<DWORD>(player, 999);
+				uint8_t* player = process.ResolvePointer(0x000FA57Cu, 0x220u, 0xCu, 0x68u, x, 0x5Cu, 0x4u, 0x1Cu);
+				process.Write(player, 999u);
 			}
 		}
 		else if (argument == L"infammo")
 		{
 			// Fill total ammo reducing function with NOPs
-			process.Fill<X86::OpCode, 0x00059D90, 0x00059DB4>(X86::Nop);
+			process.Fill<0x00059D90u, 0x00059DB4u, X86::OpCode>(X86::Nop);
 
 			// Skip clip ammo reducing function by jumping directly to its return
 			// The function cannot be overwritten with nops, because during loads, the mags will reset to zero
-			process.WriteBytes(process.Address(0x0000A614), { 0xE8, 0xCB, 0xF7, 0x04, 0x00 });
+			process.Write(0x0000A614u, { 0xE8u, 0xCBu, 0xF7u, 0x04u, 0x00u });
 		}
 		else
 		{

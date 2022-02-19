@@ -14,15 +14,14 @@ public:
 	NonCopyable(Process);
 	virtual ~Process() = default;
 
-	BYTE* BaseAddress() const;
-	BYTE* Address(DWORD offset) const;
+	uint8_t* Address(size_t offset) const;
 
 	template<typename T>
-	void Read(BYTE* pointer, T& value, SIZE_T size = sizeof(T)) const
+	void Read(uint8_t* pointer, T* value, size_t size) const
 	{
 		SIZE_T bytesRead = 0;
 
-		if (!ReadProcessMemory(_handle, pointer, &value, size, &bytesRead))
+		if (!ReadProcessMemory(_handle, pointer, value, size, &bytesRead))
 		{
 			throw Win32Exception("ReadProcessMemory");
 		}
@@ -31,15 +30,21 @@ public:
 	}
 
 	template<typename T>
-	T Read(BYTE* pointer) const
+	T Read(uint8_t* pointer) const
 	{
 		T value = T();
-		Read(pointer, value);
+		Read(pointer, &value, sizeof(T));
 		return value;
 	}
 
 	template<typename T>
-	void Write(BYTE* pointer, T value) const
+	T Read(size_t offset) const
+	{
+		return Read<T>(Address(offset));
+	}
+
+	template<typename T>
+	void Write(uint8_t* pointer, const T& value) const
 	{
 		SIZE_T bytesWritten = 0;
 
@@ -50,9 +55,15 @@ public:
 
 		_ASSERT_EXPR(bytesWritten == sizeof(value), L"WriteProcessMemory size mismatch!");
 	}
+	
+	template<typename T>
+	void Write(size_t offset, const T& value) const
+	{
+		Write(Address(offset), value);
+	}
 
 	template<size_t N>
-	void WriteBytes(BYTE* pointer, const BYTE(&bytes)[N]) const
+	void Write(uint8_t* pointer, const uint8_t(&bytes)[N]) const
 	{
 		SIZE_T bytesWritten = 0;
 
@@ -64,17 +75,23 @@ public:
 		_ASSERT_EXPR(bytesWritten == N, L"WriteProcessMemory size mismatch!");
 	}
 
-	template<typename T, DWORD start, DWORD end>
+	template<size_t N>
+	void Write(size_t offset, const uint8_t(&bytes)[N]) const
+	{
+		Write(Address(offset), bytes);
+	}
+
+	template<size_t Start, size_t End, typename T>
 	void Fill(T value) const
 	{
-		constexpr SIZE_T bytes = end - start;
-		constexpr SIZE_T elements = bytes / sizeof(T);
+		constexpr size_t bytes = End - Start;
+		constexpr size_t elements = bytes / sizeof(T);
 		static_assert(bytes % sizeof(T) == 0);
 
 		T data[elements];
 		std::memset(data, value, bytes);
 		
-		BYTE* pointer = Address(start);
+		uint8_t* pointer = Address(Start);
 		SIZE_T bytesWritten = 0;
 
 		if (!WriteProcessMemory(_handle, pointer, data, bytes, &bytesWritten))
@@ -85,12 +102,14 @@ public:
 		_ASSERT_EXPR(bytesWritten == bytes, L"WriteProcessMemory size mismatch!");
 	}
 
-	template<size_t N>
-	BYTE* FindPointer(BYTE* pointer, const DWORD(&offsets)[N] ) const
+	template<typename ... T>
+	uint8_t* ResolvePointer(size_t base, T ... offsets) const
 	{
-		for (DWORD offset : offsets)
+		uint8_t* pointer = Address(base);
+
+		for (size_t offset : { offsets... })
 		{
-			pointer = Read<BYTE*>(pointer) + offset;
+			pointer = Read<uint8_t*>(pointer) + offset;
 		}
 
 		return pointer;

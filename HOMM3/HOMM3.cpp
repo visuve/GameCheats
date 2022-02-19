@@ -47,9 +47,9 @@ int wmain()
 	try
 	{
 		Process process(L"HOMM3 2.0.exe");
-		BYTE* basePointer = process.BaseAddress() + 0x00281E78;
-		BYTE* resourcePointer = process.FindPointer(basePointer, { 0x94 });
-		
+
+		uint8_t* resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
+
 		Resources resources = process.Read<Resources>(resourcePointer);
 		
 		std::cout << "Before:" << std::endl;
@@ -57,7 +57,7 @@ int wmain()
 		
 		resources += 0xBEEF;
 
-		std::cout << "After:" << std::endl;
+		std::cout << "\nAfter:" << std::endl;
 		std::cout << resources << std::endl;
 
 		process.Write(resourcePointer, resources);

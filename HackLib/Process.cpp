@@ -69,12 +69,7 @@ Process::Process(std::wstring_view name) :
 {
 }
 
-BYTE* Process::BaseAddress() const
-{
-	return _module.modBaseAddr;
-}
-
-BYTE* Process::Address(DWORD offset) const
+uint8_t* Process::Address(size_t offset) const
 {
 	return _module.modBaseAddr + offset;
 }

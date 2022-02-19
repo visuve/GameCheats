@@ -151,46 +151,45 @@ namespace R6BO
 		reg.Write<DWORD>(L"MaximumNumberOfTerrorists", NewTerroristMax);
 		reg.Write<DWORD>(L"MultiplayerNumberOfTerrorists", NewTerroristMax);
 		reg.Write<DWORD>(L"SelectedNumberOfTerrorists", NewTerroristMax);
-
 	}
 
 	void HackRunningProcess()
 	{
 		Process process(L"R6BO.exe");
 
-		// Skips any overrides with registry forced values
-		BYTE* jnb = process.BaseAddress() + 0x0010A0AE;
-
-		if (process.Read<X86::OpCode>(jnb) == X86::JnbJb)
+		if (process.Read<X86::OpCode>(0x0010A0AE) != X86::JnbJb)
 		{
-			process.Write<X86::OpCode>(jnb, X86::JbeJb);
+			throw LogicException("Cannot override UI limit!");
 		}
 
-		// Forces selected & maximum values
-		BYTE* base = process.Address(0x0046CDA4);
+		// Skips any overrides with registry forced values
+		process.Write<X86::OpCode>(0x0010A0AE, X86::JbeJb);
 
-		BYTE* backgroundMax = process.FindPointer(base, { 0x10, 0x420 });
-		BYTE* backgroundSelected = process.FindPointer(base, { 0x99C });
-		BYTE* uiMax = process.FindPointer(base, { 0x8, 0xD4, 0x18C });
-		BYTE* uiSelected = process.FindPointer(base, { 0x8, 0xD4, 0x184 });
-
-		std::cout << process.Read<DWORD>(backgroundMax) << std::endl;
-		std::cout << process.Read<DWORD>(backgroundSelected) << std::endl;
-		std::cout << process.Read<DWORD>(uiMax) << std::endl;
-		std::cout << process.Read<DWORD>(uiSelected) << std::endl;
-
-		process.Write<DWORD>(backgroundMax, 100);
-		process.Write<DWORD>(backgroundSelected, 100);
-		process.Write<DWORD>(uiMax, 100);
-		process.Write<DWORD>(uiSelected, 100);
+		if (process.Read<X86::OpCode>(0x00215D1F) != X86::SubGvEv)
+		{
+			throw LogicException("Gun firing OP-code is not SUB");
+		}
 
 		// Increasing ammo :-)
-		BYTE* sub = process.BaseAddress() + 0x00215D1F;
+		process.Write<X86::OpCode>(0x00215D1F, X86::AddGvEv);
 
-		if (process.Read<X86::OpCode>(sub) == X86::SubGvEv)
-		{
-			process.Write<X86::OpCode>(sub, X86::AddGvEv);
-		}
+		// Forces selected & maximum values
+		constexpr size_t base = 0x0046CDA4;
+
+		uint8_t* backgroundMax = process.ResolvePointer(base, 0x10u, 0x420u);
+		uint8_t* backgroundSelected = process.ResolvePointer(base, 0x99Cu);
+		uint8_t* uiMax = process.ResolvePointer(base, 0x8u, 0xD4u, 0x18Cu);
+		uint8_t* uiSelected = process.ResolvePointer(base, 0x8u, 0xD4u, 0x184u);
+
+		std::cout << process.Read<uint32_t>(backgroundMax) << std::endl;
+		std::cout << process.Read<uint32_t>(backgroundSelected) << std::endl;
+		std::cout << process.Read<uint32_t>(uiMax) << std::endl;
+		std::cout << process.Read<uint32_t>(uiSelected) << std::endl;
+
+		process.Write<uint32_t>(backgroundMax, 100);
+		process.Write<uint32_t>(backgroundSelected, 100);
+		process.Write<uint32_t>(uiMax, 100);
+		process.Write<uint32_t>(uiSelected, 100);
 	}
 }
 

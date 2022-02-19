@@ -11,14 +11,13 @@ int wmain()
 	try
 	{
 		Process process(L"maxpayne.exe");
-		BYTE* gunReloadOp = process.Address(0x34829D);
 
-		if (process.Read<X86::OpCode>(gunReloadOp) != X86::SubGvEv) // sub edx, eax
+		if (process.Read<X86::OpCode>(0x34829D) != X86::SubGvEv) // sub edx, eax
 		{
 			throw LogicException("Gun reloading OP-code is not SUB");
 		}
 
-		process.Write<X86::OpCode>(gunReloadOp, X86::AddGvEv); // add edx, eax
+		process.Write<X86::OpCode>(0x34829D, X86::AddGvEv); // add edx, eax
 	}
 	catch (const std::exception& e)
 	{
