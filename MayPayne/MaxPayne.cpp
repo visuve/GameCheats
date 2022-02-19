@@ -23,13 +23,18 @@ int wmain(int argc, wchar_t** argv)
 		{
 			// Reload adds ammo instead of consumes
 			// Effectively makes unlimited painkillers & throwables
-			// process.ChangeByte<0x34829D>(X86::SubGvEv, X86::AddGvEv);
+			process.ChangeByte<0x34829D>(X86::SubGvEv, X86::AddGvEv);
 		}
 		
 		if (argument == L"infammo")
 		{
 			// The ammo never decreases
 			process.Fill<0x357F50, 0x357F5C>(X86::Nop);
+		}
+
+		if (argument == L"infbullettime")
+		{
+			process.Fill<0x4CED0, 0x4CEDC>(X86::Nop);
 		}
 	}
 	catch (const std::exception& e)
