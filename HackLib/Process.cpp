@@ -1,60 +1,90 @@
 #include "HackLib-PCH.hpp"
 #include "Process.hpp"
 
+class Snapshot
+{
+public:
+	Snapshot(DWORD flags, DWORD pid) :
+		_handle(CreateToolhelp32Snapshot(flags, pid))
+	{
+		if (!_handle)
+		{
+			throw Win32Exception("CreateToolhelp32Snapshot");
+		}
+	}
+
+	NonCopyable(Snapshot);
+
+	virtual ~Snapshot()
+	{
+		if (_handle)
+		{
+			CloseHandle(_handle);
+		}
+	}
+
+	template <typename T>
+	T Find(
+		BOOL (WINAPI *first)(HANDLE, T*),
+		BOOL(WINAPI *next)(HANDLE, T*),
+		const std::function<bool(const T&)>& filter) const
+	{
+		T entry = {};
+		entry.dwSize = sizeof(T);
+
+		if (!first(_handle, &entry))
+		{
+			throw Win32Exception("Failed to iterate");
+		}
+
+		do
+		{
+			if (filter(entry))
+			{
+				return entry;
+			}
+
+		} while (next(_handle, &entry));
+
+		throw RangeException("Item not found.");
+	}
+
+	PROCESSENTRY32W FindProcess(const std::function<bool(const PROCESSENTRY32W&)>& filter) const
+	{
+		return Find<PROCESSENTRY32W>(&Process32FirstW, &Process32NextW, filter);
+	}
+
+	MODULEENTRY32W FindModule(const std::function<bool(const MODULEENTRY32W&)>& filter) const
+	{
+		return Find<MODULEENTRY32W>(&Module32FirstW, &Module32NextW, filter);
+	}
+
+private:
+	HANDLE _handle = nullptr;
+};
+
 DWORD PidByName(std::wstring_view moduleName) {
 
-	AutoHandle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
+	const Snapshot snapshot(TH32CS_SNAPPROCESS, 0);
 
-	if (!snapshot)
+	const auto filter = [&](const PROCESSENTRY32W& processEntry)
 	{
-		throw Win32Exception("CreateToolhelp32Snapshot");
-	}
+		return moduleName.compare(processEntry.szExeFile) == 0;
+	};
 
-	PROCESSENTRY32W processEntry = {};
-	processEntry.dwSize = sizeof(PROCESSENTRY32W);
-
-	if (!Process32FirstW(snapshot, &processEntry))
-	{
-		throw Win32Exception("Process32First");
-	}
-
-	do
-	{
-		if (moduleName.compare(processEntry.szExeFile) == 0)
-		{
-			return processEntry.th32ProcessID;
-		}
-	} while (Process32NextW(snapshot, &processEntry));
-
-	throw RangeException("PID not found.");
+	return snapshot.FindProcess(filter).th32ProcessID;
 }
 
 MODULEENTRY32W ModuleByPid(DWORD pid) {
 
-	AutoHandle snapshot(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid));
+	const Snapshot snapshot(TH32CS_SNAPMODULE, pid);
 
-	if (!snapshot)
+	const auto filter = [&](const MODULEENTRY32W& moduleEntry)
 	{
-		throw Win32Exception("CreateToolhelp32Snapshot");
-	}
+		return pid == moduleEntry.th32ProcessID;
+	};
 
-	MODULEENTRY32W moduleEntry = {};
-	moduleEntry.dwSize = sizeof(MODULEENTRY32W);
-
-	if (!Module32FirstW(snapshot, &moduleEntry))
-	{
-		throw Win32Exception("Module32FirstW");
-	}
-
-	do
-	{
-		if (pid == moduleEntry.th32ProcessID)
-		{
-			return moduleEntry;
-		}
-	} while (Module32NextW(snapshot, &moduleEntry));
-
-	throw RangeException("Module not found.");
+	return snapshot.FindModule(filter);
 }
 
 Process::Process(DWORD pid) :
@@ -67,6 +97,14 @@ Process::Process(DWORD pid) :
 Process::Process(std::wstring_view name) :
 	Process(PidByName(name))
 {
+}
+
+Process::~Process()
+{
+	if (_handle)
+	{
+		CloseHandle(_handle);
+	}
 }
 
 uint8_t* Process::Address(size_t offset) const
