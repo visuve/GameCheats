@@ -14,7 +14,7 @@ public:
 	Process(DWORD pid);
 	Process(std::wstring_view name);
 	NonCopyable(Process);
-	virtual ~Process() = default;
+	virtual ~Process();
 
 	uint8_t* Address(size_t offset) const;
 
@@ -120,5 +120,5 @@ public:
 private:
 	DWORD _pid = 0;
 	MODULEENTRY32W _module = {};
-	AutoHandle _handle;
+	HANDLE _handle = nullptr;
 };
