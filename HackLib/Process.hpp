@@ -4,6 +4,9 @@
 #include "NonCopyable.hpp"
 #include "Exceptions.hpp"
 
+#define NOMINMAX
+#define VC_EXTRALEAN
+#include <Windows.h>
 #include <TlHelp32.h>
 
 class Process

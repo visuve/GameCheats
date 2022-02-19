@@ -6,13 +6,13 @@ class AutoHandle
 {
 public:
 	AutoHandle() = default;
-	AutoHandle(HANDLE handle);
+	AutoHandle(void* handle);
 	NonCopyable(AutoHandle);
 	virtual ~AutoHandle();
 
-	operator HANDLE() const;
+	operator void*() const;
 
 private:
-	void Reset(HANDLE handle = nullptr);
-	HANDLE _handle = nullptr;
+	void Reset(void* handle = nullptr);
+	void* _handle = nullptr;
 };

@@ -11,12 +11,12 @@ AutoHandle::~AutoHandle()
 	Reset();
 }
 
-AutoHandle::operator HANDLE() const
+AutoHandle::operator void*() const
 {
 	return _handle;
 }
 
-void AutoHandle::Reset(HANDLE handle)
+void AutoHandle::Reset(void* handle)
 {
 	if (_handle == handle)
 	{
