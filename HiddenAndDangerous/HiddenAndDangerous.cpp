@@ -15,11 +15,11 @@ int wmain(int argc, wchar_t** argv)
 
 	try
 	{
-		std::wstring argument(argv[1]);
+		CmdArgs args(argc, argv);
 
 		Process process(L"hde.exe");
 
-		if (argument == L"totalammo")
+		if (args.Contains(L"totalammo"))
 		{
 			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
@@ -27,7 +27,7 @@ int wmain(int argc, wchar_t** argv)
 				process.Write(totalAmmo, 999u);
 			}
 		}
-		else if (argument == L"magammo")
+		else if (args.Contains(L"magammo"))
 		{
 			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
@@ -35,7 +35,7 @@ int wmain(int argc, wchar_t** argv)
 				process.Write(magAmmo, 999u);
 			}
 		}
-		else if (argument == L"infammo")
+		else if (args.Contains(L"infammo"))
 		{
 			// Fill total ammo reducing function with NOPs
 			process.Fill<0x00059D90u, 0x00059DB4u, X86::OpCode>(X86::Nop);

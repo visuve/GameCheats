@@ -8,9 +8,8 @@
 #include <regex>
 #include <span>
 
-#define NOMINMAX
-#include <Windows.h>
 
+#include "../HackLib/CmdArgs.hpp"
 #include "../HackLib/Registry.hpp"
 #include "../HackLib/Process.hpp"
 #include "../HackLib/OpCodes.hpp"

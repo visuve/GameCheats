@@ -187,7 +187,9 @@ int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
-		if (argc > 1 && std::wstring(argv[1]) == L"persistent")
+		CmdArgs args(argc, argv);
+
+		if (args.Contains(L"persistent"))
 		{
 			R6BO::ApplyPersistentHacks();
 		}

@@ -15,24 +15,24 @@ int wmain(int argc, wchar_t** argv)
 
 	try
 	{
-		std::wstring argument(argv[1]);
+		const CmdArgs args(argc, argv);
 
 		Process process(L"maxpayne.exe");
 
-		if (argument == L"reloadadds" || argument == L"infammo")
+		if (args.Contains(L"reloadadds") || args.Contains(L"infammo"))
 		{
 			// Reload adds ammo instead of consumes
-			// Effectively makes unlimited painkillers & throwables
+			// Also makes painkillers & throwables unlimited
 			process.ChangeByte<0x34829D>(X86::SubGvEv, X86::AddGvEv);
 		}
 		
-		if (argument == L"infammo")
+		if (args.Contains(L"infammo"))
 		{
 			// The ammo never decreases
 			process.Fill<0x357F50, 0x357F5C>(X86::Nop);
 		}
 
-		if (argument == L"infbullettime")
+		if (args.Contains(L"infbullettime"))
 		{
 			process.Fill<0x4CED0, 0x4CEDC>(X86::Nop);
 		}
