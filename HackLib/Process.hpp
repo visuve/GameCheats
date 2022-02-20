@@ -28,6 +28,8 @@ public:
 			pointer = Read<uint8_t*>(pointer) + offset;
 		}
 
+		_ASSERT_EXPR(pointer, "The pointer is null!");
+
 		return pointer;
 	}
 

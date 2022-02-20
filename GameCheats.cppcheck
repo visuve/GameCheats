@@ -11,6 +11,7 @@
 		<dir name="HOMM3"/>
 		<dir name="R6BO"/>
 		<dir name="HiddenAndDangerous"/>
+		<dir name="Quake1"/>
 	</paths>
 	<libraries>
 		<library>windows</library>
