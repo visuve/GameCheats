@@ -1,8 +1,10 @@
 #pragma once
 
 #include <format>
+#include <fstream>
 #include <functional>
 #include <cstdint>
+#include <span>
 #include <string_view>
 
 #define NOMINMAX

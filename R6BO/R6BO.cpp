@@ -16,87 +16,65 @@ namespace R6BO
 {
 	// The game crashes when terrorist count is above 100
 	constexpr DWORD NewTerroristMax = 100;
+	const std::wregex MissionFileRegex(L"lwf|mis|tht", std::regex::icase);
+	const std::regex MemberRegex(R"("Random(\d+)Team"(.+))");
 
-	using PathFunction = std::function<void(const std::filesystem::path&)>;
-
-	void ProcessDirectory(const std::filesystem::path path, const std::span<PathFunction>& functions)
-	{
-		for (const auto& iter : std::filesystem::recursive_directory_iterator(path))
-		{
-			for (const PathFunction& function : functions)
-			{
-				function(iter.path());
-			}
-		}
-	}
-
-	std::filesystem::path BackupRename(const std::filesystem::path& path)
-	{
-		const auto now = std::chrono::system_clock::now();
-		const auto sinceEpoch = std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
-
-		std::wstring extension = std::format(L".{}.bak", sinceEpoch.count());
-		auto backupPath = std::filesystem::path(path).replace_extension(extension);
-
-		std::filesystem::rename(path, backupPath);
-
-		return backupPath;
-	}
-
-	// This function is quite a dog vomit
 	void TweakMissionFile(const std::filesystem::path& path)
 	{
-		std::ifstream oldMissionFile;
-		oldMissionFile.exceptions(std::ifstream::badbit);
-		oldMissionFile.open(path);
-
-		std::regex memberRegex(R"("Random(\d+)Team"(.+))");
 		std::smatch match;
 
-		std::string line;
-		DWORD highestId = 0;
-		DWORD highestLineNum = 0;
+		uint32_t highestId = 0;
+		uint32_t highestLineNum = 0;
 		std::string highestLine;
 
 		// Find the highest ID and it's line in the file
-		for (DWORD lineNum = 0; std::getline(oldMissionFile, line); ++lineNum)
+		const auto predicate = [&](uint32_t lineNum, const std::string& line)
 		{
-			if (std::regex_search(line, match, memberRegex))
+			if (std::regex_search(line, match, MemberRegex))
 			{
-				DWORD id = std::stoul(match[1]);
+				uint32_t id = std::stoul(match[1]);
 
 				if (id > highestId)
 				{
 					highestId = id;
-					highestLine = line;
 					highestLineNum = lineNum;
+					highestLine = line;
 				}
+
+				return true;
 			}
+
+			return false;
+		};
+
+		if (FsOps::CountLines(path, predicate) != highestId)
+		{
+			throw LogicException("Terrorist count does not match with highest ID!");
 		}
 
-		oldMissionFile.close();
-		oldMissionFile.open(BackupRename(path));
-
-		std::ofstream newMissionFile;
-		newMissionFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		newMissionFile.open(path);
-
-		for (DWORD lineNum = 0; std::getline(oldMissionFile, line); ++lineNum)
+		if (highestId >= NewTerroristMax)
 		{
-			newMissionFile << line << std::endl;
+			std::wcout << path << " is already tweaked!" << std::endl;
+			return;
+		}
 
-			if (lineNum != highestLineNum)
+		const auto mutator = [&](uint32_t lineNum, const std::string& line, std::ostream& output)
+		{
+			output << line << std::endl;
+
+			if (lineNum < highestLineNum)
 			{
-				continue;
+				return;
 			}
 
 			while (++highestId <= NewTerroristMax)
 			{
-				newMissionFile << std::regex_replace(
-					highestLine, memberRegex, std::format("\"Random{}Team\"$2", highestId)) << std::endl;
+				output << std::regex_replace(
+					highestLine, MemberRegex, std::format("\"Random{}Team\"$2", highestId)) << std::endl;
 			}
-		}
+		};
 
+		FsOps::Replicate(FsOps::BackupRename(path), mutator, path);
 	}
 
 	void ApplyPersistentHacks()
@@ -108,28 +86,28 @@ namespace R6BO
 		std::filesystem::path modsPath = reg.Read<std::wstring>(L"InstallationPath") + reg.Read<std::wstring>(L"ModsPath");
 		auto maxTerroristTxtPath = reg.Read<std::filesystem::path>(L"MissionPath") / L"MaxTerrorists.txt";
 
-		BackupRename(maxTerroristTxtPath);
+		FsOps::BackupRename(maxTerroristTxtPath);
 
 		std::ofstream maxTerroristTxtFile;
 		maxTerroristTxtFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		maxTerroristTxtFile.open(maxTerroristTxtPath);
 
-		const std::wregex missionFileRegex(L"lwf|mis|tht", std::regex::icase);
-
 		const auto disableModSpecificMaxTerroristsOverride = [](const std::filesystem::path& path)
 		{
 			if (path.filename() == L"MaxTerrorists.txt")
 			{
-				BackupRename(path);
+				FsOps::BackupRename(path);
 				std::cout << "Disabled: " << path << std::endl;
 			}
+
+			return true;
 		};
 
 		const auto tweakMissionFiles = [&](const std::filesystem::path& path)
 		{
 			const std::wstring extension = path.extension();
 
-			if (std::regex_search(extension, missionFileRegex))
+			if (std::regex_search(extension, MissionFileRegex))
 			{
 				TweakMissionFile(path);
 
@@ -137,15 +115,17 @@ namespace R6BO
 
 				std::cout << "Tweaked: " << path << std::endl;
 			}
+
+			return true;
 		};
 
-		PathFunction functions[] =
+		FsOps::PathFunction functions[] =
 		{
 			disableModSpecificMaxTerroristsOverride,
 			tweakMissionFiles
 		};
 
-		ProcessDirectory(modsPath, functions);
+		FsOps::ProcessDirectory(modsPath, functions);
 
 		reg.Write<DWORD>(L"CustomMissionNumberOfTerrorists", NewTerroristMax);
 		reg.Write<DWORD>(L"MaximumNumberOfTerrorists", NewTerroristMax);
