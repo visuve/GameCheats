@@ -2,6 +2,7 @@
 
 #include "NonCopyable.hpp"
 #include "Exceptions.hpp"
+#include "Pointer.hpp"
 
 #define NOMINMAX
 #define VC_EXTRALEAN
@@ -9,30 +10,6 @@
 #include <TlHelp32.h>
 
 #include <span>
-
-
-#ifdef _WIN64
-constexpr size_t PointerSizeBytes = 8;
-#else
-constexpr size_t PointerSizeBytes = 4;
-#endif
-
-union Pointer
-{
-	uint8_t* Value = nullptr;
-	uint8_t Bytes[PointerSizeBytes];
-
-	inline Pointer& operator + (size_t offset)
-	{
-		Value += offset;
-		return *this;
-	}
-
-	inline operator void* () const
-	{
-		return Value;
-	}
-};
 
 class Process
 {

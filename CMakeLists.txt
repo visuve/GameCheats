@@ -14,6 +14,7 @@ set(EXECUTABLE_OUTPUT_PATH "..")
 set(LIBRARY_OUTPUT_PATH "..")
 
 add_subdirectory("HackLib")
+add_subdirectory("HackLibTests")
 add_subdirectory("MayPayne")
 add_subdirectory("HOMM3")
 add_subdirectory("R6BO")
