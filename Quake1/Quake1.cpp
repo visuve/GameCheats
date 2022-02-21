@@ -71,7 +71,7 @@ int wmain(int argc, wchar_t** argv)
 		{
 			Process process(L"Quake_x64_steam.exe");
 
-			uint8_t* ammoPtr = process.ResolvePointer(0x018E2950, 0x88);
+			Pointer ammoPtr = process.ResolvePointer(0x018E2950, 0x88);
 			Player player = process.Read<Player>(ammoPtr);
 			
 			std::cout << "Before:" << std::endl;

@@ -8,6 +8,32 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
+#include <span>
+
+
+#ifdef _WIN64
+constexpr size_t PointerSizeBytes = 8;
+#else
+constexpr size_t PointerSizeBytes = 4;
+#endif
+
+union Pointer
+{
+	uint8_t* Value = nullptr;
+	uint8_t Bytes[PointerSizeBytes];
+
+	inline Pointer& operator + (size_t offset)
+	{
+		Value += offset;
+		return *this;
+	}
+
+	inline operator void* () const
+	{
+		return Value;
+	}
+};
+
 class Process
 {
 public:
@@ -16,16 +42,19 @@ public:
 	NonCopyable(Process);
 	virtual ~Process();
 
-	uint8_t* Address(size_t offset) const;
+	inline Pointer Address(size_t offset) const
+	{
+		return { _module.modBaseAddr + offset };
+	}
 
 	template<typename ... T>
-	uint8_t* ResolvePointer(size_t base, T ... offsets) const
+	Pointer ResolvePointer(size_t base, T ... offsets) const
 	{
-		uint8_t* pointer = Address(base);
+		Pointer pointer = Address(base);
 
 		for (size_t offset : { offsets... })
 		{
-			pointer = Read<uint8_t*>(pointer) + offset;
+			pointer = Read<Pointer>(pointer) + offset;
 		}
 
 		_ASSERT_EXPR(pointer, "The pointer is null!");
@@ -34,7 +63,7 @@ public:
 	}
 
 	template<typename T>
-	void Read(uint8_t* pointer, T* value, size_t size) const
+	void Read(Pointer pointer, T* value, size_t size) const
 	{
 		SIZE_T bytesRead = 0;
 
@@ -47,7 +76,7 @@ public:
 	}
 
 	template<typename T>
-	T Read(uint8_t* pointer) const
+	T Read(Pointer pointer) const
 	{
 		T value = T();
 		Read(pointer, &value, sizeof(T));
@@ -61,7 +90,7 @@ public:
 	}
 
 	template<typename T>
-	void Write(uint8_t* pointer, const T& value) const
+	void Write(Pointer pointer, const T& value) const
 	{
 		SIZE_T bytesWritten = 0;
 
@@ -80,7 +109,7 @@ public:
 	}
 
 	template<size_t N>
-	void Write(uint8_t* pointer, const uint8_t(&bytes)[N]) const
+	void Write(Pointer pointer, const uint8_t(&bytes)[N]) const
 	{
 		SIZE_T bytesWritten = 0;
 
@@ -108,7 +137,7 @@ public:
 		T data[elements];
 		std::memset(data, value, bytes);
 		
-		uint8_t* pointer = Address(Start);
+		Pointer pointer = Address(Start);
 		SIZE_T bytesWritten = 0;
 
 		if (!WriteProcessMemory(_handle, pointer, data, bytes, &bytesWritten))

@@ -23,7 +23,7 @@ int wmain(int argc, wchar_t** argv)
 		{
 			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
-				uint8_t* totalAmmo = process.ResolvePointer(0x000FA57Cu, 0x220u, 0xCu, 0x68u, x, 0x5Cu, 0x4u, 0x18u);
+				Pointer totalAmmo = process.ResolvePointer(0x000FA57Cu, 0x220u, 0xCu, 0x68u, x, 0x5Cu, 0x4u, 0x18u);
 				process.Write(totalAmmo, 999u);
 			}
 		}
@@ -31,7 +31,7 @@ int wmain(int argc, wchar_t** argv)
 		{
 			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
-				uint8_t* magAmmo = process.ResolvePointer(0x000FA57Cu, 0x220u, 0xCu, 0x68u, x, 0x5Cu, 0x4u, 0x1Cu);
+				Pointer magAmmo = process.ResolvePointer(0x000FA57Cu, 0x220u, 0xCu, 0x68u, x, 0x5Cu, 0x4u, 0x1Cu);
 				process.Write(magAmmo, 999u);
 			}
 		}

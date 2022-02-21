@@ -48,7 +48,7 @@ int wmain()
 	{
 		Process process(L"HOMM3 2.0.exe");
 
-		uint8_t* resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
+		Pointer resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
 
 		Resources resources = process.Read<Resources>(resourcePointer);
 		

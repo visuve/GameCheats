@@ -1,5 +1,6 @@
 #include "HackLib-PCH.hpp"
 #include "Process.hpp"
+#include "OpCodes.hpp"
 
 class Snapshot
 {
@@ -105,9 +106,4 @@ Process::~Process()
 	{
 		CloseHandle(_handle);
 	}
-}
-
-uint8_t* Process::Address(size_t offset) const
-{
-	return _module.modBaseAddr + offset;
 }

@@ -146,10 +146,10 @@ namespace R6BO
 		// Forces selected & maximum values
 		constexpr size_t base = 0x0046CDA4;
 
-		uint8_t* backgroundMax = process.ResolvePointer(base, 0x10u, 0x420u);
-		uint8_t* backgroundSelected = process.ResolvePointer(base, 0x99Cu);
-		uint8_t* uiMax = process.ResolvePointer(base, 0x8u, 0xD4u, 0x18Cu);
-		uint8_t* uiSelected = process.ResolvePointer(base, 0x8u, 0xD4u, 0x184u);
+		Pointer backgroundMax = process.ResolvePointer(base, 0x10u, 0x420u);
+		Pointer backgroundSelected = process.ResolvePointer(base, 0x99Cu);
+		Pointer uiMax = process.ResolvePointer(base, 0x8u, 0xD4u, 0x18Cu);
+		Pointer uiSelected = process.ResolvePointer(base, 0x8u, 0xD4u, 0x184u);
 
 		std::cout << process.Read<uint32_t>(backgroundMax) << std::endl;
 		std::cout << process.Read<uint32_t>(backgroundSelected) << std::endl;
