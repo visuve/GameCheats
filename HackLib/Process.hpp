@@ -154,6 +154,62 @@ public:
 	// hence this is needed in rare cases only
 	void FreeMemory(Pointer pointer);
 
+	template<size_t Nops, size_t CodeSize>
+	void InjectX64(size_t from, const uint8_t(&code)[CodeSize])
+	{
+		constexpr size_t JumpOpSize = 14;
+		constexpr size_t BytesRequired = CodeSize + JumpOpSize;
+
+		Pointer origin = Address(from);
+		Pointer target = AllocateMemory(BytesRequired);
+		
+		// Add the code
+		{
+			uint8_t codeWithJumpBack[BytesRequired] = {};
+
+			std::copy(
+				std::begin(code),
+				std::end(code),
+				std::begin(codeWithJumpBack));
+
+			codeWithJumpBack[CodeSize + 0] = 0xFF;
+			codeWithJumpBack[CodeSize + 1] = 0x25;
+
+			Pointer returnAddress(origin + JumpOpSize);
+
+			std::copy(
+				std::begin(returnAddress.Bytes),
+				std::end(returnAddress.Bytes),
+				std::begin(codeWithJumpBack) + CodeSize + 6);
+
+			Write(target, codeWithJumpBack);
+
+			if (!FlushInstructionCache(_handle, target, BytesRequired))
+			{
+				throw Win32Exception("FlushInstructionCache");
+			}
+		}
+
+		// Write the jump
+		{
+			uint8_t jump[JumpOpSize + Nops] = { 0xFF, 0x25 };
+
+			std::copy(
+				std::begin(target.Bytes),
+				std::end(target.Bytes),
+				std::begin(jump) + 6);
+
+			std::fill(std::begin(jump) + JumpOpSize, std::end(jump), 0x90);
+
+			Write(origin, jump);
+
+			if (!FlushInstructionCache(_handle, origin, sizeof(jump)))
+			{
+				throw Win32Exception("FlushInstructionCache");
+			}
+		}
+	}
+
 private:
 	DWORD _pid = 0;
 	MODULEENTRY32W _module = {};
