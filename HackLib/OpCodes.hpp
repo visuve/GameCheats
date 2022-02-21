@@ -184,6 +184,18 @@ namespace X86
 		
 		PopEv = 0x8F,
 
-		Nop = 0x90
+		Nop = 0x90,
+
+		XchgEaxEcx = 0x91,
+		XchgEaxEdx = 0x92,
+		XchgEaxEbx = 0x93,
+		XchgEaxEsp = 0x94,
+		XchgEaxEbp = 0x95,
+		XchgEaxEsi = 0x96,
+		XchgEaxEdi = 0x97,
+
+		JmpJz = 0xE9,
+		JmpAp = 0xEA,
+		JmpJb = 0xEB
 	};
 }
