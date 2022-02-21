@@ -107,3 +107,36 @@ Process::~Process()
 		CloseHandle(_handle);
 	}
 }
+
+Pointer Process::AllocateMemory(size_t size)
+{
+	void* memory = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+
+	if (!memory)
+	{
+		throw Win32Exception("VirtualAllocEx");
+	}
+
+	auto result = _memory.emplace(static_cast<uint8_t*>(memory));
+
+	_ASSERT_EXPR(result.second, L"Catastrophic failure, pointer already existed!");
+
+	return *result.first;
+}
+
+void Process::FreeMemory(Pointer pointer)
+{
+	const auto it = std::find(_memory.cbegin(), _memory.cend(), pointer);
+
+	if (it == _memory.cend())
+	{
+		throw RangeException("No such memory allocated!");
+	}
+
+	_memory.erase(it);
+
+	if (!VirtualFreeEx(_handle, pointer, 0, MEM_RELEASE))
+	{
+		throw Win32Exception("VirtualFreeEx");
+	}
+}

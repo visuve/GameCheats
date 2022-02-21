@@ -9,7 +9,7 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
-#include <span>
+#include <set>
 
 class Process
 {
@@ -148,8 +148,15 @@ public:
 		Write<uint8_t>(Offset, to);
 	}
 
+	Pointer AllocateMemory(size_t size);
+
+	// NOTE: all memory is freed in ~Process(),
+	// hence this is needed in rare cases only
+	void FreeMemory(Pointer pointer);
+
 private:
 	DWORD _pid = 0;
 	MODULEENTRY32W _module = {};
 	HANDLE _handle = nullptr;
+	std::set<Pointer> _memory;
 };
