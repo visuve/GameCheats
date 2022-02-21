@@ -1,100 +1,93 @@
 #include "HackLibTests-PCH.hpp"
 
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
-
-TEST_CLASS(PointerTests)
+TEST(PointerTests, Arithmetic)
 {
-public:
-	TEST_METHOD(Arithmetic)
 	{
-		// constexpr size_t Last = PointerSizeBytes - 1;
-		{
-			Pointer ptr1;
-			ptr1.Bytes[0] = 20;
+		Pointer ptr1;
+		ptr1.Bytes[0] = 20;
 
-			Pointer ptr2;
-			ptr2.Bytes[0] = 30;
+		Pointer ptr2;
+		ptr2.Bytes[0] = 30;
 
-			Pointer ptr3 = ptr2 - ptr1;
+		Pointer ptr3 = ptr2 - ptr1;
 
-			Assert::AreEqual(ptr1.Bytes[0], uint8_t(20));
-			Assert::AreEqual(ptr2.Bytes[0], uint8_t(30));
-			Assert::AreEqual(ptr3.Bytes[0], uint8_t(10));
-		}
-		{
-			Pointer ptr1;
-			ptr1.Bytes[0] = 20;
-
-			Pointer ptr2;
-			ptr2.Bytes[0] = 30;
-
-			Pointer ptr3 = ptr2 + ptr1;
-
-			Assert::AreEqual(ptr1.Bytes[0], uint8_t(20));
-			Assert::AreEqual(ptr2.Bytes[0], uint8_t(30));
-			Assert::AreEqual(ptr3.Bytes[0], uint8_t(50));
-		}
-		{
-			Pointer ptr1;
-			ptr1.Bytes[0] = 10;
-
-			Pointer ptr2;
-			ptr2.Bytes[0] = 10;
-
-			Pointer ptr3 = ptr2 - ptr1;
-
-			Assert::AreEqual(ptr1.Bytes[0], uint8_t(10));
-			Assert::AreEqual(ptr2.Bytes[0], uint8_t(10));
-			Assert::IsNull(ptr3.Value);
-		}
-		{
-			Pointer ptr1;
-			ptr1.Bytes[0] = 10;
-
-			ptr1 + 10;
-
-			Assert::AreEqual(ptr1.Bytes[0], uint8_t(10));
-		}
-		{
-			Pointer ptr1;
-			ptr1.Bytes[0] = 10;
-
-			ptr1 += 10;
-
-			Assert::AreEqual(ptr1.Bytes[0], uint8_t(20));
-		}
-		{
-			Pointer ptr1;
-			ptr1.Bytes[0] = 10;
-
-			ptr1 - 10;
-
-			Assert::AreEqual(ptr1.Bytes[0], uint8_t(10));
-		}
-		{
-			Pointer ptr1;
-			ptr1.Bytes[0] = 10;
-
-			ptr1 -= 10;
-
-			Assert::AreEqual(ptr1.Bytes[0], uint8_t(0));
-		}
-		{
-			Pointer ptr1;
-			std::memset(ptr1.Bytes, 0xFF, PointerSizeBytes);
-
-			ptr1 -= 0XFF;
-
-			Assert::AreEqual(ptr1.Bytes[0], uint8_t(0x00));
-		}
-		{
-			Pointer ptr1;
-			std::memset(ptr1.Bytes, 0xFF, PointerSizeBytes);
-
-			ptr1 += 0XFF;
-
-			// Assert::AreEqual(reinterpret_cast<size_t>(ptr1.Value), size_t(0xFF)); // Overflow
-		}
-
+		EXPECT_EQ(ptr1.Bytes[0], 20);
+		EXPECT_EQ(ptr2.Bytes[0], 30);
+		EXPECT_EQ(ptr3.Bytes[0], 10);
 	}
-};
+	{
+		Pointer ptr1;
+		ptr1.Bytes[0] = 20;
+
+		Pointer ptr2;
+		ptr2.Bytes[0] = 30;
+
+		Pointer ptr3 = ptr2 + ptr1;
+
+		EXPECT_EQ(ptr1.Bytes[0], 20);
+		EXPECT_EQ(ptr2.Bytes[0], 30);
+		EXPECT_EQ(ptr3.Bytes[0], 50);
+	}
+	{
+		Pointer ptr1;
+		ptr1.Bytes[0] = 10;
+
+		Pointer ptr2;
+		ptr2.Bytes[0] = 10;
+
+		Pointer ptr3 = ptr2 - ptr1;
+
+		EXPECT_EQ(ptr1.Bytes[0], 10);
+		EXPECT_EQ(ptr2.Bytes[0], 10);
+		EXPECT_TRUE(ptr3.Value == nullptr);
+	}
+	{
+		Pointer ptr1;
+		ptr1.Bytes[0] = 10;
+
+		ptr1 + 10;
+
+		EXPECT_EQ(ptr1.Bytes[0], 10);
+	}
+	{
+		Pointer ptr1;
+		ptr1.Bytes[0] = 10;
+
+		ptr1 += 10;
+
+		EXPECT_EQ(ptr1.Bytes[0], 20);
+	}
+	{
+		Pointer ptr1;
+		ptr1.Bytes[0] = 10;
+
+		ptr1 - 10;
+
+		EXPECT_EQ(ptr1.Bytes[0], 10);
+	}
+	{
+		Pointer ptr1;
+		ptr1.Bytes[0] = 10;
+
+		ptr1 -= 10;
+
+		EXPECT_EQ(ptr1.Bytes[0], 0);
+	}
+	{
+		Pointer ptr1;
+		std::memset(ptr1.Bytes, 0xFF, PointerSizeBytes);
+
+		ptr1 -= 0XFF;
+
+		EXPECT_EQ(ptr1.Bytes[0], 0x00);
+	}
+	{
+		Pointer ptr1;
+		std::memset(ptr1.Bytes, 0xFF, PointerSizeBytes);
+
+		ptr1 += 0XFF;
+
+		EXPECT_EQ(reinterpret_cast<size_t>(ptr1.Value), 0xFE); // Overflow
+	}
+
+}

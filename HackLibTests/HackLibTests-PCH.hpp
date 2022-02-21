@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <CppUnitTest.h>
+#include <gtest/gtest.h>
 
 #include "../HackLib/Pointer.hpp"
 #include "../HackLib/Exceptions.hpp"

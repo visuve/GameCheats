@@ -8,7 +8,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: microsoft/setup-msbuild@v1.0.3
-    - uses: darenm/Setup-VSTest@v1
     - run: |
         mkdir out
         cd out
@@ -16,7 +15,7 @@ jobs:
         msbuild GameCheats.sln /p:Platform=Win32 /p:Configuration=Release /m
 
     - name: Test
-      run: vstest.console.exe out/Release/HackLibTests.dll
+      run: out/Release/HackLibTests.exe
 
     - uses: actions/upload-artifact@v2
       with:
