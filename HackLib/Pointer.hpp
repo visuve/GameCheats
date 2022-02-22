@@ -78,4 +78,10 @@ union Pointer
 	{
 		return Value;
 	}
+
+	inline uint8_t operator[](size_t n) const
+	{
+		_ASSERT(n < PointerSizeBytes);
+		return Bytes[n];
+	}
 };

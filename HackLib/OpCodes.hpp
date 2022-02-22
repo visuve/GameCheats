@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 // http://sparksandflames.com/files/x86InstructionChart.html
 namespace X86
 {
@@ -198,4 +200,49 @@ namespace X86
 		JmpAp = 0xEA,
 		JmpJb = 0xEB
 	};
+
+#ifndef _WIN64
+	constexpr size_t JumpOpSize = 5;
+
+	inline std::array<uint8_t, JumpOpSize> JumpRelative(Pointer distance)
+	{
+		return
+		{
+			0xE9,
+			distance[0],
+			distance[1],
+			distance[2],
+			distance[3]
+		};
+	}
+#endif
+
+}
+
+namespace X64
+{
+#ifdef _WIN64
+	constexpr size_t JumpOpSize = 14;
+
+	inline std::array<uint8_t, JumpOpSize> JumpAbsolute(Pointer ptr)
+	{
+		return
+		{
+			0xFF,
+			0x25,
+			0x00,
+			0x00,
+			0x00,
+			0x00,
+			ptr[0],
+			ptr[1],
+			ptr[2],
+			ptr[3],
+			ptr[4],
+			ptr[5],
+			ptr[6],
+			ptr[7]
+		};
+	}
+#endif
 }
