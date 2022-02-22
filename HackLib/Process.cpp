@@ -140,3 +140,89 @@ void Process::FreeMemory(Pointer pointer)
 		throw Win32Exception("VirtualFreeEx");
 	}
 }
+
+#ifdef _WIN64
+void Process::InjectX64(size_t from, std::span<uint8_t> code)
+{
+	const size_t codeSize = code.size_bytes();
+	const size_t bytesRequired = codeSize + X64::JumpOpSize;
+	const size_t nops = codeSize - X64::JumpOpSize;
+
+	_ASSERTE(nops < codeSize);
+
+	Pointer origin = Address(from);
+	Pointer target = AllocateMemory(bytesRequired);
+
+	{
+		// Add jump op size, because we dont want a forever loop
+		Pointer backwards(origin + X64::JumpOpSize);
+
+		std::vector<uint8_t> codeWithJumpBack(code.begin(), code.end());
+		auto jump = X64::JumpAbsolute(backwards);
+		std::copy(jump.cbegin(), jump.cend(), std::back_inserter(codeWithJumpBack));
+
+		WriteBytes(target, codeWithJumpBack);
+
+		if (!FlushInstructionCache(_handle, target, bytesRequired))
+		{
+			throw Win32Exception("FlushInstructionCache");
+		}
+	}
+
+	{
+		const auto jump = X64::JumpAbsolute(target);
+		std::vector<uint8_t> detour(jump.cbegin(), jump.cend());
+		std::fill_n(std::back_inserter(detour), nops, X86::Nop);
+
+		WriteBytes(origin, detour);
+
+		if (!FlushInstructionCache(_handle, origin, detour.size()))
+		{
+			throw Win32Exception("FlushInstructionCache");
+		}
+	}
+}
+#else
+void Process::InjectX86(size_t from, std::span<uint8_t> code)
+{
+	const size_t codeSize = code.size_bytes();
+	const size_t bytesRequired = codeSize + X86::JumpOpSize;
+	const size_t nops = codeSize - X86::JumpOpSize;
+
+	_ASSERTE(nops < codeSize);
+
+	Pointer origin = Address(from);
+	Pointer target = AllocateMemory(bytesRequired);
+
+	{
+		// Add jump op size, because we dont want a forever loop
+		Pointer backwards((origin + X86::JumpOpSize) - (target + bytesRequired));
+		
+		std::vector<uint8_t> codeWithJumpBack(code.begin(), code.end());
+		auto jump = X86::JumpRelative(backwards);
+		std::copy(jump.cbegin(), jump.cend(), std::back_inserter(codeWithJumpBack));
+
+		WriteBytes(target, codeWithJumpBack);
+
+		if (!FlushInstructionCache(_handle, target, codeWithJumpBack.size()))
+		{
+			throw Win32Exception("FlushInstructionCache");
+		}
+	}
+
+	{
+		Pointer forwards(target - (origin + X86::JumpOpSize));
+		
+		const auto jump = X86::JumpRelative(forwards);
+		std::vector<uint8_t> detour(jump.cbegin(), jump.cend());
+		std::fill_n(std::back_inserter(detour), nops, X86::Nop);
+
+		WriteBytes(origin, detour);
+
+		if (!FlushInstructionCache(_handle, origin, detour.size()))
+		{
+			throw Win32Exception("FlushInstructionCache");
+		}
+	}
+}
+#endif

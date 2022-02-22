@@ -10,6 +10,7 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
+#include <span>
 #include <set>
 
 class Process
@@ -86,23 +87,16 @@ public:
 		Write(Address(offset), value);
 	}
 
-	template<size_t N>
-	void Write(Pointer pointer, const uint8_t(&bytes)[N]) const
+	inline void WriteBytes(Pointer pointer, std::span<uint8_t> bytes) const
 	{
 		SIZE_T bytesWritten = 0;
 
-		if (!WriteProcessMemory(_handle, pointer, bytes, N, &bytesWritten))
+		if (!WriteProcessMemory(_handle, pointer, bytes.data(), bytes.size_bytes(), &bytesWritten))
 		{
 			throw Win32Exception("WriteProcessMemory");
 		}
 
-		_ASSERT_EXPR(bytesWritten == N, L"WriteProcessMemory size mismatch!");
-	}
-
-	template<size_t N>
-	void Write(size_t offset, const uint8_t(&bytes)[N]) const
-	{
-		Write(Address(offset), bytes);
+		_ASSERT_EXPR(bytesWritten == bytes.size_bytes(), L"WriteProcessMemory size mismatch!");
 	}
 
 	template<size_t Start, size_t End, typename T>
@@ -158,107 +152,10 @@ public:
 	// NOTE: In x64, VirtualAllocEx tends to allocate memory
 	// so far away, that a relative "x86 jump" will not do.
 	// In x86 I could not get absolute jumps to work.
-
 #ifdef _WIN64
-	template<size_t CodeSize>
-	void InjectX64(size_t from, const uint8_t(&code)[CodeSize])
-	{
-		constexpr size_t BytesRequired = CodeSize + X64::JumpOpSize;
-
-		Pointer origin = Address(from);
-		Pointer target = AllocateMemory(BytesRequired);
-
-		{
-			uint8_t codeWithJumpBack[BytesRequired] = {};
-
-			auto it = std::copy(
-				std::begin(code),
-				std::end(code),
-				std::begin(codeWithJumpBack));
-
-			// Add jump op size, because we dont want a forever loop
-			auto jump = X64::JumpAbsolute(origin + X64::JumpOpSize);
-
-			std::copy(jump.begin(), jump.end(), it);
-
-			Write(target, codeWithJumpBack);
-
-			if (!FlushInstructionCache(_handle, target, BytesRequired))
-			{
-				throw Win32Exception("FlushInstructionCache");
-			}
-		}
-
-		{
-			constexpr size_t Nops = CodeSize - X64::JumpOpSize;
-
-			static_assert(Nops < CodeSize);
-
-			uint8_t detour[X64::JumpOpSize + Nops] = {};
-			auto jump = X64::JumpAbsolute(target);
-
-			auto it = std::copy(jump.begin(), jump.end(), detour);
-			std::fill(it, std::end(detour), X86::Nop);
-
-			Write(origin, detour);
-
-			if (!FlushInstructionCache(_handle, origin, sizeof(jump)))
-			{
-				throw Win32Exception("FlushInstructionCache");
-			}
-		}
-	}
+	void InjectX64(size_t offset, std::span<uint8_t> code);
 #else
-	template<size_t CodeSize>
-	void InjectX86(size_t from, const uint8_t(&code)[CodeSize])
-	{
-		constexpr size_t BytesRequired = CodeSize + X86::JumpOpSize;
-
-		Pointer origin = Address(from);
-		Pointer target = AllocateMemory(BytesRequired);
-		
-		{
-			uint8_t codeWithJumpBack[BytesRequired] = {};
-
-			auto it = std::copy(
-				std::begin(code),
-				std::end(code),
-				std::begin(codeWithJumpBack));
-
-			// Add jump op size, because we dont want a forever loop
-			Pointer backwards((origin + X86::JumpOpSize) - (target + BytesRequired));
-			auto jump = X86::JumpRelative(backwards);
-
-			std::copy(jump.begin(), jump.end(), it);
-
-			Write(target, codeWithJumpBack);
-
-			if (!FlushInstructionCache(_handle, target, BytesRequired))
-			{
-				throw Win32Exception("FlushInstructionCache");
-			}
-		}
-
-		{
-			constexpr size_t Nops = CodeSize - X86::JumpOpSize;
-
-			static_assert(Nops < CodeSize);
-
-			uint8_t detour[X86::JumpOpSize + Nops] = {};
-			Pointer forwards(target - (origin + X86::JumpOpSize));
-			auto jump = X86::JumpRelative(forwards);
-			
-			auto it = std::copy(jump.begin(), jump.end(), detour);
-			std::fill(it, std::end(detour), X86::Nop);
-
-			Write(origin, detour);
-
-			if (!FlushInstructionCache(_handle, origin, sizeof(jump)))
-			{
-				throw Win32Exception("FlushInstructionCache");
-			}
-		}
-	}
+	void InjectX86(size_t offset, std::span<uint8_t> code);
 #endif
 
 private:

@@ -42,7 +42,9 @@ int wmain(int argc, wchar_t** argv)
 
 			// Skip clip ammo reducing function by jumping directly to its return
 			// The function cannot be overwritten with nops, because during loads, the mags will reset to zero
-			process.Write(0x0000A614u, { 0xE8u, 0xCBu, 0xF7u, 0x04u, 0x00u });
+			Pointer ptr = process.Address(0x0000A614u);
+			uint8_t code[] = { 0xE8, 0xCB, 0xF7, 0x04, 0x00 };
+			process.Write(ptr, code);
 		}
 		else
 		{
