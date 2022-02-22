@@ -145,6 +145,8 @@ public:
 
 	Pointer AllocateMemory(size_t size);
 
+	void CreateThread(Pointer address);
+
 	// NOTE: all memory is freed in ~Process(),
 	// hence this is needed in rare cases only
 	void FreeMemory(Pointer pointer);
@@ -162,5 +164,6 @@ private:
 	DWORD _pid = 0;
 	MODULEENTRY32W _module = {};
 	HANDLE _handle = nullptr;
+	std::set<HANDLE> _threads;
 	std::set<Pointer> _memory;
 };

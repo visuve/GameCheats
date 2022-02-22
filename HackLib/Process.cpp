@@ -102,6 +102,18 @@ Process::Process(std::wstring_view name) :
 
 Process::~Process()
 {
+	for (HANDLE thread : _threads)
+	{
+		bool result = CloseHandle(thread);
+		_ASSERT(result);
+	}
+
+	for (Pointer memory : _memory)
+	{
+		bool result = VirtualFreeEx(_handle, memory, 0, MEM_RELEASE);
+		_ASSERT(result);
+	}
+
 	if (_handle)
 	{
 		CloseHandle(_handle);
@@ -122,6 +134,22 @@ Pointer Process::AllocateMemory(size_t size)
 	_ASSERT_EXPR(result.second, L"Catastrophic failure, pointer already existed!");
 
 	return *result.first;
+}
+
+void Process::CreateThread(Pointer address)
+{
+	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value);
+	
+	HANDLE thread = CreateRemoteThread(_handle, nullptr, 0, startAddress, nullptr, 0, 0);
+
+	if (!thread)
+	{
+		throw Win32Exception("CreateRemoteThread");
+	}
+
+	auto result = _threads.emplace(thread);
+
+	_ASSERT_EXPR(result.second, L"Catastrophic failure, thread already existed!");
 }
 
 void Process::FreeMemory(Pointer pointer)
