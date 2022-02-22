@@ -143,6 +143,8 @@ public:
 		Write<uint8_t>(Offset, to);
 	}
 
+	Pointer FindLibraryBaseAddress(std::wstring_view name);
+
 	Pointer AllocateMemory(size_t size);
 
 	void CreateThread(Pointer address);

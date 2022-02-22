@@ -120,6 +120,19 @@ Process::~Process()
 	}
 }
 
+Pointer Process::FindLibraryBaseAddress(std::wstring_view name)
+{
+	const Snapshot snapshot(TH32CS_SNAPMODULE, _pid);
+
+	const auto filter = [&](const MODULEENTRY32W& moduleEntry)
+	{
+		const std::filesystem::path path(moduleEntry.szModule);
+		return _wcsnicmp(path.c_str(), name.data(), name.size()) == 0;
+	};
+
+	return snapshot.FindModule(filter).modBaseAddr;
+}
+
 Pointer Process::AllocateMemory(size_t size)
 {
 	void* memory = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
