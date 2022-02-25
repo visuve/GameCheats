@@ -120,7 +120,7 @@ Process::~Process()
 	}
 }
 
-Pointer Process::FindLibraryBaseAddress(std::wstring_view name)
+MODULEENTRY32W Process::FindModule(std::wstring_view name) const
 {
 	const Snapshot snapshot(TH32CS_SNAPMODULE, _pid);
 
@@ -130,7 +130,42 @@ Pointer Process::FindLibraryBaseAddress(std::wstring_view name)
 		return _wcsnicmp(path.c_str(), name.data(), name.size()) == 0;
 	};
 
-	return snapshot.FindModule(filter).modBaseAddr;
+	return snapshot.FindModule(filter);
+}
+
+IMAGE_NT_HEADERS Process::NtHeader() const
+{
+	Pointer module(_module.modBaseAddr);
+
+	const auto dosHeader = Read<IMAGE_DOS_HEADER>(module);
+
+	if (dosHeader.e_magic != IMAGE_DOS_SIGNATURE)
+	{
+		throw LogicException("Invalid DOS header");
+	}
+
+	const auto ntHeaders = Read<IMAGE_NT_HEADERS>(module + dosHeader.e_lfanew);
+
+	if (ntHeaders.Signature != IMAGE_NT_SIGNATURE) 
+	{
+		throw LogicException("Invalid NT headers");
+	}
+
+#ifdef _WIN64
+	if (ntHeaders.OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+#else
+	if (ntHeaders.OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR32_MAGIC)
+#endif
+	{
+		throw LogicException("Invalid magic");
+	}
+
+	if (!(ntHeaders.FileHeader.Characteristics & IMAGE_FILE_EXECUTABLE_IMAGE))
+	{	
+		throw LogicException("Not an executable");
+	}
+
+	return ntHeaders;
 }
 
 Pointer Process::AllocateMemory(size_t size)

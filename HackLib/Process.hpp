@@ -57,7 +57,7 @@ public:
 	template<typename T>
 	T Read(Pointer pointer) const
 	{
-		T value = T();
+		T value = {};
 		Read(pointer, &value, sizeof(T));
 		return value;
 	}
@@ -143,7 +143,9 @@ public:
 		Write<uint8_t>(Offset, to);
 	}
 
-	Pointer FindLibraryBaseAddress(std::wstring_view name);
+	MODULEENTRY32W FindModule(std::wstring_view name) const;
+
+	IMAGE_NT_HEADERS NtHeader() const;
 
 	Pointer AllocateMemory(size_t size);
 
