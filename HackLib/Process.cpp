@@ -288,7 +288,7 @@ void Process::InjectX64(size_t from, std::span<uint8_t> code)
 	const size_t bytesRequired = codeSize + JumpOpSize;
 	const size_t nops = codeSize - JumpOpSize;
 
-	_ASSERTE(nops < codeSize);
+	_ASSERT(nops < codeSize);
 
 	Pointer origin = Address(from);
 	Pointer target = AllocateMemory(bytesRequired);
@@ -327,7 +327,7 @@ void Process::InjectX86(size_t from, std::span<uint8_t> code)
 	const size_t bytesRequired = codeSize + JumpOpSize;
 	const size_t nops = codeSize - JumpOpSize;
 
-	_ASSERTE(nops < codeSize);
+	_ASSERT(nops < codeSize);
 
 	Pointer origin = Address(from);
 	Pointer target = AllocateMemory(bytesRequired);

@@ -94,6 +94,16 @@ union Pointer
 		return Value > other.Value;
 	}
 
+	inline bool operator < (size_t offset) const
+	{
+		return reinterpret_cast<size_t>(Value) < offset;
+	}
+
+	inline bool operator > (size_t offset) const
+	{
+		return reinterpret_cast<size_t>(Value) > offset;
+	}
+
 	inline operator void* () const
 	{
 		return Value;

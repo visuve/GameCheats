@@ -37,7 +37,7 @@ public:
 			pointer = Read<Pointer>(pointer) + offset;
 		}
 
-		_ASSERT_EXPR(pointer, "The pointer is null!");
+		_ASSERT_EXPR(pointer, L"The pointer is null!");
 
 		return pointer;
 	}
@@ -52,7 +52,7 @@ public:
 			throw Win32Exception("ReadProcessMemory");
 		}
 
-		_ASSERT_EXPR(bytesRead == size, "ReadProcessMemory size mismatch!");
+		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
 	}
 
 	template<typename T>
@@ -172,37 +172,18 @@ public:
 
 	inline std::array<uint8_t, JumpOpSize> JumpAbsolute(Pointer ptr)
 	{
-		return
-		{
-			0xFF,
-			0x25,
-			0x00,
-			0x00,
-			0x00,
-			0x00,
-			ptr[0],
-			ptr[1],
-			ptr[2],
-			ptr[3],
-			ptr[4],
-			ptr[5],
-			ptr[6],
-			ptr[7]
+		return 
+		{ 
+			0xFF, 0x25, 0x00, 0x00, 0x00, 0x00,
+			ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7]
 		};
 	}
 
 	inline std::array<uint8_t, CallOpSize> CallOp(size_t from, Pointer to)
 	{
 		Pointer dst(to - (Address(from) + CallOpSize));
-		return
-		{
-			0xFF,
-			0x15,
-			dst[0],
-			dst[1],
-			dst[2],
-			dst[3]
-		};
+		_ASSERT_EXPR(dst < 0xFFFF, L"Will not fit in a call op");
+		return { 0xFF, 0x15, dst[0], dst[1], dst[2], dst[3] };
 	}
 #else
 	void InjectX86(size_t offset, std::span<uint8_t> code);
@@ -211,7 +192,7 @@ public:
 
 	inline std::array<uint8_t, JumpOpSize> JumpOp(Pointer from, Pointer to)
 	{
-		_ASSERT(from != to);
+		_ASSERT_EXPR(from != to, L"Jump to nowhere");
 
 		if (from < to)
 		{
@@ -220,27 +201,12 @@ public:
 
 		Pointer dst(to - from);
 
-		return
-		{
-			0xE9,
-			dst[0],
-			dst[1],
-			dst[2],
-			dst[3]
-		};
+		return { 0xE9, dst[0], dst[1], dst[2], dst[3] };
 	}
 
 	inline std::array<uint8_t, CallOpSize> CallOp(Pointer to)
 	{
-		return
-		{
-			0xFF,
-			0x15,
-			to[0],
-			to[1],
-			to[2],
-			to[3]
-		};
+		return { 0xFF, 0x15, to[0],	to[1], to[2], to[3] };
 	}
 #endif
 
