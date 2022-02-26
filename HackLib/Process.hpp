@@ -70,16 +70,22 @@ public:
 	}
 
 	template<typename T>
-	void Write(Pointer pointer, const T& value) const
+	void Write(Pointer pointer, T* value, size_t size) const
 	{
 		SIZE_T bytesWritten = 0;
 
-		if (!WriteProcessMemory(_handle, pointer, &value, sizeof(value), &bytesWritten))
+		if (!WriteProcessMemory(_handle, pointer, value, size, &bytesWritten))
 		{
 			throw Win32Exception("WriteProcessMemory");
 		}
 
-		_ASSERT_EXPR(bytesWritten == sizeof(value), L"WriteProcessMemory size mismatch!");
+		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
+	}
+
+	template<typename T>
+	void Write(Pointer pointer, const T& value) const
+	{
+		Write(pointer, &value, sizeof(value));
 	}
 	
 	template<typename T>
@@ -182,7 +188,7 @@ public:
 	inline std::array<uint8_t, CallOpSize> CallOp(size_t from, Pointer to)
 	{
 		Pointer dst(to - (Address(from) + CallOpSize));
-		_ASSERT_EXPR(dst < 0xFFFF, L"Will not fit in a call op");
+		_ASSERT_EXPR(dst < 0xFFFFFFFF, L"Will not fit in a call op");
 		return { 0xFF, 0x15, dst[0], dst[1], dst[2], dst[3] };
 	}
 #else
