@@ -147,6 +147,10 @@ public:
 
 	IMAGE_NT_HEADERS NtHeader() const;
 
+	IMAGE_IMPORT_DESCRIPTOR FindImport(std::string_view moduleName) const;
+
+	Pointer FindFunctionPointer(std::string_view moduleName, std::string_view functionName) const;
+
 	Pointer AllocateMemory(size_t size);
 
 	void CreateThread(Pointer address);

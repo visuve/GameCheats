@@ -168,6 +168,70 @@ IMAGE_NT_HEADERS Process::NtHeader() const
 	return ntHeaders;
 }
 
+IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
+{
+	IMAGE_NT_HEADERS ntHeader = NtHeader();
+
+	IMAGE_DATA_DIRECTORY importEntry = ntHeader.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+
+	Pointer importDescriptorPtr = Address(importEntry.VirtualAddress);
+
+	// https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-imagervatova
+
+	IMAGE_IMPORT_DESCRIPTOR iid = {};
+	std::string buffer(MAX_PATH , '\0');
+
+	do
+	{
+		iid = Read<IMAGE_IMPORT_DESCRIPTOR>(importDescriptorPtr);
+
+		_ASSERT(iid.Characteristics);
+
+		Read(Address(iid.Name), buffer.data(), buffer.size());
+
+		if (_strnicmp(moduleName.data(), buffer.data(), buffer.size()) == 0)
+		{
+			return iid;
+		}
+
+		importDescriptorPtr += sizeof(IMAGE_IMPORT_DESCRIPTOR);
+
+	} while (iid.Characteristics);
+
+	throw RangeException("Import not found.");
+}
+
+Pointer Process::FindFunctionPointer(std::string_view moduleName, std::string_view functionName) const
+{
+	IMAGE_IMPORT_DESCRIPTOR iid = FindImport(moduleName);
+
+	Pointer thunkPtr = Address(iid.OriginalFirstThunk);
+	std::string buffer(MAX_PATH, '\0');
+
+	const size_t offset = iid.OriginalFirstThunk - iid.FirstThunk;
+	IMAGE_THUNK_DATA thunk = {};
+
+	do
+	{
+		thunk = Read<IMAGE_THUNK_DATA>(thunkPtr);
+
+		_ASSERT(thunk.u1.Function);
+
+		Read(Address(thunk.u1.AddressOfData + 2), buffer.data(), buffer.size());
+
+		if (_strnicmp(functionName.data(), buffer.data(), buffer.size()) == 0)
+		{
+			return thunkPtr - offset;
+		}
+
+		thunkPtr += sizeof(IMAGE_THUNK_DATA);
+
+	} while (thunk.u1.Function);
+
+
+	throw RangeException("Function not found.");
+}
+
 Pointer Process::AllocateMemory(size_t size)
 {
 	void* memory = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
