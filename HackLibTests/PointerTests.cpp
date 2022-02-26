@@ -89,5 +89,29 @@ TEST(PointerTests, Arithmetic)
 
 		EXPECT_EQ(reinterpret_cast<size_t>(ptr1.Value), 0xFE); // Overflow
 	}
+}
 
+TEST(PointerTests, Compare)
+{
+	{
+		Pointer ptr1;
+		ptr1.Bytes[0] = 20;
+
+		Pointer ptr2;
+		ptr2.Bytes[0] = 30;
+
+		ASSERT_GT(ptr2, ptr1);
+		ASSERT_LE(ptr1, ptr2);
+		ASSERT_NE(ptr1, ptr2);
+		ASSERT_NE(ptr2, ptr1);
+	}
+	{
+		Pointer ptr1;
+		ptr1.Bytes[0] = 20;
+
+		Pointer ptr2;
+		ptr2.Bytes[0] = 20;
+
+		ASSERT_EQ(ptr1, ptr2);
+	}
 }

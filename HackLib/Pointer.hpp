@@ -36,18 +36,18 @@ union Pointer
 		return *this;
 	}
 
-	inline Pointer& operator -= (const Pointer& p)
+	inline Pointer& operator -= (const Pointer& p) 
 	{
 		Value -= reinterpret_cast<size_t>(p.Value);
 		return *this;
 	}
 
-	inline Pointer operator + (const Pointer& p)
+	inline Pointer operator + (const Pointer& p) const
 	{
 		return Value + reinterpret_cast<size_t>(p.Value);
 	}
 
-	inline Pointer operator - (const Pointer& p)
+	inline Pointer operator - (const Pointer& p) const
 	{
 		return Value - reinterpret_cast<size_t>(p.Value);
 	}
@@ -64,14 +64,34 @@ union Pointer
 		return *this;
 	}
 
-	inline Pointer operator + (size_t offset)
+	inline Pointer operator + (size_t offset) const
 	{
 		return Value + offset;
 	}
 
-	inline Pointer operator - (size_t offset)
+	inline Pointer operator - (size_t offset) const
 	{
 		return Value - offset;
+	}
+
+	inline bool operator == (const Pointer& other) const
+	{
+		return Value == other.Value;
+	}
+
+	inline bool operator != (const Pointer& other) const
+	{
+		return Value != other.Value;
+	}
+
+	inline bool operator < (const Pointer& other) const
+	{
+		return Value < other.Value;
+	}
+
+	inline bool operator > (const Pointer& other) const
+	{
+		return Value > other.Value;
 	}
 
 	inline operator void* () const
