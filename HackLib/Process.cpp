@@ -285,8 +285,8 @@ void Process::FreeMemory(Pointer pointer)
 void Process::InjectX64(size_t from, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
-	const size_t bytesRequired = codeSize + X64::JumpOpSize;
-	const size_t nops = codeSize - X64::JumpOpSize;
+	const size_t bytesRequired = codeSize + JumpOpSize;
+	const size_t nops = codeSize - JumpOpSize;
 
 	_ASSERTE(nops < codeSize);
 
@@ -295,10 +295,8 @@ void Process::InjectX64(size_t from, std::span<uint8_t> code)
 
 	{
 		// Add jump op size, because we dont want a forever loop
-		Pointer backwards(origin + X64::JumpOpSize);
-
 		std::vector<uint8_t> codeWithJumpBack(code.begin(), code.end());
-		auto jump = X64::JumpAbsolute(backwards);
+		auto jump = JumpAbsolute(origin + JumpOpSize);
 		std::copy(jump.cbegin(), jump.cend(), std::back_inserter(codeWithJumpBack));
 
 		WriteBytes(target, codeWithJumpBack);
@@ -310,7 +308,7 @@ void Process::InjectX64(size_t from, std::span<uint8_t> code)
 	}
 
 	{
-		const auto jump = X64::JumpAbsolute(target);
+		const auto jump = JumpAbsolute(target);
 		std::vector<uint8_t> detour(jump.cbegin(), jump.cend());
 		std::fill_n(std::back_inserter(detour), nops, X86::Nop);
 
@@ -326,8 +324,8 @@ void Process::InjectX64(size_t from, std::span<uint8_t> code)
 void Process::InjectX86(size_t from, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
-	const size_t bytesRequired = codeSize + X86::JumpOpSize;
-	const size_t nops = codeSize - X86::JumpOpSize;
+	const size_t bytesRequired = codeSize + JumpOpSize;
+	const size_t nops = codeSize - JumpOpSize;
 
 	_ASSERTE(nops < codeSize);
 
@@ -336,10 +334,10 @@ void Process::InjectX86(size_t from, std::span<uint8_t> code)
 
 	{
 		// Add jump op size, because we dont want a forever loop
-		Pointer backwards((origin + X86::JumpOpSize) - (target + bytesRequired));
+		// Pointer backwards((origin + X86::JumpOpSize) - (target + bytesRequired));
 		
 		std::vector<uint8_t> codeWithJumpBack(code.begin(), code.end());
-		auto jump = X86::JumpRelative(backwards);
+		auto jump = JumpOp(target + codeSize, origin);
 		std::copy(jump.cbegin(), jump.cend(), std::back_inserter(codeWithJumpBack));
 
 		WriteBytes(target, codeWithJumpBack);
@@ -351,9 +349,7 @@ void Process::InjectX86(size_t from, std::span<uint8_t> code)
 	}
 
 	{
-		Pointer forwards(target - (origin + X86::JumpOpSize));
-		
-		const auto jump = X86::JumpRelative(forwards);
+		const auto jump = JumpOp(origin, target);
 		std::vector<uint8_t> detour(jump.cbegin(), jump.cend());
 		std::fill_n(std::back_inserter(detour), nops, X86::Nop);
 
