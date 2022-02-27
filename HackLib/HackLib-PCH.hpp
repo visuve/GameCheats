@@ -7,6 +7,7 @@
 #include <set>
 #include <span>
 #include <string_view>
+#include <vector>
 
 #define NOMINMAX
 #define VC_EXTRALEAN

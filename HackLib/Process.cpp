@@ -1,6 +1,7 @@
 #include "HackLib-PCH.hpp"
 #include "Process.hpp"
 #include "OpCodes.hpp"
+#include "ByteStream.hpp"
 
 class Snapshot
 {
@@ -306,10 +307,10 @@ void Process::InjectX64(size_t from, std::span<uint8_t> code)
 	Pointer target = AllocateMemory(bytesRequired);
 
 	{
+		ByteStream codeWithJumpBack(code);
+
 		// Add jump op size, because we dont want a forever loop
-		std::vector<uint8_t> codeWithJumpBack(code.begin(), code.end());
-		auto jump = JumpAbsolute(origin + JumpOpSize);
-		std::copy(jump.cbegin(), jump.cend(), std::back_inserter(codeWithJumpBack));
+		codeWithJumpBack << JumpAbsolute(origin + JumpOpSize);
 
 		WriteBytes(target, codeWithJumpBack);
 
@@ -320,13 +321,12 @@ void Process::InjectX64(size_t from, std::span<uint8_t> code)
 	}
 
 	{
-		const auto jump = JumpAbsolute(target);
-		std::vector<uint8_t> detour(jump.cbegin(), jump.cend());
-		std::fill_n(std::back_inserter(detour), nops, X86::Nop);
+		ByteStream detour(JumpAbsolute(target));
+		detour.Fill(nops, X86::Nop);
 
 		WriteBytes(origin, detour);
 
-		if (!FlushInstructionCache(_handle, origin, detour.size()))
+		if (!FlushInstructionCache(_handle, origin, detour.Size()))
 		{
 			throw Win32Exception("FlushInstructionCache");
 		}
@@ -345,29 +345,26 @@ void Process::InjectX86(size_t from, std::span<uint8_t> code)
 	Pointer target = AllocateMemory(bytesRequired);
 
 	{
+		ByteStream codeWithJumpBack(code);
+
 		// Add jump op size, because we dont want a forever loop
-		// Pointer backwards((origin + X86::JumpOpSize) - (target + bytesRequired));
-		
-		std::vector<uint8_t> codeWithJumpBack(code.begin(), code.end());
-		auto jump = JumpOp(target + codeSize, origin);
-		std::copy(jump.cbegin(), jump.cend(), std::back_inserter(codeWithJumpBack));
+		codeWithJumpBack << JumpOp(target + codeSize, origin);
 
 		WriteBytes(target, codeWithJumpBack);
 
-		if (!FlushInstructionCache(_handle, target, codeWithJumpBack.size()))
+		if (!FlushInstructionCache(_handle, target, codeWithJumpBack.Size()))
 		{
 			throw Win32Exception("FlushInstructionCache");
 		}
 	}
 
 	{
-		const auto jump = JumpOp(origin, target);
-		std::vector<uint8_t> detour(jump.cbegin(), jump.cend());
-		std::fill_n(std::back_inserter(detour), nops, X86::Nop);
+		ByteStream detour(JumpOp(origin, target));
+		detour.Fill(nops, X86::Nop);
 
 		WriteBytes(origin, detour);
 
-		if (!FlushInstructionCache(_handle, origin, detour.size()))
+		if (!FlushInstructionCache(_handle, origin, detour.Size()))
 		{
 			throw Win32Exception("FlushInstructionCache");
 		}
