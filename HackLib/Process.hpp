@@ -156,11 +156,13 @@ public:
 
 	IMAGE_IMPORT_DESCRIPTOR FindImport(std::string_view moduleName) const;
 
-	Pointer FindFunctionPointer(std::string_view moduleName, std::string_view functionName) const;
+	Pointer FindFunction(std::string_view moduleName, std::string_view functionName) const;
 
 	Pointer AllocateMemory(size_t size);
 
-	void CreateThread(Pointer address);
+	void CreateThread(Pointer address, Pointer parameter);
+
+	void InjectLibrary(std::string_view name);
 
 	// NOTE: all memory is freed in ~Process(),
 	// hence this is needed in rare cases only

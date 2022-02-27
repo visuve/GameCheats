@@ -201,7 +201,7 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
 	throw RangeException("Import not found.");
 }
 
-Pointer Process::FindFunctionPointer(std::string_view moduleName, std::string_view functionName) const
+Pointer Process::FindFunction(std::string_view moduleName, std::string_view functionName) const
 {
 	IMAGE_IMPORT_DESCRIPTOR iid = FindImport(moduleName);
 
@@ -234,7 +234,7 @@ Pointer Process::FindFunctionPointer(std::string_view moduleName, std::string_vi
 
 Pointer Process::AllocateMemory(size_t size)
 {
-	void* memory = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	void* memory = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
 	if (!memory)
 	{
@@ -248,11 +248,11 @@ Pointer Process::AllocateMemory(size_t size)
 	return *result.first;
 }
 
-void Process::CreateThread(Pointer address)
+void Process::CreateThread(Pointer address, Pointer parameter)
 {
 	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value);
 	
-	HANDLE thread = CreateRemoteThread(_handle, nullptr, 0, startAddress, nullptr, 0, 0);
+	HANDLE thread = CreateRemoteThread(_handle, nullptr, 0, startAddress, parameter, 0, 0);
 
 	if (!thread)
 	{
@@ -262,6 +262,18 @@ void Process::CreateThread(Pointer address)
 	auto result = _threads.emplace(thread);
 
 	_ASSERT_EXPR(result.second, L"Catastrophic failure, thread already existed!");
+}
+
+void Process::InjectLibrary(std::string_view name)
+{
+	Pointer namePtr = AllocateMemory(name.size() + 1); // +1 to include null terminator
+	Write(namePtr, name.data(), name.size());
+
+	// LoadLibrary has the same relative address in all processes, hence we can use our "own" address.
+	// The FindFunction does not appear to yield same results.
+	Pointer fnPtr(reinterpret_cast<uint8_t*>(&LoadLibraryA));
+
+	CreateThread(fnPtr, namePtr);
 }
 
 void Process::FreeMemory(Pointer pointer)
