@@ -2,17 +2,19 @@
 
 #include "Pointer.hpp"
 
+#include <array>
 #include <span>
 
 class ByteStream
 {
 public:
 	ByteStream() = default;
-
-	ByteStream(std::span<uint8_t> data);
+	explicit ByteStream(size_t size, uint8_t byte = 0x00);
+	explicit ByteStream(std::span<uint8_t> data);
+	explicit ByteStream(std::initializer_list<uint8_t> data);
 
 	template <size_t N>
-	ByteStream(const std::array<uint8_t, N> data) :
+	explicit  ByteStream(const std::array<uint8_t, N> data) :
 		_bytes(data.begin(), data.end())
 	{
 	}
@@ -41,6 +43,7 @@ public:
 
 	uint8_t& operator [](size_t i);
 
+	uint8_t* Data();
 	size_t Size() const;
 
 private:

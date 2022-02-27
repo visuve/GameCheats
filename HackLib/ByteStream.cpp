@@ -1,8 +1,18 @@
 #include "HackLib-PCH.hpp"
 #include "ByteStream.hpp"
 
+ByteStream::ByteStream(size_t size, uint8_t byte) :
+	_bytes(size, byte)
+{
+}
+
 ByteStream::ByteStream(std::span<uint8_t> data) :
 	_bytes(data.begin(), data.end())
+{
+}
+
+ByteStream::ByteStream(std::initializer_list<uint8_t> data) :
+	_bytes(data)
 {
 }
 
@@ -41,6 +51,11 @@ ByteStream::operator std::span<uint8_t>()
 uint8_t& ByteStream::operator [](size_t i)
 {
 	return _bytes[i];
+}
+
+uint8_t* ByteStream::Data()
+{ 
+	return _bytes.data();
 }
 
 size_t ByteStream::Size() const
