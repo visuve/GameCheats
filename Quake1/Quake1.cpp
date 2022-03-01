@@ -98,10 +98,10 @@ int wmain(int argc, wchar_t** argv)
 
 			// Hax
 			stream << 0x48 << 0x81 << 0xFA << 0xA8 << 0x05 << 0x00 << 0x00; // 48 81 FA A8050000 - cmp rdx, 000005A8
-			stream << 0X7C << 0X17; // 7C 17 - jl 3D2E0031
+			stream << 0X7C << 0X0E; // 7C - jl
 			stream << 0x48 << 0x81 << 0xFA << 0xB4 << 0x05 << 0x00 << 0x00; // 48 81 FA B4050000 - cmp rdx, 000005B4
-			stream << 0X7F << 0X0E; // 7C 17 - jg 3D2E0031
-			stream << process.JumpAbsolute(0x1C7BAF);
+			stream << 0X7F << 0X05; // 7F - jg
+			stream << 0xB9 << 0x00 << 0x00 << 0x7F << 0x43; // B9 00007E43 - mov ecx, 437F0000
 
 			stream << 0x89 << 0x0C << 0x02; // mov [rdx+rax],ecx <- the fucker from the original code
 
