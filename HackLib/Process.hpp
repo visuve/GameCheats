@@ -174,17 +174,22 @@ public:
 	// so far away, that a relative "x86 jump" will not do.
 	// In x86 I could not get absolute jumps to work.
 #ifdef _WIN64
-	void InjectX64(size_t offset, std::span<uint8_t> code);
+	void InjectX64(size_t offset, size_t nops, std::span<uint8_t> code);
 
 	static constexpr size_t JumpOpSize = 14;
 
-	inline std::array<uint8_t, JumpOpSize> JumpAbsolute(Pointer ptr)
+	inline static std::array<uint8_t, JumpOpSize> JumpAbsolute(Pointer ptr)
 	{
 		return 
 		{ 
 			0xFF, 0x25, 0x00, 0x00, 0x00, 0x00,
 			ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7]
 		};
+	}
+
+	inline std::array<uint8_t, JumpOpSize> JumpAbsolute(size_t offset)
+	{
+		return JumpAbsolute(Address(offset));
 	}
 
 	inline std::array<uint8_t, CallOpSize> CallOp(size_t from, Pointer to)
@@ -194,11 +199,11 @@ public:
 		return { 0xFF, 0x15, dst[0], dst[1], dst[2], dst[3] };
 	}
 #else
-	void InjectX86(size_t offset, std::span<uint8_t> code);
+	void InjectX86(size_t offset, size_t nops, std::span<uint8_t> code);
 
 	static constexpr size_t JumpOpSize = 5;
 
-	inline std::array<uint8_t, JumpOpSize> JumpOp(Pointer from, Pointer to)
+	inline static std::array<uint8_t, JumpOpSize> JumpOp(Pointer from, Pointer to)
 	{
 		_ASSERT_EXPR(from != to, L"Jump to nowhere");
 
@@ -212,7 +217,7 @@ public:
 		return { 0xE9, dst[0], dst[1], dst[2], dst[3] };
 	}
 
-	inline std::array<uint8_t, CallOpSize> CallOp(Pointer to)
+	inline static std::array<uint8_t, CallOpSize> CallOp(Pointer to)
 	{
 		return { 0xFF, 0x15, to[0],	to[1], to[2], to[3] };
 	}

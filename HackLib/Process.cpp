@@ -295,11 +295,10 @@ void Process::FreeMemory(Pointer pointer)
 }
 
 #ifdef _WIN64
-void Process::InjectX64(size_t from, std::span<uint8_t> code)
+void Process::InjectX64(size_t from, size_t nops, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
-	const size_t nops = codeSize - JumpOpSize;
 
 	_ASSERT(nops < codeSize);
 
@@ -333,11 +332,10 @@ void Process::InjectX64(size_t from, std::span<uint8_t> code)
 	}
 }
 #else
-void Process::InjectX86(size_t from, std::span<uint8_t> code)
+void Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
-	const size_t nops = codeSize - JumpOpSize;
 
 	_ASSERT(nops < codeSize);
 
