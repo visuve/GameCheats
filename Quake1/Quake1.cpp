@@ -67,23 +67,51 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv);
 
-		if (args.Contains(L"infammo"))
+		if (args.Contains(L"giveammo"))
 		{
 			Process process(L"Quake_x64_steam.exe");
 
 			Pointer ammoPtr = process.ResolvePointer(0x018E2950, 0x88);
 			Player player = process.Read<Player>(ammoPtr);
-			
+
 			std::cout << "Before:" << std::endl;
 			std::cout << player << std::endl;
 
-			player.SetAmmo(std::numeric_limits<float>::infinity());
+			player.SetAmmo(0xFF);
 			player.SetItems(AllItems);
 
 			std::cout << "\nAfter:" << std::endl;
 			std::cout << player << std::endl;
 
 			process.Write(ammoPtr, player);
+		}
+		else if (args.Contains(L"infammo"))
+		{
+			Process process(L"Quake_x64_steam.exe");
+
+			ByteStream stream;
+
+			// Orig
+			stream << 0x48 << 0x63 << 0x14 << 0xB3;
+			stream << 0x48 << 0xA1 << process.Address(0x18BEEB0);
+			stream << 0x8B << 0x0C << 0xBB;
+
+			// Hax
+			stream << 0x48 << 0x81 << 0xFA << 0xA8 << 0x05 << 0x00 << 0x00; // 48 81 FA A8050000 - cmp rdx, 000005A8
+			stream << 0X7C << 0X17; // 7C 17 - jl 3D2E0031
+			stream << 0x48 << 0x81 << 0xFA << 0xB4 << 0x05 << 0x00 << 0x00; // 48 81 FA B4050000 - cmp rdx, 000005B4
+			stream << 0X7F << 0X0E; // 7C 17 - jg 3D2E0031
+			stream << process.JumpAbsolute(0x1C7BAF);
+
+			stream << 0x89 << 0x0C << 0x02; // mov [rdx+rax],ecx <- the fucker from the original code
+
+			process.InjectX64(0x1C7BA1, 3, stream);
+
+			Sleep(-1);
+		}
+		else
+		{
+			return ERROR_BAD_ARGUMENTS;
 		}
 
 	}

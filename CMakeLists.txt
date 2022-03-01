@@ -18,7 +18,10 @@ add_subdirectory("MayPayne")
 add_subdirectory("HOMM3")
 add_subdirectory("R6BO")
 add_subdirectory("HiddenAndDangerous")
-add_subdirectory("Quake1")
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	add_subdirectory("Quake1")
+endif()
 
 include("GoogleTest.cmake")
 include(GoogleTest)
