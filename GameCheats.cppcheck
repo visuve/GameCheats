@@ -12,6 +12,7 @@
 		<dir name="R6BO"/>
 		<dir name="HiddenAndDangerous"/>
 		<dir name="Quake1"/>
+		<dir name="MaxPayne2"/>
 	</paths>
 	<libraries>
 		<library>windows</library>
