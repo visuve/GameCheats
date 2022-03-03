@@ -27,6 +27,11 @@ public:
 		return { _module.modBaseAddr + offset };
 	}
 
+	inline Pointer Address(std::wstring_view module, size_t offset) const
+	{
+		return FindModule(module).modBaseAddr + offset;
+	}
+
 	template<typename ... T>
 	Pointer ResolvePointer(size_t base, T ... offsets) const
 	{
@@ -127,27 +132,31 @@ public:
 		_ASSERT_EXPR(bytesWritten == bytes, L"WriteProcessMemory size mismatch!");
 	}
 
-	template<size_t Offset>
-	void ChangeByte(uint8_t from, uint8_t to)
+	inline void ChangeByte(Pointer address, uint8_t from, uint8_t to)
 	{
-		const uint8_t current = Read<uint8_t>(Offset);
+		const uint8_t current = Read<uint8_t>(address);
 
 		if (current != from)
 		{
 			char message[0x40] = {};
-			
+
 			std::snprintf(
 				message,
 				sizeof(message) - 1,
-				"Error @ 0x%zX. Expected 0x%02X, got 0x%02X.",
-				Offset,
+				"Error @ %p. Expected 0x%02X, got 0x%02X.",
+				address,
 				from,
 				current);
 
 			throw LogicException(message);
 		}
-		
-		Write<uint8_t>(Offset, to);
+
+		Write<uint8_t>(address, to);
+	}
+
+	inline void ChangeByte(size_t offset, uint8_t from, uint8_t to)
+	{
+		ChangeByte(Address(offset), from, to);
 	}
 
 	MODULEENTRY32W FindModule(std::wstring_view name) const;

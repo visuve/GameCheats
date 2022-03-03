@@ -23,7 +23,7 @@ int wmain(int argc, wchar_t** argv)
 		{
 			// Reload adds ammo instead of consumes
 			// Also makes painkillers & throwables unlimited
-			process.ChangeByte<0x34829D>(X86::SubGvEv, X86::AddGvEv);
+			process.ChangeByte(0x34829D, X86::SubGvEv, X86::AddGvEv);
 		}
 		
 		if (args.Contains(L"infammo"))

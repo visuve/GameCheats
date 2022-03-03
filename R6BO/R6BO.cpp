@@ -138,10 +138,10 @@ namespace R6BO
 		Process process(L"R6BO.exe");
 
 		// Skips any overrides with registry forced values
-		process.ChangeByte<0x0010A0AE>(X86::JnbJb, X86::JbeJb);
+		process.ChangeByte(0x0010A0AE, X86::JnbJb, X86::JbeJb);
 
 		// Increasing ammo :-)
-		process.ChangeByte<0x00215D1F>(X86::SubGvEv, X86::AddGvEv);
+		process.ChangeByte(0x00215D1F, X86::SubGvEv, X86::AddGvEv);
 
 		// Forces selected & maximum values
 		constexpr size_t base = 0x0046CDA4;
