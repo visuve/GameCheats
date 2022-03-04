@@ -144,7 +144,7 @@ public:
 				message,
 				sizeof(message) - 1,
 				"Error @ %p. Expected 0x%02X, got 0x%02X.",
-				address,
+				address.Value,
 				from,
 				current);
 
