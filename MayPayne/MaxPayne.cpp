@@ -29,12 +29,12 @@ int wmain(int argc, wchar_t** argv)
 		if (args.Contains(L"infammo"))
 		{
 			// The ammo never decreases
-			process.Fill<0x357F50, 0x357F5C>(X86::Nop);
+			process.Fill(0x357F50, 0x357F5C, X86::Nop);
 		}
 
 		if (args.Contains(L"infbullettime"))
 		{
-			process.Fill<0x4CED0, 0x4CEDC>(X86::Nop);
+			process.Fill(0x4CED0, 0x4CEDC, X86::Nop);
 		}
 	}
 	catch (const std::exception& e)

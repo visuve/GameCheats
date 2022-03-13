@@ -38,7 +38,7 @@ int wmain(int argc, wchar_t** argv)
 		else if (args.Contains(L"infammo"))
 		{
 			// Fill total ammo reducing function with NOPs
-			process.Fill<0x00059D90u, 0x00059DB4u, X86::OpCode>(X86::Nop);
+			process.Fill(0x00059D90, 0x00059DB4, X86::Nop);
 
 			// Skip clip ammo reducing function by jumping directly to its return
 			// The function cannot be overwritten with nops, because during loads, the mags will reset to zero

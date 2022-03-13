@@ -111,25 +111,21 @@ public:
 		_ASSERT_EXPR(bytesWritten == bytes.size_bytes(), L"WriteProcessMemory size mismatch!");
 	}
 
-	template<size_t Start, size_t End, typename T>
-	void Fill(T value) const
+	template<typename T>
+	void Fill(size_t from, size_t to, T value) const
 	{
-		constexpr size_t bytes = End - Start;
-		constexpr size_t elements = bytes / sizeof(T);
-		static_assert(bytes % sizeof(T) == 0);
-
-		T data[elements];
-		std::memset(data, value, bytes);
+		const size_t bytes = to - from;
+		const size_t elements = bytes / sizeof(T);
 		
-		Pointer pointer = Address(Start);
-		SIZE_T bytesWritten = 0;
-
-		if (!WriteProcessMemory(_handle, pointer, data, bytes, &bytesWritten))
+		if (bytes % sizeof(T))
 		{
-			throw Win32Exception("WriteProcessMemory");
+			throw LogicException("Alignment mismatch!");
 		}
 
-		_ASSERT_EXPR(bytesWritten == bytes, L"WriteProcessMemory size mismatch!");
+		Pointer pointer = Address(from);
+		std::vector<T> filler(elements, value);
+
+		Write(pointer, filler.data(), bytes);
 	}
 
 	inline void ChangeByte(Pointer address, uint8_t from, uint8_t to)
