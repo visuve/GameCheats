@@ -20,6 +20,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	add_subdirectory("R6BO")
 	add_subdirectory("HiddenAndDangerous")
 	add_subdirectory("MayPayne2")
+	add_subdirectory("HitmanAbsolution")
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)

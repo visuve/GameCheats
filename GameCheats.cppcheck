@@ -13,6 +13,7 @@
 		<dir name="HiddenAndDangerous"/>
 		<dir name="Quake1"/>
 		<dir name="MaxPayne2"/>
+		<dir name="HitmanAbsolution"/>
 	</paths>
 	<libraries>
 		<library>windows</library>
