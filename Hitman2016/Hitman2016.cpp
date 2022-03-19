@@ -21,11 +21,20 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"infammo"))
 		{
-			// hitman.exe+12A09C - 41 0F11 86 78030000 - movups [r14+00000378],xmm0
-			// from there on up the xoring
-			uint8_t bytes[] = { 0x49, 0xFF, 0xC4, 0x90 };
-			process.WriteBytes(0x129FF1, bytes);
+			ByteStream code;
+
+			// Stolen
+			code << 0x89 << 0x05 << 0x1D << 0x2C << 0xBC << 0x01;
+			code << 0x66 << 0x89 << 0x05 << 0x1A << 0x2C << 0xBC << 0x01;
+			code << 0x88 << 0x05 << 0x16 << 0x2C << 0xBC << 0x01;
+
+			// New code
+			code << 0x49 << 0xBC << 0xE7 << 0x03 << 0x00 << 0x00 << 0x00 << 0x00 << 0x00 << 0x00;
+
+			process.InjectX64(0x129FDE, 9, code);
 		}
+
+		Sleep(INFINITE);
 	}
 	catch (const std::exception& e)
 	{
