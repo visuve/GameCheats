@@ -14,6 +14,7 @@
 		<dir name="Quake1"/>
 		<dir name="MaxPayne2"/>
 		<dir name="HitmanAbsolution"/>
+		<dir name="Hitman2016"/>
 	</paths>
 	<libraries>
 		<library>windows</library>

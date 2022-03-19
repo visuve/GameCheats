@@ -111,6 +111,11 @@ public:
 		_ASSERT_EXPR(bytesWritten == bytes.size_bytes(), L"WriteProcessMemory size mismatch!");
 	}
 
+	inline void WriteBytes(size_t offset, std::span<uint8_t> bytes) const
+	{
+		WriteBytes(Address(offset), bytes);
+	}
+
 	template<typename T>
 	void Fill(size_t from, size_t to, T value) const
 	{
