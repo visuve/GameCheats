@@ -21,6 +21,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	add_subdirectory("HiddenAndDangerous")
 	add_subdirectory("MayPayne2")
 	add_subdirectory("HitmanAbsolution")
+	add_subdirectory("FalloutNV")
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)

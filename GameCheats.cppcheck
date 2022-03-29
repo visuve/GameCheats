@@ -15,6 +15,7 @@
 		<dir name="MaxPayne2"/>
 		<dir name="HitmanAbsolution"/>
 		<dir name="Hitman2016"/>
+		<dir name="FalloutNV"/>
 	</paths>
 	<libraries>
 		<library>windows</library>
