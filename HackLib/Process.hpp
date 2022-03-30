@@ -170,9 +170,9 @@ public:
 
 	Pointer AllocateMemory(size_t size);
 
-	void CreateThread(Pointer address, Pointer parameter);
+	DWORD CreateThread(Pointer address, Pointer parameter, bool detached = false);
 
-	void InjectLibrary(std::string_view name);
+	DWORD InjectLibrary(std::string_view name);
 
 	// NOTE: all memory is freed in ~Process(),
 	// hence this is needed in rare cases only

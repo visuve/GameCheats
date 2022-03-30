@@ -249,7 +249,7 @@ Pointer Process::AllocateMemory(size_t size)
 	return *result.first;
 }
 
-void Process::CreateThread(Pointer address, Pointer parameter)
+DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 {
 	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value);
 	
@@ -260,12 +260,34 @@ void Process::CreateThread(Pointer address, Pointer parameter)
 		throw Win32Exception("CreateRemoteThread");
 	}
 
-	auto result = _threads.emplace(thread);
+	if (detached)
+	{
+		auto result = _threads.emplace(thread);
+		_ASSERT_EXPR(result.second, L"Catastrophic failure, thread already existed!");
+		return 0;
+	}
 
-	_ASSERT_EXPR(result.second, L"Catastrophic failure, thread already existed!");
+	if (!WaitForSingleObject(thread, INFINITE))
+	{
+		throw Win32Exception("WaitForSingleObject");
+	}
+
+	DWORD exitCode = 0;
+
+	if (!GetExitCodeThread(thread, &exitCode))
+	{
+		throw Win32Exception("GetExitCodeThread");
+	}
+
+	if (!CloseHandle(thread))
+	{
+		throw Win32Exception("CloseHandle");
+	}
+
+	return exitCode;
 }
 
-void Process::InjectLibrary(std::string_view name)
+DWORD Process::InjectLibrary(std::string_view name)
 {
 	Pointer namePtr = AllocateMemory(name.size() + 1); // +1 to include null terminator
 	Write(namePtr, name.data(), name.size());
@@ -274,7 +296,11 @@ void Process::InjectLibrary(std::string_view name)
 	// The FindFunction does not appear to yield same results.
 	Pointer fnPtr(reinterpret_cast<uint8_t*>(&LoadLibraryA));
 
-	CreateThread(fnPtr, namePtr);
+	DWORD result = CreateThread(fnPtr, namePtr);
+
+	FreeMemory(namePtr);
+
+	return result;
 }
 
 void Process::FreeMemory(Pointer pointer)
