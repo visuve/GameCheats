@@ -246,6 +246,13 @@ Pointer Process::AllocateMemory(size_t size)
 
 	_ASSERT_EXPR(result.second, L"Catastrophic failure, pointer already existed!");
 
+	MEMORY_BASIC_INFORMATION info = {};
+
+	if (VirtualQueryEx(_handle, memory, &info, sizeof(MEMORY_BASIC_INFORMATION)) == sizeof(MEMORY_BASIC_INFORMATION))
+	{
+		printf("Allocated %zu bytes at %p\n", info.RegionSize, memory);
+	}
+
 	return *result.first;
 }
 

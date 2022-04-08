@@ -1,7 +1,7 @@
 #pragma once
 
-#include "NonCopyable.hpp"
 #include "Exceptions.hpp"
+#include "NonCopyable.hpp"
 #include "Pointer.hpp"
 #include "OpCodes.hpp"
 
@@ -11,8 +11,8 @@
 #include <TlHelp32.h>
 
 #include <array>
-#include <span>
 #include <set>
+#include <span>
 
 class Process
 {
@@ -58,6 +58,8 @@ public:
 		}
 
 		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
+
+		printf("Read %zu bytes from %p\n", bytesRead, pointer.Value);
 	}
 
 	template<typename T>
@@ -75,7 +77,7 @@ public:
 	}
 
 	template<typename T>
-	void Write(Pointer pointer, T* value, size_t size) const
+	void Write(Pointer pointer, const T* value, size_t size) const
 	{
 		SIZE_T bytesWritten = 0;
 
@@ -85,6 +87,8 @@ public:
 		}
 
 		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
+
+		printf("Wrote %zu bytes at %p\n", bytesWritten, pointer.Value);
 	}
 
 	template<typename T>
@@ -101,14 +105,7 @@ public:
 
 	inline void WriteBytes(Pointer pointer, std::span<uint8_t> bytes) const
 	{
-		SIZE_T bytesWritten = 0;
-
-		if (!WriteProcessMemory(_handle, pointer, bytes.data(), bytes.size_bytes(), &bytesWritten))
-		{
-			throw Win32Exception("WriteProcessMemory");
-		}
-
-		_ASSERT_EXPR(bytesWritten == bytes.size_bytes(), L"WriteProcessMemory size mismatch!");
+		Write(pointer, bytes.data(), bytes.size_bytes());
 	}
 
 	inline void WriteBytes(size_t offset, std::span<uint8_t> bytes) const
