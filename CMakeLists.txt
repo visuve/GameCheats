@@ -13,8 +13,9 @@ endif()
 set(EXECUTABLE_OUTPUT_PATH "..")
 set(LIBRARY_OUTPUT_PATH "..")
 
+add_subdirectory("HackLib")
+
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-	add_subdirectory("HackLib")
 	add_subdirectory("MayPayne")
 	add_subdirectory("HOMM3")
 	add_subdirectory("R6BO")
