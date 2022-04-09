@@ -1,5 +1,6 @@
 #include "HackLib-PCH.hpp"
 #include "ByteStream.hpp"
+#include "Exceptions.hpp"
 
 ByteStream::ByteStream(size_t size, uint8_t byte) :
 	_bytes(size, byte)
@@ -36,6 +37,29 @@ ByteStream& ByteStream::operator << (const Pointer& ptr)
 		std::back_inserter(_bytes));
 
 	return *this;
+}
+
+ByteStream ByteStream::FromString(const std::string& raw)
+{
+	std::stringstream stream(raw);
+	stream.setf(std::ios::hex, std::ios::basefield);
+
+	uint16_t value;
+	ByteStream result;
+
+	while (stream.good())
+	{
+		stream >> value;
+
+		if (value > 0xFF)
+		{
+			throw LogicException("A single byte cannot be over 255!");
+		}
+
+		result << value;
+	}
+
+	return result;
 }
 
 void ByteStream::Fill(size_t n, uint8_t byte)

@@ -37,6 +37,8 @@ public:
 		return *this;
 	}
 
+	static ByteStream FromString(const std::string& raw);
+
 	void Fill(size_t n, uint8_t byte);
 
 	operator std::span<uint8_t>();

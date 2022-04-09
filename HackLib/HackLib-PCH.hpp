@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <set>
 #include <span>
+#include <sstream>
 #include <string_view>
 #include <vector>
 
