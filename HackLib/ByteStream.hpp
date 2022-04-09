@@ -19,6 +19,8 @@ public:
 	{
 	}
 
+	explicit ByteStream(const std::string& data);
+
 	ByteStream& operator << (const uint8_t byte);
 	ByteStream& operator << (std::span<uint8_t> data);
 	ByteStream& operator << (const Pointer& ptr);
@@ -37,7 +39,7 @@ public:
 		return *this;
 	}
 
-	static ByteStream FromString(const std::string& raw);
+	ByteStream& operator << (const std::string& bytes);
 
 	void Fill(size_t n, uint8_t byte);
 

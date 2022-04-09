@@ -17,6 +17,11 @@ ByteStream::ByteStream(std::initializer_list<uint8_t> data) :
 {
 }
 
+ByteStream::ByteStream(const std::string& data)
+{
+	*this << data;
+}
+
 ByteStream& ByteStream::operator << (const uint8_t byte)
 {
 	_bytes.emplace_back(byte);
@@ -39,13 +44,12 @@ ByteStream& ByteStream::operator << (const Pointer& ptr)
 	return *this;
 }
 
-ByteStream ByteStream::FromString(const std::string& raw)
+ByteStream& ByteStream::operator << (const std::string& bytes)
 {
-	std::stringstream stream(raw);
+	std::stringstream stream(bytes);
 	stream.setf(std::ios::hex, std::ios::basefield);
 
 	uint16_t value;
-	ByteStream result;
 
 	while (stream.good())
 	{
@@ -56,10 +60,10 @@ ByteStream ByteStream::FromString(const std::string& raw)
 			throw LogicException("A single byte cannot be over 255!");
 		}
 
-		result << value;
+		*this << static_cast<uint8_t>(value);
 	}
 
-	return result;
+	return *this;
 }
 
 void ByteStream::Fill(size_t n, uint8_t byte)

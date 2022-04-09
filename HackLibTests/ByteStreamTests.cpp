@@ -118,13 +118,27 @@ TEST(ByteStreamTests, Fill)
 
 TEST(ByteStreamTests, FromString)
 {
-	ByteStream stream = ByteStream::FromString("00 FF 00 FF 00 88");
+	{
+		ByteStream stream("00 FF 00 FF 00 88");
 
-	EXPECT_EQ(stream.Size(), 6);
-	EXPECT_EQ(stream[0], 0x00);
-	EXPECT_EQ(stream[1], 0xFF);
-	EXPECT_EQ(stream[2], 0x00);
-	EXPECT_EQ(stream[3], 0xFF);
-	EXPECT_EQ(stream[4], 0x00);
-	EXPECT_EQ(stream[5], 0x88);
+		EXPECT_EQ(stream.Size(), 6);
+		EXPECT_EQ(stream[0], 0x00);
+		EXPECT_EQ(stream[1], 0xFF);
+		EXPECT_EQ(stream[2], 0x00);
+		EXPECT_EQ(stream[3], 0xFF);
+		EXPECT_EQ(stream[4], 0x00);
+		EXPECT_EQ(stream[5], 0x88);
+	}
+	{
+		ByteStream stream;
+		stream << "FF 00 FF 00 FF 88";
+
+		EXPECT_EQ(stream.Size(), 6);
+		EXPECT_EQ(stream[0], 0xFF);
+		EXPECT_EQ(stream[1], 0x00);
+		EXPECT_EQ(stream[2], 0xFF);
+		EXPECT_EQ(stream[3], 0x00);
+		EXPECT_EQ(stream[4], 0xFF);
+		EXPECT_EQ(stream[5], 0x88);
+	}
 }
