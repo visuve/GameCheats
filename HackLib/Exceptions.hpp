@@ -1,9 +1,5 @@
 #pragma once
 
-#include <filesystem>
-#include <stdexcept>
-#include <system_error>
-
 #define ExceptionMessage(msg) \
 	std::filesystem::path(__FILE__).filename().string() + \
 	std::string(":") + \

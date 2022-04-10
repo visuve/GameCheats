@@ -1,5 +1,4 @@
 #include "../Mega.pch"
-#include <regex>
 
 /*
 	More terrorists in Rainbow Six - Black Ops

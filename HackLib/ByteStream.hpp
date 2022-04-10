@@ -2,9 +2,6 @@
 
 #include "Pointer.hpp"
 
-#include <array>
-#include <span>
-
 class ByteStream
 {
 public:

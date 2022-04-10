@@ -3,12 +3,6 @@
 #include "NonCopyable.hpp"
 #include "Exceptions.hpp"
 
-#include <filesystem>
-
-#define NOMINMAX
-#define VC_EXTRALEAN
-#include <Windows.h>
-
 class Registry
 {
 public:

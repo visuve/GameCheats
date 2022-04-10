@@ -1,8 +1,5 @@
 #pragma once
 
-#include <filesystem>
-#include <span>
-
 namespace FsOps
 {
 	// NOTE: std::regex_search has no yet option for std::string_view :(

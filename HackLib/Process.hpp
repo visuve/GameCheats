@@ -3,16 +3,6 @@
 #include "Exceptions.hpp"
 #include "NonCopyable.hpp"
 #include "Pointer.hpp"
-#include "OpCodes.hpp"
-
-#define NOMINMAX
-#define VC_EXTRALEAN
-#include <Windows.h>
-#include <TlHelp32.h>
-
-#include <array>
-#include <set>
-#include <span>
 
 class Process
 {

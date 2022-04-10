@@ -1,8 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <algorithm>
-
 class CmdArgs
 {
 public:
