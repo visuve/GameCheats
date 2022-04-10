@@ -1,5 +1,4 @@
-#include "HackLib-PCH.hpp"
-#include "Registry.hpp"
+#include "../Mega.pch"
 
 Registry::Registry(HKEY parent, std::wstring_view subKey, REGSAM access)
 {

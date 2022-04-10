@@ -1,5 +1,4 @@
-#include "FsOps.hpp"
-#include "HackLib-PCH.hpp"
+#include "../Mega.pch"
 
 void FsOps::ProcessDirectory(
 	const std::filesystem::path path,

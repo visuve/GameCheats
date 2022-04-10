@@ -1,0 +1,33 @@
+#pragma once
+
+#include <array>
+#include <chrono>
+#include <filesystem>
+#include <format>
+#include <fstream>
+#include <functional>
+#include <cstdint>
+#include <iostream>
+#include <iomanip>
+#include <set>
+#include <span>
+#include <sstream>
+#include <stdexcept>
+#include <string_view>
+#include <system_error>
+#include <regex>
+#include <vector>
+
+#define NOMINMAX
+#define VC_EXTRALEAN
+#include <Windows.h>
+#include <TlHelp32.h>
+
+#include "HackLib/ByteStream.hpp"
+#include "HackLib/CmdArgs.hpp"
+#include "HackLib/Exceptions.hpp"
+#include "HackLib/FsOps.hpp"
+#include "HackLib/OpCodes.hpp"
+#include "HackLib/Pointer.hpp"
+#include "HackLib/Process.hpp"
+#include "HackLib/Registry.hpp"

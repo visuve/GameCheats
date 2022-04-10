@@ -1,4 +1,4 @@
-#include "HM2016-PCH.hpp"
+#include "../Mega.pch"
 
 /*
 	Infinite ammo in Hitman v1.15.0 (DX12)

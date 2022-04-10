@@ -1,4 +1,4 @@
-#include "Quake1-PCH.hpp"
+#include "../Mega.pch"
 
 /*
 	Infinite ammo in Quake 1 Remake 

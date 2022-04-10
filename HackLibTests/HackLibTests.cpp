@@ -1,4 +1,4 @@
-#include "HackLibTests-PCH.hpp"
+#include "HackLibTests.pch"
 
 int wmain()
 {

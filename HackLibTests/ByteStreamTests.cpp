@@ -1,4 +1,4 @@
-#include "HackLibTests-PCH.hpp"
+#include "HackLibTests.pch"
 
 TEST(ByteStreamTests, Constructors)
 {

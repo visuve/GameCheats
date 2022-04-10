@@ -1,4 +1,4 @@
-#include "FalloutNV-PCH.hpp"
+#include "../Mega.pch"
 
 /*
 	Infinite ammo in Fallout New Vegas v1.4.0.525

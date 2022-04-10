@@ -1,7 +1,4 @@
-#include "HackLib-PCH.hpp"
-#include "Process.hpp"
-#include "OpCodes.hpp"
-#include "ByteStream.hpp"
+#include "../Mega.pch"
 
 class Snapshot
 {

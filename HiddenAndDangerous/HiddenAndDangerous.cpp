@@ -1,4 +1,4 @@
-#include "HiddenAndDangerous-PCH.hpp"
+#include "../Mega.pch"
 
 /*
 	Add ammo in Hidden & Dangerous Deluxe

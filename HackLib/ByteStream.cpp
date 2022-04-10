@@ -1,6 +1,4 @@
-#include "HackLib-PCH.hpp"
-#include "ByteStream.hpp"
-#include "Exceptions.hpp"
+#include "../Mega.pch"
 
 ByteStream::ByteStream(size_t size, uint8_t byte) :
 	_bytes(size, byte)

@@ -1,4 +1,4 @@
-#include "HOMM3-PCH.hpp"
+#include "../Mega.pch"
 
 /*
 	More resources in Heroes of Might & Magic III - HD Edition

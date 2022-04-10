@@ -1,4 +1,4 @@
-#include "MaxPayne2-PCH.hpp"
+#include "../Mega.pch"
 
 /*
 	Infinite ammo in Max Payne 2 - The Fall of Max of Payne
