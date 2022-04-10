@@ -90,3 +90,25 @@ size_t ByteStream::Size() const
 {
 	return _bytes.size();
 }
+
+std::ostream& operator << (std::ostream& os, const ByteStream& bs)
+{
+	std::ios_base::fmtflags formatFlags = os.flags();
+
+	os.setf(std::ios::hex, std::ios::basefield);
+	os.setf(std::ios::uppercase);
+	os.fill('0');
+
+	const std::string sep1 = " ";
+	std::string sep2 = "";
+
+	for (uint16_t byte : bs._bytes)
+	{
+		os << sep2 << std::setw(2) << byte;
+		sep2 = sep1;
+	}
+
+	os.flags(formatFlags);
+	
+	return os;
+}

@@ -142,3 +142,20 @@ TEST(ByteStreamTests, FromString)
 		EXPECT_EQ(stream[5], 0x88);
 	}
 }
+
+TEST(ByteStreamTests, ToString)
+{
+	{
+		uint8_t bytes[] = { 0xA, 0xB, 0xC, 0xFF };
+		ByteStream byteStream(bytes);
+
+		std::stringstream stringStream;
+		stringStream << byteStream;
+
+		EXPECT_STREQ(stringStream.str().c_str(), "0A 0B 0C FF");
+
+		stringStream << " - " << 1 << 4 << 8 << 16 << 32;
+
+		EXPECT_STREQ(stringStream.str().c_str(), "0A 0B 0C FF - 1481632");
+	}
+}

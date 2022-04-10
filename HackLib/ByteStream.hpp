@@ -50,6 +50,10 @@ public:
 	uint8_t* Data();
 	size_t Size() const;
 
+	friend std::ostream& operator << (std::ostream&, const ByteStream&);
+
 private:
 	std::vector<uint8_t> _bytes;
 };
+
+std::ostream& operator << (std::ostream&, const ByteStream&);
