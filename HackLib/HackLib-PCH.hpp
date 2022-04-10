@@ -4,6 +4,7 @@
 #include <fstream>
 #include <functional>
 #include <cstdint>
+#include <iostream>
 #include <set>
 #include <span>
 #include <sstream>

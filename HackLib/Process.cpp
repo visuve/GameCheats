@@ -250,7 +250,7 @@ Pointer Process::AllocateMemory(size_t size)
 
 	if (VirtualQueryEx(_handle, memory, &info, sizeof(MEMORY_BASIC_INFORMATION)) == sizeof(MEMORY_BASIC_INFORMATION))
 	{
-		printf("Allocated %zu bytes at %p\n", info.RegionSize, memory);
+		std::cout << "Allocated " << info.RegionSize << " bytes at " << memory << std::endl;
 	}
 
 	return *result.first;

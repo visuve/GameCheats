@@ -59,7 +59,7 @@ public:
 
 		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
 
-		printf("Read %zu bytes from %p\n", bytesRead, pointer.Value);
+		std::cout << "Read " << bytesRead << " bytes from " << pointer << std::endl;
 	}
 
 	template<typename T>
@@ -88,7 +88,7 @@ public:
 
 		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
 
-		printf("Wrote %zu bytes at %p\n", bytesWritten, pointer.Value);
+		std::cout << "Wrote " << bytesWritten << " bytes at " << pointer << std::endl;
 	}
 
 	template<typename T>
