@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iomanip>
 
 #ifdef _WIN64
 constexpr size_t PointerSizeBytes = 8;
@@ -115,3 +116,22 @@ union Pointer
 		return Bytes[n];
 	}
 };
+
+inline std::ostream& operator << (std::ostream& os, const Pointer& p)
+{
+	std::ios_base::fmtflags formatFlags = os.flags();
+
+	os.setf(std::ios::hex, std::ios::basefield);
+	os.setf(std::ios::uppercase);
+	os.fill('0');
+	os << "0x";
+
+	for (auto it = std::rbegin(p.Bytes); it != std::rend(p.Bytes); ++it)
+	{
+		os << std::setw(2) << uint16_t(*it);
+	}
+
+	os.flags(formatFlags);
+
+	return os;
+}
