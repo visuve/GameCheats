@@ -69,7 +69,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"giveammo"))
 		{
-			Process process(L"Quake_x64_steam.exe");
+			Process process(L"Quake_x64_steam.exe", false);
 
 			Pointer ammoPtr = process.ResolvePointer(0x018E2950, 0x88);
 			Player player = process.Read<Player>(ammoPtr);
@@ -87,7 +87,7 @@ int wmain(int argc, wchar_t** argv)
 		}
 		else if (args.Contains(L"infammo"))
 		{
-			Process process(L"Quake_x64_steam.exe");
+			Process process(L"Quake_x64_steam.exe", true);
 
 			ByteStream stream;
 
@@ -106,8 +106,6 @@ int wmain(int argc, wchar_t** argv)
 			stream << 0x89 << 0x0C << 0x02; // mov [rdx+rax],ecx <- the fucker from the original code
 
 			process.InjectX64(0x1C7BA1, 3, stream);
-
-			Sleep(-1);
 		}
 		else
 		{

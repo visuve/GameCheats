@@ -17,7 +17,7 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv);
 
-		Process process(L"HITMAN.exe");
+		Process process(L"HITMAN.exe", true);
 
 		if (args.Contains(L"infammo"))
 		{
@@ -33,8 +33,6 @@ int wmain(int argc, wchar_t** argv)
 
 			process.InjectX64(0x129FDE, 9, code);
 		}
-
-		Sleep(INFINITE);
 	}
 	catch (const std::exception& e)
 	{

@@ -86,20 +86,26 @@ MODULEENTRY32W ModuleByPid(DWORD pid) {
 	return snapshot.FindModule(filter);
 }
 
-Process::Process(DWORD pid) :
+Process::Process(DWORD pid, bool waitForExit) :
 	_pid(pid),
 	_module(ModuleByPid(pid)),
-	_handle(OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid))
+	_handle(OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid)),
+	_waitForExit(waitForExit)
 {
 }
 
-Process::Process(std::wstring_view name) :
-	Process(PidByName(name))
+Process::Process(std::wstring_view name, bool waitForExit) :
+	Process(PidByName(name), waitForExit)
 {
 }
 
 Process::~Process()
 {
+	if (_handle && _waitForExit)
+	{
+		WaitForSingleObject(_handle, INFINITE);
+	}
+
 	for (HANDLE thread : _threads)
 	{
 		bool result = CloseHandle(thread);
