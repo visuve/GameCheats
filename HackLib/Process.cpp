@@ -92,6 +92,10 @@ Process::Process(DWORD pid, bool waitForExit) :
 	_handle(OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid)),
 	_waitForExit(waitForExit)
 {
+	if (!_handle)
+	{
+		throw Win32Exception("OpenProcess");
+	}
 }
 
 Process::Process(std::wstring_view name, bool waitForExit) :
