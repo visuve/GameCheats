@@ -165,25 +165,34 @@ namespace R6BO
 
 int wmain(int argc, wchar_t** argv)
 {
+	CmdArgs args(argc, argv,
+	{
+		{ L"persistent", L"Hack the registry & some mission files to allow more terrorists" },
+		{ L"persistent", L"Apply various in memory hacks, e.g. increasing ammo" },
+	});
+
+	if (!args.Ok())
+	{
+		return ERROR_BAD_ARGUMENTS;
+	}
+
 	try
 	{
-		CmdArgs args(argc, argv);
-
 		if (args.Contains(L"persistent"))
 		{
 			R6BO::ApplyPersistentHacks();
 		}
-		else
+
+		if (args.Contains(L"inmemory"))
 		{
 			R6BO::HackRunningProcess();
 		}
-
-		return 0;
 	}
 	catch (const std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
+		return -1;
 	}
 
-	return -1;
+	return 0;
 }

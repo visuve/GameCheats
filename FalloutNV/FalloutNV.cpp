@@ -8,16 +8,20 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	if (argc <= 1)
+	const CmdArgs args(argc, argv,
+	{
+		{ L"infammo", L"Ammunition is never reduced (NOTE: might be flaky)" },
+		{ L"noweard", L"Weapon condition is never reduced" }
+	});
+
+	if (!args.Ok())
 	{
 		return ERROR_BAD_ARGUMENTS;
 	}
 
 	try
 	{
-		const CmdArgs args(argc, argv);
-
-		Process process(L"FalloutNV.exe");
+		Process process(L"FalloutNV.exe", true);
 
 		if (args.Contains(L"infammo"))
 		{
@@ -51,8 +55,6 @@ int wmain(int argc, wchar_t** argv)
 
 			process.InjectX86(0x199AE, 1, stream);
 		}
-
-		Sleep(INFINITE);
 	}
 	catch (const std::exception& e)
 	{

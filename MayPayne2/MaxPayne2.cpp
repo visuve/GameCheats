@@ -8,15 +8,19 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	if (argc <= 1)
+	const CmdArgs args(argc, argv,
+	{
+		{ L"reloadadds", L"Reloading adds to total ammo" },
+		{ L"infammo", L"Ammunition is never reduced" }
+	});
+
+	if (!args.Ok())
 	{
 		return ERROR_BAD_ARGUMENTS;
 	}
 
 	try
 	{
-		const CmdArgs args(argc, argv);
-
 		Process process(L"maxpayne2.exe");
 
 		if (args.Contains(L"reloadadds") || args.Contains(L"infammo"))

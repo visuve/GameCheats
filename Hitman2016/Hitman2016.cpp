@@ -8,15 +8,18 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	if (argc <= 1)
+	const CmdArgs args(argc, argv,
+	{
+		{ L"infammo", L"999 ammunition always" }
+	});
+
+	if (!args.Ok())
 	{
 		return ERROR_BAD_ARGUMENTS;
 	}
 
 	try
 	{
-		const CmdArgs args(argc, argv);
-
 		Process process(L"HITMAN.exe", true);
 
 		if (args.Contains(L"infammo"))

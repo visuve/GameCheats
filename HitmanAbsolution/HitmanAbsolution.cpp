@@ -8,15 +8,20 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	if (argc <= 1)
+	const CmdArgs args(argc, argv,
+	{
+		{ L"infstealth", L"Infinite stealth" },
+		{ L"infhealth", L"Infinite health" },
+		{ L"infammo", L"Infinite ammo" },
+	});
+
+	if (!args.Ok())
 	{
 		return ERROR_BAD_ARGUMENTS;
 	}
 
 	try
 	{
-		const CmdArgs args(argc, argv);
-
 		Process process(L"HMA.exe");
 
 		if (args.Contains(L"infstealth"))

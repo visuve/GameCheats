@@ -8,14 +8,20 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	if (argc <= 1)
+	CmdArgs args(argc, argv,
+	{
+		{ L"totalammo", L"Set 999 total ammo for current weapon" },
+		{ L"magammo", L"Set 999 magazine ammo for current weapon" },
+		{ L"infammo", L"Ammo is never reduced" },
+	});
+
+	if (!args.Ok())
 	{
 		return ERROR_BAD_ARGUMENTS;
 	}
 
 	try
 	{
-		CmdArgs args(argc, argv);
 
 		Process process(L"hde.exe");
 
@@ -27,7 +33,8 @@ int wmain(int argc, wchar_t** argv)
 				process.Write(totalAmmo, 999u);
 			}
 		}
-		else if (args.Contains(L"magammo"))
+
+		if (args.Contains(L"magammo"))
 		{
 			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
@@ -35,7 +42,8 @@ int wmain(int argc, wchar_t** argv)
 				process.Write(magAmmo, 999u);
 			}
 		}
-		else if (args.Contains(L"infammo"))
+
+		if (args.Contains(L"infammo"))
 		{
 			// Fill total ammo reducing function with NOPs
 			process.Fill(0x00059D90, 0x00059DB4, X86::Nop);
@@ -45,10 +53,6 @@ int wmain(int argc, wchar_t** argv)
 			Pointer ptr = process.Address(0x0000A614u);
 			uint8_t code[] = { 0xE8, 0xCB, 0xF7, 0x04, 0x00 };
 			process.Write(ptr, code);
-		}
-		else
-		{
-			return ERROR_BAD_ARGUMENTS;
 		}
 	}
 	catch (const std::exception& e)
