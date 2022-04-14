@@ -42,25 +42,39 @@ std::ostream& operator << (std::ostream& os, const Resources& r)
 	return os;
 }
 
-int wmain()
+int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
+		CmdArgs args(argc, argv,
+		{
+			{ L"addresources", L"Adds 48879 to each resource" },
+		});
+
 		Process process(L"HOMM3 2.0.exe");
 
-		Pointer resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
+		if (args.Contains(L"addresources"))
+		{
 
-		Resources resources = process.Read<Resources>(resourcePointer);
-		
-		std::cout << "Before:" << std::endl;
-		std::cout << resources << std::endl;
-		
-		resources += 0xBEEF;
+			Pointer resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
 
-		std::cout << "\nAfter:" << std::endl;
-		std::cout << resources << std::endl;
+			Resources resources = process.Read<Resources>(resourcePointer);
 
-		process.Write(resourcePointer, resources);
+			std::cout << "Before:" << std::endl;
+			std::cout << resources << std::endl;
+
+			resources += 0xBEEF;
+
+			std::cout << "\nAfter:" << std::endl;
+			std::cout << resources << std::endl;
+
+			process.Write(resourcePointer, resources);
+		}
+	}
+	catch (const CmdArgs::MissingArguments& e)
+	{
+		std::wcerr << e.Usage() << std::endl;
+		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{

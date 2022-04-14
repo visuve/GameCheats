@@ -8,20 +8,14 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	CmdArgs args(argc, argv,
-	{
-		{ L"totalammo", L"Set 999 total ammo for current weapon" },
-		{ L"magammo", L"Set 999 magazine ammo for current weapon" },
-		{ L"infammo", L"Ammo is never reduced" },
-	});
-
-	if (!args.Ok())
-	{
-		return ERROR_BAD_ARGUMENTS;
-	}
-
 	try
 	{
+		CmdArgs args(argc, argv,
+		{
+			{ L"totalammo", L"Set 999 total ammo for current weapon" },
+			{ L"magammo", L"Set 999 magazine ammo for current weapon" },
+			{ L"infammo", L"Ammo is never reduced" },
+		});
 
 		Process process(L"hde.exe");
 
@@ -54,6 +48,11 @@ int wmain(int argc, wchar_t** argv)
 			uint8_t code[] = { 0xE8, 0xCB, 0xF7, 0x04, 0x00 };
 			process.Write(ptr, code);
 		}
+	}
+	catch (const CmdArgs::MissingArguments& e)
+	{
+		std::wcerr << e.Usage() << std::endl;
+		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{

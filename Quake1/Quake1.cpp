@@ -58,19 +58,14 @@ std::ostream& operator << (std::ostream& os, const Player& p)
 
 int wmain(int argc, wchar_t** argv)
 {
-	const CmdArgs args(argc, argv,
-	{
-		{ L"giveammo", L"Set 255 ammo for all weapons" },
-		{ L"infammo", L"255 ammo always" }
-	});
-
-	if (!args.Ok())
-	{
-		return ERROR_BAD_ARGUMENTS;
-	}
-
 	try
 	{
+		const CmdArgs args(argc, argv,
+		{
+			{ L"giveammo", L"Set 255 ammo for all weapons" },
+			{ L"infammo", L"255 ammo always" }
+		});
+
 		if (args.Contains(L"giveammo"))
 		{
 			Process process(L"Quake_x64_steam.exe", false);
@@ -112,6 +107,11 @@ int wmain(int argc, wchar_t** argv)
 
 			process.InjectX64(0x1C7BA1, 3, stream);
 		}
+	}
+	catch (const CmdArgs::MissingArguments& e)
+	{
+		std::wcerr << e.Usage() << std::endl;
+		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{

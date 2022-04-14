@@ -8,18 +8,13 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	const CmdArgs args(argc, argv,
-	{
-		{ L"infammo", L"999 ammunition always" }
-	});
-
-	if (!args.Ok())
-	{
-		return ERROR_BAD_ARGUMENTS;
-	}
-
 	try
 	{
+		const CmdArgs args(argc, argv,
+		{
+			{ L"infammo", L"999 ammunition always" }
+		});
+
 		Process process(L"HITMAN.exe", true);
 
 		if (args.Contains(L"infammo"))
@@ -36,6 +31,11 @@ int wmain(int argc, wchar_t** argv)
 
 			process.InjectX64(0x129FDE, 9, code);
 		}
+	}
+	catch (const CmdArgs::MissingArguments& e)
+	{
+		std::wcerr << e.Usage() << std::endl;
+		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{

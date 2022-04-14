@@ -8,20 +8,15 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	const CmdArgs args(argc, argv,
-	{
-		{ L"infstealth", L"Infinite stealth" },
-		{ L"infhealth", L"Infinite health" },
-		{ L"infammo", L"Infinite ammo" },
-	});
-
-	if (!args.Ok())
-	{
-		return ERROR_BAD_ARGUMENTS;
-	}
-
 	try
 	{
+		const CmdArgs args(argc, argv,
+		{
+			{ L"infstealth", L"Infinite stealth" },
+			{ L"infhealth", L"Infinite health" },
+			{ L"infammo", L"Infinite ammo" },
+		});
+
 		Process process(L"HMA.exe");
 
 		if (args.Contains(L"infstealth"))
@@ -38,6 +33,11 @@ int wmain(int argc, wchar_t** argv)
 		{
 			process.ChangeByte(0x5ECEAD, X86::DecEax, X86::IncEax);
 		}
+	}
+	catch (const CmdArgs::MissingArguments& e)
+	{
+		std::wcerr << e.Usage() << std::endl;
+		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{

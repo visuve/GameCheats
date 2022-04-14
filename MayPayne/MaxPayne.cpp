@@ -8,20 +8,15 @@
 
 int wmain(int argc, wchar_t** argv)
 {
-	const CmdArgs args(argc, argv,
-	{
-		{ L"reloadadds", L"Reloading adds to total ammo" },
-		{ L"infammo", L"Ammunition is never reduced" },
-		{ L"infbullettime", L"Infinite \"bullet time\"" },
-	});
-
-	if (!args.Ok())
-	{
-		return ERROR_BAD_ARGUMENTS;
-	}
-
 	try
 	{
+		const CmdArgs args(argc, argv,
+		{
+			{ L"reloadadds", L"Reloading adds to total ammo" },
+			{ L"infammo", L"Ammunition is never reduced" },
+			{ L"infbullettime", L"Infinite \"bullet time\"" },
+		});
+
 		Process process(L"maxpayne.exe");
 
 		if (args.Contains(L"reloadadds") || args.Contains(L"infammo"))
@@ -41,6 +36,11 @@ int wmain(int argc, wchar_t** argv)
 		{
 			process.Fill(0x4CED0, 0x4CEDC, X86::Nop);
 		}
+	}
+	catch (const CmdArgs::MissingArguments& e)
+	{
+		std::wcerr << e.Usage() << std::endl;
+		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
