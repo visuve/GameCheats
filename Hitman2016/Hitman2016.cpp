@@ -34,6 +34,7 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::MissingArguments& e)
 	{
+		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;
 		return ERROR_BAD_ARGUMENTS;
 	}

@@ -13,7 +13,7 @@ std::wstring_view CmdArgs::MissingArguments::Usage() const
 
 const char* CmdArgs::MissingArguments::what() const throw ()
 {
-	return "Missing command line arguments";
+	return "Error, missing command line arguments";
 }
 
 CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expected) :
@@ -22,8 +22,8 @@ CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expec
 {
 	std::wstringstream usage;
 
-	usage << std::filesystem::path(_arguments[0]).stem().wstring() << std::endl;
-	usage << L"\n Usage:\n\n " << _arguments[0] << std::endl;
+	usage << std::filesystem::path(_arguments[0]).stem().wstring();
+	usage << L" - usage:\n\n " << _arguments[0] << std::endl;
 
 	for (const Argument& expected : _expected)
 	{
