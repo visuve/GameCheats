@@ -341,7 +341,7 @@ void Process::FreeMemory(Pointer pointer)
 }
 
 #ifdef _WIN64
-void Process::InjectX64(size_t from, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX64(size_t from, size_t nops, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
@@ -376,9 +376,11 @@ void Process::InjectX64(size_t from, size_t nops, std::span<uint8_t> code)
 			throw Win32Exception("FlushInstructionCache");
 		}
 	}
+
+	return target;
 }
 #else
-void Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
@@ -413,5 +415,7 @@ void Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
 			throw Win32Exception("FlushInstructionCache");
 		}
 	}
+
+	return target;
 }
 #endif

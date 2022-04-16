@@ -171,7 +171,7 @@ public:
 	// so far away, that a relative "x86 jump" will not do.
 	// In x86 I could not get absolute jumps to work.
 #ifdef _WIN64
-	void InjectX64(size_t offset, size_t nops, std::span<uint8_t> code);
+	Pointer InjectX64(size_t offset, size_t nops, std::span<uint8_t> code);
 
 	static constexpr size_t JumpOpSize = 14;
 
@@ -196,7 +196,7 @@ public:
 		return { 0xFF, 0x15, dst[0], dst[1], dst[2], dst[3] };
 	}
 #else
-	void InjectX86(size_t offset, size_t nops, std::span<uint8_t> code);
+	Pointer InjectX86(size_t offset, size_t nops, std::span<uint8_t> code);
 
 	static constexpr size_t JumpOpSize = 5;
 
