@@ -115,17 +115,19 @@ Process::~Process()
 		{
 			std::cout << "Process " << _pid << " exited with code: " << exitCode << std::endl;
 		}
-
-		for (HANDLE thread : _threads) // No thread should exist without a proper handle
+		else
 		{
-			bool result = CloseHandle(thread);
-			_ASSERT(result);
-		}
+			for (HANDLE thread : _threads) // No thread should exist without a proper handle
+			{
+				bool result = CloseHandle(thread);
+				_ASSERT(result);
+			}
 
-		for (Pointer memory : _memory)
-		{
-			bool result = VirtualFreeEx(_handle, memory, 0, MEM_RELEASE);
-			_ASSERT(result);
+			for (Pointer memory : _memory)
+			{
+				bool result = VirtualFreeEx(_handle, memory, 0, MEM_RELEASE);
+				_ASSERT(result);
+			}
 		}
 	
 		CloseHandle(_handle);
