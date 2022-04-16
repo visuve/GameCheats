@@ -37,11 +37,13 @@ CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expec
 
 	for (const Argument& expected : _expected)
 	{
-		if (!Contains(std::get<0>(expected)))
+		if (Contains(std::get<0>(expected)))
 		{
-			throw MissingArguments(usage.str());
+			return;
 		}
 	}
+
+	throw MissingArguments(usage.str());
 }
 
 bool CmdArgs::Contains(std::wstring_view x) const
