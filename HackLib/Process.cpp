@@ -329,7 +329,7 @@ void Process::FreeMemory(Pointer pointer)
 
 	if (it == _memory.cend())
 	{
-		throw RangeException("No such memory allocated!");
+		throw OutOfRangeException("No such memory allocated!");
 	}
 
 	_memory.erase(it);

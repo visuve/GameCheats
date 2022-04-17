@@ -45,17 +45,32 @@ ByteStream& ByteStream::operator << (const Pointer& ptr)
 ByteStream& ByteStream::operator << (const std::string& bytes)
 {
 	std::stringstream stream(bytes);
-	stream.setf(std::ios::hex, std::ios::basefield);
 
-	uint16_t value;
+	std::string raw;
 
-	while (stream.good())
+	auto notDigit = [](char c)->bool
 	{
-		stream >> value;
+		return !std::isxdigit(c);
+	};
 
-		if (value > 0xFF)
+	while (std::getline(stream, raw, ' '))
+	{
+		if (raw.length() != 2)
 		{
-			throw LogicException("A single byte cannot be over 255!");
+			throw ArgumentException(
+				"Arguments have to be between 00-FF (zero padded) and separated with space!");
+		}
+
+		if (std::any_of(raw.cbegin(), raw.cend(), notDigit))
+		{
+			throw ArgumentException("Only hexadecimal characters accepted!");
+		}
+
+		int value = std::stoi(raw, nullptr, 16);
+
+		if (value < 0 || value > 255)
+		{
+			throw ArgumentException("A byte has to be between 0-255!");
 		}
 
 		*this << static_cast<uint8_t>(value);

@@ -141,6 +141,17 @@ TEST(ByteStreamTests, FromString)
 		EXPECT_EQ(stream[4], 0xFF);
 		EXPECT_EQ(stream[5], 0x88);
 	}
+
+	{
+		ByteStream stream;
+		EXPECT_THROW(stream << "FF00", std::invalid_argument);
+		EXPECT_THROW(stream << "FF FFFF", std::invalid_argument);
+		EXPECT_THROW(stream << "FF 00FF", std::invalid_argument);
+		EXPECT_THROW(stream << "F", std::invalid_argument);
+		EXPECT_THROW(stream << "X", std::invalid_argument);
+		EXPECT_THROW(stream << "XX", std::invalid_argument);
+		EXPECT_THROW(stream << "FF\tFF", std::invalid_argument);
+	}
 }
 
 TEST(ByteStreamTests, ToString)
