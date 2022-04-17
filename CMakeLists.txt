@@ -24,11 +24,13 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	add_subdirectory("MayPayne2")
 	add_subdirectory("HitmanAbsolution")
 	add_subdirectory("FalloutNV")
+	add_subdirectory("Template")
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	add_subdirectory("Quake1")
 	add_subdirectory("Hitman2016")
+	add_subdirectory("Template")
 endif()
 
 include("GoogleTest.cmake")

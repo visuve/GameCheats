@@ -1,6 +1,6 @@
 file(GLOB SourceCode "*.cpp" "*.hpp")
 
-set(Executable "Quake1Trainer")
+set(Executable "Template")
 add_executable(${Executable} ${SourceCode})
 target_precompile_headers(${Executable} REUSE_FROM HackLib)
 target_link_libraries(${Executable} LINK_PRIVATE HackLib)

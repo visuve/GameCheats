@@ -1,5 +1,6 @@
 file(GLOB SourceCode "*.cpp" "*.hpp")
 
-add_executable("Hitman2016Trainer" ${SourceCode})
-target_precompile_headers("Hitman2016Trainer" REUSE_FROM HackLib)
-target_link_libraries("Hitman2016Trainer" LINK_PRIVATE HackLib)
+set(Executable "Hitman2016Trainer")
+add_executable(${Executable} ${SourceCode})
+target_precompile_headers(${Executable} REUSE_FROM HackLib)
+target_link_libraries(${Executable} LINK_PRIVATE HackLib)

@@ -1,5 +1,6 @@
 file(GLOB SourceCode "*.cpp" "*.hpp")
 
-add_executable("HOMM3Trainer" ${SourceCode})
-target_precompile_headers("HOMM3Trainer" REUSE_FROM HackLib)
-target_link_libraries("HOMM3Trainer" LINK_PRIVATE HackLib)
+set(Executable "HOMM3Trainer")
+add_executable(${Executable} ${SourceCode})
+target_precompile_headers(${Executable} REUSE_FROM HackLib)
+target_link_libraries(${Executable} LINK_PRIVATE HackLib)
