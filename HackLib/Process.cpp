@@ -1,5 +1,7 @@
 #include "../Mega.pch"
 
+#include <Psapi.h>
+
 class Snapshot
 {
 public:
@@ -151,6 +153,11 @@ std::filesystem::path Process::Path() const
 	buffer.resize(size);
 
 	return buffer;
+}
+
+bool Process::Verify(std::string_view expectedSHA256) const
+{
+	return SHA256(Path()) == expectedSHA256;
 }
 
 MODULEENTRY32W Process::FindModule(std::wstring_view name) const
