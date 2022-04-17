@@ -1,9 +1,9 @@
 #include "../Mega.pch"
 
 /*
-	Infinite ammo in Hitman Absolution
+	Infinite ammo in 
 	Tested with Steam version SHA-256
-	58607bbc54bd577c752ee0f04a8cfec6873855639c43d4a24bd2d1b6c693e9da
+	
 */
 
 int wmain(int argc, wchar_t** argv)
@@ -18,6 +18,12 @@ int wmain(int argc, wchar_t** argv)
 		});
 
 		Process process(L"HMA.exe");
+
+		if (!process.Verify("58607bbc54bd577c752ee0f04a8cfec6873855639c43d4a24bd2d1b6c693e9da"))
+		{
+			std::cerr << "Expected Hitman Absolution v1.0.447 (Steam)" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"infstealth"))
 		{

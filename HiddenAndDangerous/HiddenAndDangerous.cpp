@@ -1,11 +1,5 @@
 #include "../Mega.pch"
 
-/*
-	Add ammo in Hidden & Dangerous Deluxe
-	Tested with version v1.51 Deluxe (Steam), SHA-256
-	4fd0b4e26fd23fcb827a5ab96a4f49d84e2ea07eaf1e3baf10285e3648c63825
-*/
-
 int wmain(int argc, wchar_t** argv)
 {
 	try
@@ -18,6 +12,12 @@ int wmain(int argc, wchar_t** argv)
 		});
 
 		Process process(L"hde.exe");
+
+		if (!process.Verify("4fd0b4e26fd23fcb827a5ab96a4f49d84e2ea07eaf1e3baf10285e3648c63825"))
+		{
+			std::cerr << "Expected Hidden & Dangerous Deluxe v1.51 (Steam)" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"totalammo"))
 		{

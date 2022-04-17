@@ -1,15 +1,10 @@
 #include "../Mega.pch"
 
 /*
-	More terrorists in Rainbow Six - Black Ops
-	Tested with SHA-256
-	06ee11a05a029a9827c093caa67de63c395c03082f7bc843ac302eadb9ff6373
-
 	NOTES:
-	1. Remember to build and run x86
-	2. The non-persistent hacks have to be applied when the "Custom Mission" menu is open
+	1. The non-persistent hacks have to be applied when the "Custom Mission" menu is open
 		- The UI might not reflect the values immediately, but they are there
-	3. The persistent hacks create lots of backups of the mission files etc
+	2. The persistent hacks create lots of backups of the mission files etc
 */
 
 namespace R6BO
@@ -136,6 +131,12 @@ namespace R6BO
 	void HackRunningProcess()
 	{
 		Process process(L"R6BO.exe");
+
+		if (!process.Verify("06ee11a05a029a9827c093caa67de63c395c03082f7bc843ac302eadb9ff6373"))
+		{
+			std::cerr << "Expected Rainbow Six - Black Ops" << std::endl;
+			return;
+		}
 
 		// Skips any overrides with registry forced values
 		process.ChangeByte(0x0010A0AE, X86::JnbJb, X86::JbeJb);

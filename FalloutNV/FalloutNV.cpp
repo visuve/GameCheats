@@ -1,11 +1,5 @@
 #include "../Mega.pch"
 
-/*
-	Infinite ammo in Fallout New Vegas v1.4.0.525
-	Tested with Steam version SHA-256
-	3a87f92f011e5dc9179ddf733cf08be2b39ea6e5b7a8a9e3a9a72dafcc1b104d
-*/
-
 int wmain(int argc, wchar_t** argv)
 {
 	try
@@ -16,7 +10,13 @@ int wmain(int argc, wchar_t** argv)
 			{ L"noweard", L"Weapon condition is never reduced" }
 		});
 
-		Process process(L"FalloutNV.exe", true);
+		Process process(L"FalloutNV.exe");
+
+		if (!process.Verify("3a87f92f011e5dc9179ddf733cf08be2b39ea6e5b7a8a9e3a9a72dafcc1b104d"))
+		{
+			std::cerr << "Expected Fallout New Vegas v1.4.0.525 (Steam)" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"infammo"))
 		{
@@ -50,6 +50,8 @@ int wmain(int argc, wchar_t** argv)
 
 			process.InjectX86(0x199AE, 1, stream);
 		}
+
+		process.WairForExit();
 	}
 	catch (const CmdArgs::MissingArguments& e)
 	{

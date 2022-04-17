@@ -88,11 +88,10 @@ MODULEENTRY32W ModuleByPid(DWORD pid) {
 	return snapshot.FindModule(filter);
 }
 
-Process::Process(DWORD pid, bool waitForExit) :
+Process::Process(DWORD pid) :
 	_pid(pid),
 	_module(ModuleByPid(pid)),
-	_handle(OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid)),
-	_waitForExit(waitForExit)
+	_handle(OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid))
 {
 	if (!_handle)
 	{
@@ -100,8 +99,8 @@ Process::Process(DWORD pid, bool waitForExit) :
 	}
 }
 
-Process::Process(std::wstring_view name, bool waitForExit) :
-	Process(PidByName(name), waitForExit)
+Process::Process(std::wstring_view name) :
+	Process(PidByName(name))
 {
 }
 
@@ -109,27 +108,16 @@ Process::~Process()
 {
 	if (_handle)
 	{
-		DWORD exitCode = 0;
-
-		if (_waitForExit &&
-			WaitForSingleObject(_handle, INFINITE) == WAIT_OBJECT_0 &&
-			GetExitCodeProcess(_handle, &exitCode))
+		for (HANDLE thread : _threads)
 		{
-			std::cout << "Process " << _pid << " exited with code: " << exitCode << std::endl;
+			bool result = CloseHandle(thread);
+			_ASSERT(result);
 		}
-		else
-		{
-			for (HANDLE thread : _threads) // No thread should exist without a proper handle
-			{
-				bool result = CloseHandle(thread);
-				_ASSERT(result);
-			}
 
-			for (Pointer memory : _memory)
-			{
-				bool result = VirtualFreeEx(_handle, memory, 0, MEM_RELEASE);
-				_ASSERT(result);
-			}
+		for (Pointer memory : _memory)
+		{
+			bool result = VirtualFreeEx(_handle, memory, 0, MEM_RELEASE);
+			_ASSERT(result);
 		}
 	
 		CloseHandle(_handle);
@@ -445,3 +433,30 @@ Pointer Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
 	return target;
 }
 #endif
+
+
+void Process::WairForExit(std::chrono::milliseconds timeout)
+{
+	DWORD waitResult = WaitForSingleObject(_handle, static_cast<DWORD>(timeout.count()));
+
+	switch (waitResult)
+	{
+		case WAIT_OBJECT_0:
+		{
+			DWORD exitCode = 0;
+
+			if (GetExitCodeProcess(_handle, &exitCode))
+			{
+				std::cout << "Process " << _pid << " exited with code: " << exitCode << std::endl;
+			}
+			return;
+		}
+		case WAIT_TIMEOUT:
+		{
+			std::cout << "Waiting for " << _pid << " timed out" << std::endl;
+			return;
+		}
+	}
+
+	throw Win32Exception("WaitForSingleObject", waitResult);
+}

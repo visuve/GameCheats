@@ -7,8 +7,8 @@
 class Process
 {
 public:
-	Process(DWORD pid, bool waitForExit = false);
-	Process(std::wstring_view name, bool waitForExit = false);
+	Process(DWORD pid);
+	Process(std::wstring_view name);
 	NonCopyable(Process);
 	virtual ~Process();
 
@@ -224,11 +224,12 @@ public:
 	}
 #endif
 
+	void WairForExit(std::chrono::milliseconds = std::chrono::milliseconds(INFINITE));
+
 private:
 	DWORD _pid = 0;
 	MODULEENTRY32W _module = {};
 	HANDLE _handle = nullptr;
-	bool _waitForExit = false;
 	std::set<HANDLE> _threads;
 	std::set<Pointer> _memory;
 };

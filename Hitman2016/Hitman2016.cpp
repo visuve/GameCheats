@@ -1,11 +1,5 @@
 #include "../Mega.pch"
 
-/*
-	Infinite ammo in Hitman v1.15.0 (DX12)
-	Tested with Steam version SHA-256
-	31c33c1937b1ddc3cad21bd7d761f12f962286d55c48d3582a704ca35e2830f9
-*/
-
 int wmain(int argc, wchar_t** argv)
 {
 	try
@@ -16,7 +10,13 @@ int wmain(int argc, wchar_t** argv)
 			{ L"dummyai", L"AI cannot shoot" }
 		});
 
-		Process process(L"HITMAN.exe", true);
+		Process process(L"HITMAN.exe");
+
+		if (!process.Verify("31c33c1937b1ddc3cad21bd7d761f12f962286d55c48d3582a704ca35e2830f9"))
+		{
+			std::cerr << "Expected Hitman v1.15.0 with DX 12 (Steam)" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"infammo"))
 		{
@@ -44,6 +44,8 @@ int wmain(int argc, wchar_t** argv)
 			code << "48 8D AC 24 E0 FC FF FF"; // lea rbp,[rsp-00000320]
 			
 			process.InjectX64(0x1028A0, 6, code);
+
+			process.WairForExit();
 		}
 	}
 	catch (const CmdArgs::MissingArguments& e)

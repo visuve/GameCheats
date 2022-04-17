@@ -1,11 +1,5 @@
 #include "../Mega.pch"
 
-/*
-	More resources in Heroes of Might & Magic III - HD Edition
-	Tested with Steam version SHA-256
-	608da95c6dae5de21b2135701 365e18d3de173d3f0fd9753812afe6a5b13fa05
-*/
-
 struct Resources
 {
 	uint32_t Wood = 0;
@@ -52,6 +46,12 @@ int wmain(int argc, wchar_t** argv)
 		});
 
 		Process process(L"HOMM3 2.0.exe");
+
+		if (!process.Verify("608da95c6dae5de21b2135701365e18d3de173d3f0fd9753812afe6a5b13fa05"))
+		{
+			std::cerr << "Expected Heroes of Might & Magic III - HD Edition (Steam)" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"addresources"))
 		{

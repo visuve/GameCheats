@@ -1,11 +1,5 @@
 #include "../Mega.pch"
 
-/*
-	Infinite ammo in Quake 1 Remake 
-	Tested with version 1.0.4831 (Steam), SHA-256
-	094cceaabbbc3fbc794e70de97e107da7a6ef8ea818372a598908ecc8bca71f6
-*/
-
 enum Items : uint32_t
 {
 	Axe = 4096,
@@ -66,10 +60,16 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infammo", L"255 ammo always" }
 		});
 
+		Process process(L"Quake_x64_steam.exe");
+
+		if (!process.Verify("094cceaabbbc3fbc794e70de97e107da7a6ef8ea818372a598908ecc8bca71f6"))
+		{
+			std::cerr << "Expected Quake 1 Remake v1.0.4831 (Steam)" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
+
 		if (args.Contains(L"giveammo"))
 		{
-			Process process(L"Quake_x64_steam.exe", false);
-
 			Pointer ammoPtr = process.ResolvePointer(0x018E2950, 0x88);
 			Player player = process.Read<Player>(ammoPtr);
 
@@ -87,8 +87,6 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"infammo"))
 		{
-			Process process(L"Quake_x64_steam.exe", true);
-
 			ByteStream stream;
 
 			// Orig
@@ -106,6 +104,8 @@ int wmain(int argc, wchar_t** argv)
 			stream << 0x89 << 0x0C << 0x02; // mov [rdx+rax],ecx <- the fucker from the original code
 
 			process.InjectX64(0x1C7BA1, 3, stream);
+
+			process.WairForExit();
 		}
 	}
 	catch (const CmdArgs::MissingArguments& e)

@@ -1,11 +1,5 @@
 #include "../Mega.pch"
 
-/*
-	Infinite ammo in Max Payne 2 - The Fall of Max of Payne
-	Tested with Steam version SHA-256
-	75b46ceaaaecd44173358654f67abd20057fd4298fc6a0d74437c0c884328fc3
-*/
-
 int wmain(int argc, wchar_t** argv)
 {
 	try
@@ -17,6 +11,12 @@ int wmain(int argc, wchar_t** argv)
 		});
 
 		Process process(L"maxpayne2.exe");
+
+		if (!process.Verify("75b46ceaaaecd44173358654f67abd20057fd4298fc6a0d74437c0c884328fc3"))
+		{
+			std::cerr << "Expected Max Payne 2 - The Fall of Max of Payne (Steam)" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"reloadadds") || args.Contains(L"infammo"))
 		{
