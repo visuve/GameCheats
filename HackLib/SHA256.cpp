@@ -104,7 +104,10 @@ bool SHA256::operator == (std::string_view expected)
 
 	std::string actual = Value();
 
-	return _strnicmp(actual.c_str(), expected.data(), 64) == 0;
+	if (_strnicmp(actual.c_str(), expected.data(), 64) != 0)
+	{
+		std::cerr << "Expected " << expected << ", got " << actual << std::endl;
+	}
 }
 
 std::string SHA256::Value() const
