@@ -134,6 +134,25 @@ Process::~Process()
 	}
 }
 
+std::filesystem::path Process::Path() const
+{
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+	std::wstring buffer(0x7FFF, 0); // A gigantic buffer, but I do not care for now
+
+	size_t size = GetModuleFileNameExW(_handle, _module.hModule, buffer.data(), buffer.size());
+
+	_ASSERT(buffer.size() >= size);
+
+	if (!size)
+	{
+		throw Win32Exception("GetModuleFileNameEx");
+	}
+
+	buffer.resize(size);
+
+	return buffer;
+}
+
 MODULEENTRY32W Process::FindModule(std::wstring_view name) const
 {
 	const Snapshot snapshot(TH32CS_SNAPMODULE, _pid);

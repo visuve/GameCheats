@@ -23,6 +23,7 @@
 #define VC_EXTRALEAN
 #include <Windows.h>
 #include <TlHelp32.h>
+#include <Psapi.h>
 
 #include "HackLib/ByteStream.hpp"
 #include "HackLib/CmdArgs.hpp"

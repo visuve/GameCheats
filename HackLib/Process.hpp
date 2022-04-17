@@ -147,6 +147,8 @@ public:
 		ChangeByte(Address(offset), from, to);
 	}
 
+	std::filesystem::path Path() const;
+
 	MODULEENTRY32W FindModule(std::wstring_view name) const;
 
 	IMAGE_NT_HEADERS NtHeader() const;
