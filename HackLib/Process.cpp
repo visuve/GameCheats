@@ -127,16 +127,15 @@ Process::~Process()
 std::filesystem::path Process::Path() const
 {
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
-	std::wstring buffer(0x7FFF, 0); // A gigantic buffer, but I do not care for now
+	DWORD size = 0x7FFF;
+	std::wstring buffer(size, 0); // A gigantic buffer, but I do not care for now
 
-	size_t size = GetModuleFileNameExW(_handle, _module.hModule, buffer.data(), buffer.size());
-
-	_ASSERT(buffer.size() >= size);
-
-	if (!size)
+	if (!QueryFullProcessImageNameW(_handle, 0, buffer.data(), &size))
 	{
 		throw Win32Exception("GetModuleFileNameEx");
 	}
+
+	_ASSERT(buffer.size() >= size);
 
 	buffer.resize(size);
 
