@@ -24,6 +24,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	add_subdirectory("MayPayne2")
 	add_subdirectory("HitmanAbsolution")
 	add_subdirectory("FalloutNV")
+	add_subdirectory("HitmanC47")
 	add_subdirectory("Template")
 endif()
 
