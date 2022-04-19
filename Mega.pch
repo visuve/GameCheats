@@ -33,3 +33,4 @@
 #include "HackLib/Process.hpp"
 #include "HackLib/Registry.hpp"
 #include "HackLib/SHA256.hpp"
+#include "HackLib/StrConvert.hpp"
