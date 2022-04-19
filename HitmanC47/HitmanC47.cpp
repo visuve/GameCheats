@@ -17,7 +17,9 @@ int wmain(int argc, wchar_t** argv)
 			{ L"drawdistance", L"10x the maximum drawing distance" }
 		});
 
-		Process process(L"Hitman.Exe");
+		DWORD pid = Process::WaitToAppear(L"Hitman.Exe");
+
+		Process process(pid);
 
 		if (!process.Verify("137c3cbf328225085cf3532819b4574714fba263a6121328de6583ba8a0648f5"))
 		{
@@ -65,6 +67,12 @@ int wmain(int argc, wchar_t** argv)
 
 			process.WairForExit();
 		}
+	}
+	catch (const CmdArgs::MissingArguments& e)
+	{
+		std::cerr << '\n' << e.what() << "!\n" << std::endl;
+		std::wcerr << e.Usage() << std::endl;
+		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{

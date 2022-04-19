@@ -12,6 +12,8 @@ public:
 	NonCopyable(Process);
 	virtual ~Process();
 
+	static DWORD WaitToAppear(std::wstring_view name);
+
 	inline Pointer Address(size_t offset) const
 	{
 		return { _module.modBaseAddr + offset };
