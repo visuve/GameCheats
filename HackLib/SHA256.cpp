@@ -131,14 +131,16 @@ std::string SHA256::Value() const
 
 void SHA256::ProcessFile()
 {
-	std::vector<uint8_t> buffer(0x8000);
+	std::vector<uint8_t> buffer(0x4000);
 
-	LARGE_INTEGER bytesLeft = {};
+	LARGE_INTEGER fileSize = {};
 
-	if (!GetFileSizeEx(_file, &bytesLeft))
+	if (!GetFileSizeEx(_file, &fileSize))
 	{
 		throw Win32Exception("GetFileSizeEx");
 	}
+
+	LARGE_INTEGER bytesLeft = fileSize;
 
 	while (bytesLeft.QuadPart)
 	{
@@ -149,14 +151,19 @@ void SHA256::ProcessFile()
 			throw Win32Exception("ReadFile");
 		}
 
-		bytesLeft.QuadPart -= bytesRead;
-
+		_ASSERT(bytesRead != 0);
 		_ASSERT(bytesRead <= buffer.size());
+
+		bytesLeft.QuadPart -= bytesRead;
 
 		if (bytesRead < buffer.size())
 		{
 			buffer.resize(bytesRead);
 		}
+
+
+		float complete = 100.0f - (100.0f / (float(fileSize.QuadPart) / float(bytesLeft.QuadPart)));
+		std::cout << std::format("Verifying {:.2f}%", complete) << std::endl;
 
 		Update(buffer);
 	}
@@ -176,8 +183,6 @@ void SHA256::Update(std::span<uint8_t> data)
 	{
 		throw Win32ExceptionEx("BCryptHashData", status);
 	}
-
-	putc('.', stdout);
 }
 
 void SHA256::Finish()
