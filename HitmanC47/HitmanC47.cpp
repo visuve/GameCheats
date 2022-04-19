@@ -9,17 +9,12 @@ int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
-		for (int i = 0; i < 10; ++i)
-		{
-			putc('.', stdout);
-			Sleep(1000);
-		}
-		putc('\n', stdout);
-
 		const CmdArgs args(argc, argv,
 		{
-			{ L"freeitems", L"Free items in mission menu" },
-			{ L"infammo", L"Never decreasing ammunition" }
+			{ L"infammo", L"Never decreasing ammunition" },
+			{ L"infarmor", L"Never decreasing armor" },
+			{ L"infhealth", L"Never decreasing health" },
+			{ L"drawdistance", L"10x the maximum drawing distance" }
 		});
 
 		Process process(L"Hitman.Exe");
@@ -53,6 +48,22 @@ int wmain(int argc, wchar_t** argv)
 		{
 			uint8_t nops[] = { X86::Nop, X86::Nop, X86::Nop, X86::Nop, X86::Nop, X86::Nop };
 			process.WriteBytes(process.Address(L"HitmanDlc.dlc", 0x11F889), nops);
+		}
+
+		if (args.Contains(L"drawdistance"))
+		{
+			Pointer value = process.AllocateMemory(sizeof(double));
+			process.Write(value, double(50000.00));
+
+			ByteStream code;
+
+			code << "DD 05" << value;
+			code << "DD 5C 24 04";
+			code << "DD 81 86 01 00 00";
+			
+			process.InjectX86(L"HitmanDlc.dlc", 0x904A0, 1, code);
+
+			process.WairForExit();
 		}
 	}
 	catch (const std::exception& e)
