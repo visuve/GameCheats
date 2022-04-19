@@ -354,14 +354,13 @@ void Process::FreeMemory(Pointer pointer)
 }
 
 #ifdef _WIN64
-Pointer Process::InjectX64(size_t from, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
 
 	_ASSERT(nops < codeSize);
 
-	Pointer origin = Address(from);
 	Pointer target = AllocateMemory(bytesRequired);
 
 	{
@@ -392,15 +391,24 @@ Pointer Process::InjectX64(size_t from, size_t nops, std::span<uint8_t> code)
 
 	return target;
 }
+
+Pointer Process::InjectX64(size_t offset, size_t nops, std::span<uint8_t> code)
+{
+	return InjectX64(Address(offset), nops, code);
+}
+
+Pointer Process::InjectX64(std::wstring_view module, size_t offset, size_t nops, std::span<uint8_t> code)
+{
+	return InjectX64(Address(module, offset), nops, code);
+}
 #else
-Pointer Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
 
 	_ASSERT(nops < codeSize);
 
-	Pointer origin = Address(from);
 	Pointer target = AllocateMemory(bytesRequired);
 
 	{
@@ -431,6 +439,17 @@ Pointer Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
 
 	return target;
 }
+
+
+Pointer Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
+{
+	return InjectX86(Address(from), nops, code);
+}
+
+Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops, std::span<uint8_t> code)
+{
+	return InjectX86(Address(module, offset), nops, code);
+}
 #endif
 
 
@@ -448,6 +467,10 @@ void Process::WairForExit(std::chrono::milliseconds timeout)
 			{
 				std::cout << "Process " << _pid << " exited with code: " << exitCode << std::endl;
 			}
+
+			CloseHandle(_handle);
+			_handle = nullptr;
+
 			return;
 		}
 		case WAIT_TIMEOUT:
@@ -457,5 +480,5 @@ void Process::WairForExit(std::chrono::milliseconds timeout)
 		}
 	}
 
-	throw Win32Exception("WaitForSingleObject", waitResult);
+	throw Win32ExceptionEx("WaitForSingleObject", waitResult);
 }
