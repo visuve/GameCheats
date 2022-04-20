@@ -10,7 +10,7 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infhealth", L"Never decreasing health" }
 		});
 
-		DWORD pid = Process::WaitToAppear(L"hitman2.exe");
+		DWORD pid = System::Instance().WaitForWindow(L"Hitman2");
 
 		Process process(pid);
 

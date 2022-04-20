@@ -17,7 +17,7 @@ int wmain(int argc, wchar_t** argv)
 			{ L"drawdistance", L"10x the maximum drawing distance" }
 		});
 
-		DWORD pid = Process::WaitToAppear(L"Hitman.Exe");
+		DWORD pid = System::Instance().WaitForWindow(L"Direct3D");
 
 		Process process(pid);
 
