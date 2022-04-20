@@ -113,6 +113,7 @@ System::~System()
 	{
 		bool result = CloseHandle(WaitEvent);
 		_ASSERT(result);
+		UNUSED(result);
 	}
 }
 

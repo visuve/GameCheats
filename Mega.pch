@@ -35,3 +35,5 @@
 #include "HackLib/SHA256.hpp"
 #include "HackLib/StrConvert.hpp"
 #include "HackLib/System.hpp"
+
+#define UNUSED(x) (void)x;

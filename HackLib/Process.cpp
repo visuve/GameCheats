@@ -35,12 +35,14 @@ Process::~Process()
 		{
 			bool result = CloseHandle(thread);
 			_ASSERT(result);
+			UNUSED(result);
 		}
 
 		for (Pointer memory : _memory)
 		{
 			bool result = VirtualFreeEx(_handle, memory, 0, MEM_RELEASE);
 			_ASSERT(result);
+			UNUSED(result);
 		}
 	
 		CloseHandle(_handle);
