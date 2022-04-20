@@ -20,13 +20,18 @@ int wmain(int argc, wchar_t** argv)
 		{
 			ByteStream code;
 
+			// Stolen
 			code << "8B 8E 83 00 00 00"; // mov ecx,[esi+00000083]
 			code << "8B 86 9C 00 00 00"; // mov eax,[esi+0000009C]
+
+			// New
 			code << "81 FC A4 F4 19 00"; // cmp esp, 0019F4A4
+			code << "74 0B"; // je 11
+			code << "81 FC 74 F6 19 00"; // cmp esp, 0019F674
 			code << "74 03"; // je 3
-			code << "49"; // inc ecx
+			code << "49"; // dec ecx
 			code << "EB 01"; // jmp 1
-			code << "41"; // dec ecx
+			code << "41"; // inc ecx
 			code << "90"; // nop
 
 			process.InjectX86(0x77CD1, 8, code);
