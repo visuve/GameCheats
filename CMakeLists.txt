@@ -6,9 +6,16 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MSVC)
-	message("Enabling parallel build for MSVC")	
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /WX")
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+endif()
+
+include("GoogleTest.cmake")
+include(GoogleTest)
+enable_testing()
+
+if(MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX")
 endif()
 
 set(EXECUTABLE_OUTPUT_PATH "..")
@@ -36,7 +43,4 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	add_subdirectory("Template")
 endif()
 
-include("GoogleTest.cmake")
-include(GoogleTest)
-enable_testing()
 add_subdirectory("HackLibTests")
