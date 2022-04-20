@@ -45,9 +45,9 @@ int wmain(int argc, wchar_t** argv)
 			stream << "DD 05" << value;
 
 			process.WriteBytes(0x1193A7, stream);
-
-			process.WairForExit();
 		}
+
+		process.WairForExit();
 	}
 	catch (const CmdArgs::MissingArguments& e)
 	{
