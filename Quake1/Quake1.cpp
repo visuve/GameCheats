@@ -35,7 +35,7 @@ struct Player
 
 	void SetItems(uint32_t items)
 	{
-		Items = (uint32_t(Items) | items);
+		Items = static_cast<float>(uint32_t(Items) | items);
 	}
 };
 

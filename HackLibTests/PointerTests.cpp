@@ -131,6 +131,8 @@ TEST(PointerTests, ToString)
 
 	{
 		std::stringstream stream;
+
+#pragma warning(suppress: 4312)
 		stream << Pointer(reinterpret_cast<uint8_t*>(0xDEADBEEF));
 
 #ifdef _WIN64

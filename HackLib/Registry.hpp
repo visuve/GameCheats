@@ -20,7 +20,7 @@ public:
 	{
 		DWORD valueSize = 0;
 
-		LRESULT result = RegGetValueW(
+		LSTATUS result = RegGetValueW(
 			_key,
 			nullptr,
 			valueName.data(),
@@ -67,7 +67,7 @@ public:
 		DWORD value = 0;
 		DWORD valueSize = sizeof(DWORD);
 
-		LRESULT result = RegGetValueW(
+		LSTATUS result = RegGetValueW(
 			_key,
 			nullptr,
 			valueName.data(),
@@ -93,15 +93,15 @@ public:
 	void Write(std::wstring_view valueName, std::wstring_view value) const
 	{
 		// Includes null terminator
-		DWORD valueSize = value.size() * sizeof(wchar_t) + sizeof(wchar_t);
+		size_t valueSize = value.size() * sizeof(wchar_t) + sizeof(wchar_t);
 
-		LONG result = RegSetValueExW(
+		LSTATUS result = RegSetValueExW(
 			_key,
 			valueName.data(),
 			0,
 			REG_SZ,
 			reinterpret_cast<const BYTE*>(value.data()),
-			valueSize);
+			static_cast<DWORD>(valueSize));
 
 		if (result != ERROR_SUCCESS)
 		{
@@ -112,7 +112,7 @@ public:
 	template <>
 	void Write(std::wstring_view valueName, DWORD value) const
 	{
-		LONG result = ::RegSetValueExW(
+		LSTATUS result = RegSetValueExW(
 			_key,
 			valueName.data(),
 			0,

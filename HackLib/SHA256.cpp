@@ -146,7 +146,7 @@ void SHA256::ProcessFile()
 	{
 		DWORD bytesRead = 0;
 
-		if (!ReadFile(_file, buffer.data(), buffer.size(), &bytesRead, nullptr))
+		if (!ReadFile(_file, buffer.data(), static_cast<DWORD>(buffer.size()), &bytesRead, nullptr))
 		{
 			throw Win32Exception("ReadFile");
 		}

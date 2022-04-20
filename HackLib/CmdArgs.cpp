@@ -25,19 +25,19 @@ CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expec
 	usage << std::filesystem::path(_arguments[0]).stem().wstring();
 	usage << L" - usage:\n\n " << _arguments[0] << std::endl;
 
-	for (const Argument& expected : _expected)
+	for (const Argument& argument : _expected)
 	{
 		std::apply([&](auto&&... x)
 		{
 			usage << L"  ";
 			((usage << std::left << std::setw(15) << x), ...);
 			usage << std::endl;
-		}, expected);
+		}, argument);
 	}
 
-	for (const Argument& expected : _expected)
+	for (const Argument& argument : _expected)
 	{
-		if (Contains(std::get<0>(expected)))
+		if (Contains(std::get<0>(argument)))
 		{
 			return;
 		}

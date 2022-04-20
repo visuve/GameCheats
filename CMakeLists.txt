@@ -6,9 +6,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MSVC)
-	message("Enabling parallel build for MSVC")
+	message("Enabling parallel build for MSVC")	
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /WX")
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 endif()
 
 set(EXECUTABLE_OUTPUT_PATH "..")
