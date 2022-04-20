@@ -16,6 +16,8 @@
 		<dir name="HitmanAbsolution"/>
 		<dir name="Hitman2016"/>
 		<dir name="FalloutNV"/>
+		<dir name="HitmanC47"/>
+		<dir name="Hitman2SA"/>
 	</paths>
 	<libraries>
 		<library>windows</library>

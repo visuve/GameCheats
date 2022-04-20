@@ -18,8 +18,6 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"infammo"))
 		{
-			process.ChangeByte(0x76358, X86::DecEdx, X86::Nop); // Pistols & Shotguns tested
-
 			ByteStream stream;
 
 			stream << "8B 96 96 00 00 00"; // mov edx, [esi + 00000096]
@@ -27,6 +25,8 @@ int wmain(int argc, wchar_t** argv)
 			stream << "8B 86 A7 00 00 00"; // mov eax, [esi + 000000A7]
 
 			stream << "81 FC A8 F7 19 00"; // cmp esp,0019F7A8
+			stream << "74 0B"; // je 11
+			stream << "81 FC 6C F9 19 00"; // cmp esp,0019F96C
 			stream << "74 03"; // je 3
 			stream << "4A"; // dec edx
 			stream << "EB 01"; // jmp 1
