@@ -7,17 +7,18 @@
 	<max-ctu-depth>10</max-ctu-depth>
 	<paths>
 		<dir name="HackLib"/>
-		<dir name="MaxPayne"/>
-		<dir name="HOMM3"/>
-		<dir name="R6BO"/>
-		<dir name="HiddenAndDangerous"/>
-		<dir name="Quake1"/>
-		<dir name="MaxPayne2"/>
-		<dir name="HitmanAbsolution"/>
-		<dir name="Hitman2016"/>
 		<dir name="FalloutNV"/>
-		<dir name="HitmanC47"/>
-		<dir name="Hitman2SA"/>
+		<dir name="HiddenAndDangerous"/>
+		<dir name="Hitman2000"/>
+		<dir name="Hitman2002"/>
+		<dir name="Hitman2012"/>
+		<dir name="Hitman2016"/>
+		<dir name="HOMM3"/>
+		<dir name="MaxPayne"/>
+		<dir name="MaxPayne2"/>
+		<dir name="FalloutNV"/>
+		<dir name="Quake1"/>
+		<dir name="R6BO"/>
 	</paths>
 	<libraries>
 		<library>windows</library>
