@@ -181,7 +181,7 @@ DWORD Process::WaitToAppear(std::wstring_view name)
 
 		if (!result.has_value())
 		{
-			std::wcout << "Process " << StrConvert::ToUtf8(name) << " has not appeared yet..." << std::endl;
+			std::cout << "Process " << StrConvert::ToUtf8(name) << " has not appeared yet..." << std::endl;
 			continue;
 		}
 
