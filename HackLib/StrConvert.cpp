@@ -30,7 +30,7 @@ std::string StrConvert::ToUtf8(const std::wstring_view str)
 		nullptr,
 		nullptr);
 
-	_ASSERT(result.size() == required);
+	_ASSERT(result.size() == static_cast<size_t>(required));
 
 	return result;
 }
@@ -60,7 +60,7 @@ std::wstring StrConvert::ToUtf8(const std::string_view str)
 		result.data(),
 		required);
 
-	_ASSERT(result.size() == required);
+	_ASSERT(result.size() == static_cast<size_t>(required));
 
 	return result;
 }

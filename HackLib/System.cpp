@@ -87,7 +87,7 @@ std::optional<std::wstring> WindowTitle(HWND window)
 
 	length = GetWindowTextW(window, title.data(), static_cast<int>(title.size() + 1));
 
-	_ASSERT(length == title.size());
+	_ASSERT(title.size() == static_cast<size_t>(length));
 
 	return title;
 }
