@@ -1,11 +1,16 @@
 #pragma once
 
-#define ExceptionMessage(msg) \
-	std::filesystem::path(__FILE__).filename().string() + \
-	std::string(":") + \
-	std::to_string(__LINE__) + \
-	std::string(": ") + \
-	std::string(msg)
+#include <source_location>
+
+inline std::string ExceptionMessage(
+	std::string_view message,
+	const std::source_location& location = std::source_location::current())
+{
+	return std::format("{0}:{1}: {2}", 
+		std::filesystem::path(location.file_name()).filename().string(),
+		location.line(), 
+		message);
+}
 
 #define ArgumentException(msg) std::invalid_argument(ExceptionMessage(msg))
 #define RangeException(msg) std::range_error(ExceptionMessage(msg))
