@@ -1,5 +1,10 @@
+#include "ByteStream.hpp"
+#include "OpCodes.hpp"
 #include "Process.hpp"
-#include "../Mega.pch"
+#include "SHA256.hpp"
+#include "System.hpp"
+
+#define UNUSED(x) (void)x;
 
 Process::Process(DWORD pid) :
 	_pid(pid),

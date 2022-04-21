@@ -1,8 +1,9 @@
-file(GLOB SourceCode "*.cpp" "*.hpp")
+file(GLOB SourceFiles "*.cpp")
 
-add_executable("HackLibTests" ${SourceCode})
+set(UnitTests "HackLibTests")
+add_executable(${UnitTests} ${SourceFiles})
 
 add_test(HackLibTests HackLibTests)
 
-target_precompile_headers("HackLibTests" PRIVATE "HackLibTests.pch")
-target_link_libraries("HackLibTests" LINK_PRIVATE HackLib gtest)
+target_precompile_headers(${UnitTests} PRIVATE "<gtest/gtest.h>")
+target_link_libraries(${UnitTests} LINK_PRIVATE HackLib gtest)

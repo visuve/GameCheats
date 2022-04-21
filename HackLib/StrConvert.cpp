@@ -1,5 +1,4 @@
 #include "StrConvert.hpp"
-#include "../Mega.pch"
 
 std::string StrConvert::ToUtf8(const std::wstring_view str)
 {

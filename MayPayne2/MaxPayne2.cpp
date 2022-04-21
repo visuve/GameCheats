@@ -1,4 +1,4 @@
-#include "../Mega.pch"
+#include "HackLib.hpp"
 
 int wmain(int argc, wchar_t** argv)
 {

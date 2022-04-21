@@ -1,6 +1,5 @@
-#include "../Mega.pch"
-
-#include <bcrypt.h>
+#include "Exceptions.hpp"
+#include "SHA256.hpp"
 
 SHA256::SHA256(const std::filesystem::path& path)
 {

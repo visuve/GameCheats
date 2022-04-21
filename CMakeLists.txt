@@ -14,6 +14,7 @@ if(MSVC)
 endif()
 
 add_subdirectory("HackLib")
+include_directories("HackLib")
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	add_subdirectory("MayPayne")
@@ -40,5 +41,4 @@ include("GoogleTest.cmake")
 include(GoogleTest)
 add_subdirectory("HackLibTests")
 enable_testing()
-
 

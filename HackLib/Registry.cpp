@@ -1,4 +1,4 @@
-#include "../Mega.pch"
+#include "Registry.hpp"
 
 Registry::Registry(HKEY parent, std::wstring_view subKey, REGSAM access)
 {

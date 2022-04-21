@@ -1,5 +1,0 @@
-#pragma once
-
-#include "../Mega.pch"
-
-#include <gtest/gtest.h>

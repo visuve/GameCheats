@@ -1,10 +1,4 @@
-#include "../Mega.pch"
-
-/*
-	Infinite ammo in 
-	Tested with Steam version SHA-256
-	
-*/
+#include "HackLib.hpp"
 
 int wmain(int argc, wchar_t** argv)
 {

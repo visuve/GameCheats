@@ -1,5 +1,3 @@
-#include "HackLibTests.pch"
-
 int wmain()
 {
 	testing::InitGoogleTest();

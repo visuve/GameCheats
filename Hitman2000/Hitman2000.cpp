@@ -1,4 +1,4 @@
-#include "../Mega.pch"
+#include "HackLib.hpp"
 
 /*
 	NOTES: The game has it's inbuilt cheats when setting EnableCheats 1 in hitman.ini.

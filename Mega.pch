@@ -23,17 +23,3 @@
 #define VC_EXTRALEAN
 #include <Windows.h>
 #include <TlHelp32.h>
-
-#include "HackLib/ByteStream.hpp"
-#include "HackLib/CmdArgs.hpp"
-#include "HackLib/Exceptions.hpp"
-#include "HackLib/FsOps.hpp"
-#include "HackLib/OpCodes.hpp"
-#include "HackLib/Pointer.hpp"
-#include "HackLib/Process.hpp"
-#include "HackLib/Registry.hpp"
-#include "HackLib/SHA256.hpp"
-#include "HackLib/StrConvert.hpp"
-#include "HackLib/System.hpp"
-
-#define UNUSED(x) (void)x;

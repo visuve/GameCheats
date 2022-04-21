@@ -1,4 +1,5 @@
-#include "../Mega.pch"
+#include "Exceptions.hpp"
+#include "ByteStream.hpp"
 
 ByteStream::ByteStream(size_t size, uint8_t byte) :
 	_bytes(size, byte)

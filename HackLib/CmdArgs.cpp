@@ -1,5 +1,4 @@
 #include "CmdArgs.hpp"
-#include "../Mega.pch"
 
 CmdArgs::MissingArguments::MissingArguments(const std::wstring& usage) :
 	_usage(usage)

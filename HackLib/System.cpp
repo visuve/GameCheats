@@ -1,5 +1,9 @@
+#include "Exceptions.hpp"
+#include "NonCopyable.hpp"
+#include "StrConvert.hpp"
 #include "System.hpp"
-#include "../Mega.pch"
+
+#define UNUSED(x) (void)x;
 
 BOOL WINAPI ConsoleHandler(DWORD signal)
 {
