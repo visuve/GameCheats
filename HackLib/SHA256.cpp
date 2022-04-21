@@ -47,7 +47,7 @@ SHA256::SHA256(const std::filesystem::path& path)
 		FILE_ATTRIBUTE_NORMAL,
 		nullptr);
 
-	if (_file == INVALID_HANDLE_VALUE)
+	if (_file == INVALID_HANDLE_VALUE || !_file)
 	{
 		throw Win32Exception("CreateFile");
 	}
@@ -141,7 +141,7 @@ void SHA256::ProcessFile()
 
 	LARGE_INTEGER bytesLeft = fileSize;
 
-	while (bytesLeft.QuadPart)
+	while (bytesLeft.QuadPart > 0)
 	{
 		DWORD bytesRead = 0;
 
@@ -159,7 +159,6 @@ void SHA256::ProcessFile()
 		{
 			buffer.resize(bytesRead);
 		}
-
 
 		float complete = 100.0f - (100.0f / (float(fileSize.QuadPart) / float(bytesLeft.QuadPart)));
 		std::cout << std::format("Verifying {:.2f}%", complete) << std::endl;
