@@ -8,17 +8,29 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: microsoft/setup-msbuild@v1.0.3
-    - run: |
-        mkdir out
-        cd out
-        cmake -A Win32 ..
+
+    - name: Build x86
+      run: |
+        mkdir x86 && cd x86
+        cmake -G "Visual Studio 17 2022" -A Win32 ..
         msbuild GameCheats.sln /p:Platform=Win32 /p:Configuration=Release /m
 
-    - name: Test
-      run: out/Release/HackLibTests.exe
+    - name: Build x64
+      run: |
+        mkdir x64 && cd x64
+        cmake -G "Visual Studio 17 2022" -A x64 ..
+        msbuild GameCheats.sln /p:Platform=x64 /p:Configuration=Release /m
+
+    - name: Test x86
+      run: x86/Release/HackLibTests.exe
+
+    - name: Test 64
+      run: x64/Release/HackLibTests.exe
 
     - uses: actions/upload-artifact@v2
       with:
         name: Executables
-        path: out/Release/*.exe
+        path: |
+           x86/Release/*.exe
+           x64/Release/*.exe
         if-no-files-found: error

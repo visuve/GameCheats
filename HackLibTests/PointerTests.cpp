@@ -11,9 +11,9 @@ TEST(PointerTests, Arithmetic)
 
 		Pointer ptr3 = ptr2 - ptr1;
 
-		EXPECT_EQ(ptr1.Bytes[0], 20);
-		EXPECT_EQ(ptr2.Bytes[0], 30);
-		EXPECT_EQ(ptr3.Bytes[0], 10);
+		EXPECT_EQ(ptr1.Bytes[0], 20u);
+		EXPECT_EQ(ptr2.Bytes[0], 30u);
+		EXPECT_EQ(ptr3.Bytes[0], 10u);
 	}
 	{
 		Pointer ptr1;
@@ -24,9 +24,9 @@ TEST(PointerTests, Arithmetic)
 
 		Pointer ptr3 = ptr2 + ptr1;
 
-		EXPECT_EQ(ptr1.Bytes[0], 20);
-		EXPECT_EQ(ptr2.Bytes[0], 30);
-		EXPECT_EQ(ptr3.Bytes[0], 50);
+		EXPECT_EQ(ptr1.Bytes[0], 20u);
+		EXPECT_EQ(ptr2.Bytes[0], 30u);
+		EXPECT_EQ(ptr3.Bytes[0], 50u);
 	}
 	{
 		Pointer ptr1;
@@ -37,8 +37,8 @@ TEST(PointerTests, Arithmetic)
 
 		Pointer ptr3 = ptr2 - ptr1;
 
-		EXPECT_EQ(ptr1.Bytes[0], 10);
-		EXPECT_EQ(ptr2.Bytes[0], 10);
+		EXPECT_EQ(ptr1.Bytes[0], 10u);
+		EXPECT_EQ(ptr2.Bytes[0], 10u);
 		EXPECT_TRUE(ptr3.Value == nullptr);
 	}
 	{
@@ -47,7 +47,7 @@ TEST(PointerTests, Arithmetic)
 
 		ptr1 + 10;
 
-		EXPECT_EQ(ptr1.Bytes[0], 10);
+		EXPECT_EQ(ptr1.Bytes[0], 10u);
 	}
 	{
 		Pointer ptr1;
@@ -55,7 +55,7 @@ TEST(PointerTests, Arithmetic)
 
 		ptr1 += 10;
 
-		EXPECT_EQ(ptr1.Bytes[0], 20);
+		EXPECT_EQ(ptr1.Bytes[0], 20u);
 	}
 	{
 		Pointer ptr1;
@@ -63,7 +63,7 @@ TEST(PointerTests, Arithmetic)
 
 		ptr1 - 10;
 
-		EXPECT_EQ(ptr1.Bytes[0], 10);
+		EXPECT_EQ(ptr1.Bytes[0], 10u);
 	}
 	{
 		Pointer ptr1;
@@ -71,23 +71,23 @@ TEST(PointerTests, Arithmetic)
 
 		ptr1 -= 10;
 
-		EXPECT_EQ(ptr1.Bytes[0], 0);
+		EXPECT_EQ(ptr1.Bytes[0], 0u);
 	}
 	{
 		Pointer ptr1;
-		std::memset(ptr1.Bytes, 0xFF, PointerSizeBytes);
+		std::memset(ptr1.Bytes, 0xFFu, PointerSizeBytes);
 
 		ptr1 -= 0XFF;
 
-		EXPECT_EQ(ptr1.Bytes[0], 0x00);
+		EXPECT_EQ(ptr1.Bytes[0], 0x00u);
 	}
 	{
 		Pointer ptr1;
-		std::memset(ptr1.Bytes, 0xFF, PointerSizeBytes);
+		std::memset(ptr1.Bytes, 0xFFu, PointerSizeBytes);
 
 		ptr1 += 0XFF;
 
-		EXPECT_EQ(reinterpret_cast<size_t>(ptr1.Value), 0xFE); // Overflow
+		EXPECT_EQ(reinterpret_cast<size_t>(ptr1.Value), 0xFEu); // Overflow
 	}
 }
 

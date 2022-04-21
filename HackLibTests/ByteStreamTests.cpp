@@ -3,44 +3,44 @@
 TEST(ByteStreamTests, Constructors)
 {
 	{
-		ByteStream stream(3, 0x90);
-		EXPECT_EQ(stream[0], 0x90);
-		EXPECT_EQ(stream[1], 0x90);
-		EXPECT_EQ(stream[2], 0x90);
-		EXPECT_EQ(stream.Size(), 3);
+		ByteStream stream(3, 0x90u);
+		EXPECT_EQ(stream[0], 0x90u);
+		EXPECT_EQ(stream[1], 0x90u);
+		EXPECT_EQ(stream[2], 0x90u);
+		EXPECT_EQ(stream.Size(), 3u);
 	}
 	{
 		uint8_t bytes[] = { 4, 5, 6 };
 		ByteStream stream(bytes);
-		EXPECT_EQ(stream[0], 0x04);
-		EXPECT_EQ(stream[1], 0x05);
-		EXPECT_EQ(stream[2], 0x06);
-		EXPECT_EQ(stream.Size(), 3);
+		EXPECT_EQ(stream[0], 0x04u);
+		EXPECT_EQ(stream[1], 0x05u);
+		EXPECT_EQ(stream[2], 0x06u);
+		EXPECT_EQ(stream.Size(), 3u);
 	}
 	{
 		std::vector<uint8_t> data = { 4, 5, 6 };
 		ByteStream stream(data);
 
-		EXPECT_EQ(stream[0], 0x04);
-		EXPECT_EQ(stream[1], 0x05);
-		EXPECT_EQ(stream[2], 0x06);
-		EXPECT_EQ(stream.Size(), 3);
+		EXPECT_EQ(stream[0], 0x04u);
+		EXPECT_EQ(stream[1], 0x05u);
+		EXPECT_EQ(stream[2], 0x06u);
+		EXPECT_EQ(stream.Size(), 3u);
 	}
 	{
 		std::array<uint8_t, 3> data = { 4, 5, 6 };
 		ByteStream stream(data);
 
-		EXPECT_EQ(stream[0], 0x04);
-		EXPECT_EQ(stream[1], 0x05);
-		EXPECT_EQ(stream[2], 0x06);
-		EXPECT_EQ(stream.Size(), 3);
+		EXPECT_EQ(stream[0], 0x04u);
+		EXPECT_EQ(stream[1], 0x05u);
+		EXPECT_EQ(stream[2], 0x06u);
+		EXPECT_EQ(stream.Size(), 3u);
 	}
 	{
 		ByteStream stream({ 4, 5, 6 });
-		EXPECT_EQ(stream[0], 0x04);
-		EXPECT_EQ(stream[1], 0x05);
-		EXPECT_EQ(stream[2], 0x06);
-		EXPECT_EQ(stream.Size(), 3);
+		EXPECT_EQ(stream[0], 0x04u);
+		EXPECT_EQ(stream[1], 0x05u);
+		EXPECT_EQ(stream[2], 0x06u);
+		EXPECT_EQ(stream.Size(), 3u);
 	}
 }
 
@@ -51,20 +51,20 @@ TEST(ByteStreamTests, StreamOperators)
 #pragma warning(suppress: 4312)
 		stream << Pointer(reinterpret_cast<uint8_t*>(0xDEADBEEF));
 
-		EXPECT_EQ(stream[0], 0xEF);
-		EXPECT_EQ(stream[1], 0xBE);
-		EXPECT_EQ(stream[2], 0xAD);
-		EXPECT_EQ(stream[3], 0xDE);
+		EXPECT_EQ(stream[0], 0xEFu);
+		EXPECT_EQ(stream[1], 0xBEu);
+		EXPECT_EQ(stream[2], 0xADu);
+		EXPECT_EQ(stream[3], 0xDEu);
 
 #ifdef _WIN64
 		EXPECT_EQ(stream.Size(), 8);
-		EXPECT_EQ(stream[4], 0x00);
-		EXPECT_EQ(stream[5], 0x00);
-		EXPECT_EQ(stream[6], 0x00);
-		EXPECT_EQ(stream[7], 0x00);
+		EXPECT_EQ(stream[4], 0x00u);
+		EXPECT_EQ(stream[5], 0x00u);
+		EXPECT_EQ(stream[6], 0x00u);
+		EXPECT_EQ(stream[7], 0x00u);
 
 #else
-		EXPECT_EQ(stream.Size(), 4);
+		EXPECT_EQ(stream.Size(), 4u);
 #endif
 	}
 	{
@@ -72,10 +72,10 @@ TEST(ByteStreamTests, StreamOperators)
 
 		uint8_t bytes[] = { 4, 5, 6 };
 		stream << bytes;
-		EXPECT_EQ(stream[0], 0x04);
-		EXPECT_EQ(stream[1], 0x05);
-		EXPECT_EQ(stream[2], 0x06);
-		EXPECT_EQ(stream.Size(), 3);
+		EXPECT_EQ(stream[0], 0x04u);
+		EXPECT_EQ(stream[1], 0x05u);
+		EXPECT_EQ(stream[2], 0x06u);
+		EXPECT_EQ(stream.Size(), 3u);
 	}
 	{
 		ByteStream stream;
@@ -83,10 +83,10 @@ TEST(ByteStreamTests, StreamOperators)
 		std::vector<uint8_t> data(0x3);
 		stream << data;
 
-		EXPECT_EQ(stream[0], 0x00);
-		EXPECT_EQ(stream[1], 0x00);
-		EXPECT_EQ(stream[2], 0x00);
-		EXPECT_EQ(stream.Size(), 3);
+		EXPECT_EQ(stream[0], 0x00u);
+		EXPECT_EQ(stream[1], 0x00u);
+		EXPECT_EQ(stream[2], 0x00u);
+		EXPECT_EQ(stream.Size(), 3u);
 	}
 	{
 		ByteStream stream;
@@ -94,10 +94,10 @@ TEST(ByteStreamTests, StreamOperators)
 		std::array<uint8_t, 3> data = { 4, 5, 6};
 		stream << data;
 
-		EXPECT_EQ(stream[0], 0x04);
-		EXPECT_EQ(stream[1], 0x05);
-		EXPECT_EQ(stream[2], 0x06);
-		EXPECT_EQ(stream.Size(), 3);
+		EXPECT_EQ(stream[0], 0x04u);
+		EXPECT_EQ(stream[1], 0x05u);
+		EXPECT_EQ(stream[2], 0x06u);
+		EXPECT_EQ(stream.Size(), 3u);
 	}
 }
 
@@ -105,16 +105,16 @@ TEST(ByteStreamTests, Fill)
 {
 	ByteStream stream;
 	stream.Fill(3, 0x90);
-	EXPECT_EQ(stream.Size(), 3);
-	EXPECT_EQ(stream[0], 0x90);
-	EXPECT_EQ(stream[1], 0x90);
-	EXPECT_EQ(stream[2], 0x90);
+	EXPECT_EQ(stream.Size(), 3u);
+	EXPECT_EQ(stream[0], 0x90u);
+	EXPECT_EQ(stream[1], 0x90u);
+	EXPECT_EQ(stream[2], 0x90u);
 
 	stream.Fill(3, 0x00);
-	EXPECT_EQ(stream.Size(), 6);
-	EXPECT_EQ(stream[3], 0x00);
-	EXPECT_EQ(stream[4], 0x00);
-	EXPECT_EQ(stream[5], 0x00);
+	EXPECT_EQ(stream.Size(), 6u);
+	EXPECT_EQ(stream[3], 0x00u);
+	EXPECT_EQ(stream[4], 0x00u);
+	EXPECT_EQ(stream[5], 0x00u);
 }
 
 TEST(ByteStreamTests, FromString)
@@ -122,25 +122,25 @@ TEST(ByteStreamTests, FromString)
 	{
 		ByteStream stream("00 FF 00 FF 00 88");
 
-		EXPECT_EQ(stream.Size(), 6);
-		EXPECT_EQ(stream[0], 0x00);
-		EXPECT_EQ(stream[1], 0xFF);
-		EXPECT_EQ(stream[2], 0x00);
-		EXPECT_EQ(stream[3], 0xFF);
-		EXPECT_EQ(stream[4], 0x00);
-		EXPECT_EQ(stream[5], 0x88);
+		EXPECT_EQ(stream.Size(), 6u);
+		EXPECT_EQ(stream[0], 0x00u);
+		EXPECT_EQ(stream[1], 0xFFu);
+		EXPECT_EQ(stream[2], 0x00u);
+		EXPECT_EQ(stream[3], 0xFFu);
+		EXPECT_EQ(stream[4], 0x00u);
+		EXPECT_EQ(stream[5], 0x88u);
 	}
 	{
 		ByteStream stream;
 		stream << "FF 00 FF 00 FF 88";
 
-		EXPECT_EQ(stream.Size(), 6);
-		EXPECT_EQ(stream[0], 0xFF);
-		EXPECT_EQ(stream[1], 0x00);
-		EXPECT_EQ(stream[2], 0xFF);
-		EXPECT_EQ(stream[3], 0x00);
-		EXPECT_EQ(stream[4], 0xFF);
-		EXPECT_EQ(stream[5], 0x88);
+		EXPECT_EQ(stream.Size(), 6u);
+		EXPECT_EQ(stream[0], 0xFFu);
+		EXPECT_EQ(stream[1], 0x00u);
+		EXPECT_EQ(stream[2], 0xFFu);
+		EXPECT_EQ(stream[3], 0x00u);
+		EXPECT_EQ(stream[4], 0xFFu);
+		EXPECT_EQ(stream[5], 0x88u);
 	}
 
 	{
