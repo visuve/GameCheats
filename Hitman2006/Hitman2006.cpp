@@ -14,7 +14,11 @@ int wmain(int argc, wchar_t** argv)
 
 		Process process(pid);
 
-		process.Verify("b45bf59665f98b6547152218f33a0fe006836290f004960a49c37918f22d2713");
+		if (!process.Verify("b45bf59665f98b6547152218f33a0fe006836290f004960a49c37918f22d2713"))
+		{
+			std::cerr << "Expected Hitman Blood Money v1.2 (Steam)" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"infammo"))
 		{

@@ -14,7 +14,11 @@ int wmain(int argc, wchar_t** argv)
 
 		Process process(pid);
 
-		process.Verify("f85765f1b36734165fc22122050ca39ca1b8873f9b2d430b50a8271cde5d5136");
+		if (process.Verify("f85765f1b36734165fc22122050ca39ca1b8873f9b2d430b50a8271cde5d5136"))
+		{
+			std::cerr << "Expected Hitman 2: Silent Assasin" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"infammo"))
 		{

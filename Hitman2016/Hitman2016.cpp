@@ -20,6 +20,8 @@ int wmain(int argc, wchar_t** argv)
 			return ERROR_REVISION_MISMATCH;
 		}
 
+		process.WaitForIdle();
+
 		if (args.Contains(L"infammo"))
 		{
 			process.ChangeByte(0x103047, 0xCA, 0xC2);

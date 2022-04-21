@@ -1,3 +1,4 @@
+#include "Process.hpp"
 #include "../Mega.pch"
 
 Process::Process(DWORD pid) :
@@ -9,17 +10,6 @@ Process::Process(DWORD pid) :
 	{
 		throw Win32Exception("OpenProcess");
 	}
-
-	// Just a little sleep to make sure all modules have been loaded
-	if (WaitForInputIdle(_handle, 5000) == 0)
-	{
-		Beep(50, 998);
-	}
-	else
-	{
-		Beep(150, 993);
-	}
-	
 }
 
 Process::Process(std::wstring_view name) :
@@ -65,6 +55,27 @@ std::filesystem::path Process::Path() const
 	buffer.resize(size);
 
 	return buffer;
+}
+
+void Process::WaitForIdle()
+{
+	DWORD result = 0;
+
+	do
+	{
+		result = WaitForInputIdle(_handle, 1000);
+
+	} while (result == WAIT_TIMEOUT);
+
+	if (result != 0)
+	{
+		throw Win32ExceptionEx("WaitForInputIdle", result);
+	}
+
+	for (DWORD i = 0x40; i < 0x1000; i *= 2)
+	{
+		Beep(i, 75u);
+	}
 }
 
 bool Process::Verify(std::string_view expectedSHA256) const

@@ -149,6 +149,8 @@ public:
 
 	std::filesystem::path Path() const;
 
+	void WaitForIdle();
+
 	bool Verify(std::string_view expectedSHA256) const;
 
 	MODULEENTRY32W FindModule(std::wstring_view name) const;

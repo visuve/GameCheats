@@ -14,7 +14,11 @@ int wmain(int argc, wchar_t** argv)
 
 		Process process(pid);
 
-		process.Verify("189f8ce2e40603db1387266e960fcf102c479ad4de83d31b1cbfe3647b6cd702");
+		if (!process.Verify("189f8ce2e40603db1387266e960fcf102c479ad4de83d31b1cbfe3647b6cd702"))
+		{
+			std::cerr << "Expected Hitman Contracts" << std::endl;
+			return ERROR_REVISION_MISMATCH;
+		}
 
 		if (args.Contains(L"infammo"))
 		{
