@@ -8,3 +8,8 @@
 
 - See ![LICENSE.txt](/LICENSE.txt)
 - Please contribute if you find this repository interesting
+
+<div align="center">
+	<img src="Screenshot.jpg" alt="Hitman (2016) with some cheats applied">
+	<b><i>Hitman (2016) with some cheats applied</i></b>
+</div>

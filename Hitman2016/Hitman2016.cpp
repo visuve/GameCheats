@@ -10,7 +10,9 @@ int wmain(int argc, wchar_t** argv)
 			{ L"dummyai", L"AI cannot shoot" }
 		});
 
-		Process process(L"HITMAN.exe");
+		DWORD pid = System::Instance().WaitForWindow(L"Hitman");
+
+		Process process(pid);
 
 		if (!process.Verify("31c33c1937b1ddc3cad21bd7d761f12f962286d55c48d3582a704ca35e2830f9"))
 		{
