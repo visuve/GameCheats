@@ -13,7 +13,7 @@ SHA256::SHA256(const std::filesystem::path& path)
 
 		if (status != 0)
 		{
-			throw Win32ExceptionEx("BCryptOpenAlgorithmProvider", status);
+			throw Win32Exception("BCryptOpenAlgorithmProvider", status);
 		}
 	}
 
@@ -32,7 +32,7 @@ SHA256::SHA256(const std::filesystem::path& path)
 
 		if (status != 0 || !_hashHandle)
 		{
-			throw Win32ExceptionEx("BCryptCreateHash", status);
+			throw Win32Exception("BCryptCreateHash", status);
 		}
 	}
 
@@ -86,7 +86,7 @@ size_t SHA256::PropertySize(std::wstring_view property)
 
 	if (status != 0 || !_algorithmHandle || !object || bytesWritten != sizeof(DWORD))
 	{
-		throw Win32ExceptionEx("BCryptGetProperty", status);
+		throw Win32Exception("BCryptGetProperty", status);
 	}
 
 	return object;
@@ -179,7 +179,7 @@ void SHA256::Update(std::span<uint8_t> data)
 
 	if (status != 0)
 	{
-		throw Win32ExceptionEx("BCryptHashData", status);
+		throw Win32Exception("BCryptHashData", status);
 	}
 }
 
@@ -193,7 +193,7 @@ void SHA256::Finish()
 
 	if (status != 0)
 	{
-		throw Win32ExceptionEx("BCryptFinishHash", status);
+		throw Win32Exception("BCryptFinishHash", status);
 	}
 }
 

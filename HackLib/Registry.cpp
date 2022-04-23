@@ -11,7 +11,7 @@ Registry::Registry(HKEY parent, std::wstring_view subKey, REGSAM access)
 
 	if (result != ERROR_SUCCESS)
 	{
-		throw Win32ExceptionEx("RegOpenKeyExW", result);
+		throw Win32Exception("RegOpenKeyExW", result);
 	}
 }
 

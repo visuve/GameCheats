@@ -74,7 +74,7 @@ void Process::WaitForIdle()
 
 	if (result != 0)
 	{
-		throw Win32ExceptionEx("WaitForInputIdle", result);
+		throw Win32Exception("WaitForInputIdle", result);
 	}
 
 	for (DWORD i = 0x40; i < 0x1000; i *= 2)
@@ -413,5 +413,5 @@ void Process::WairForExit(std::chrono::milliseconds timeout)
 		}
 	}
 
-	throw Win32ExceptionEx("WaitForSingleObject", waitResult);
+	throw Win32Exception("WaitForSingleObject", waitResult);
 }

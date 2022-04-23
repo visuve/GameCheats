@@ -2,9 +2,7 @@
 
 #include <source_location>
 
-inline std::string ExceptionMessage(
-	std::string_view message,
-	const std::source_location& location = std::source_location::current())
+inline std::string ExceptionMessage(std::string_view message, const std::source_location& location)
 {
 	return std::format("{0}:{1}: {2}", 
 		std::filesystem::path(location.file_name()).filename().string(),
@@ -12,10 +10,54 @@ inline std::string ExceptionMessage(
 		message);
 }
 
-#define ArgumentException(msg) std::invalid_argument(ExceptionMessage(msg))
-#define RangeException(msg) std::range_error(ExceptionMessage(msg))
-#define RuntimeException(msg) std::runtime_error(ExceptionMessage(msg))
-#define OutOfRangeException(msg) std::out_of_range(ExceptionMessage(msg))
-#define LogicException(msg) std::logic_error(ExceptionMessage(msg))
-#define Win32Exception(msg) std::system_error(GetLastError(), std::system_category(), ExceptionMessage(msg))
-#define Win32ExceptionEx(msg, code) std::system_error(code, std::system_category(), ExceptionMessage(msg))
+inline auto ArgumentException(
+	std::string_view message, 
+	const std::source_location& location = std::source_location::current())
+{
+	return std::invalid_argument(ExceptionMessage(message, location));
+}
+
+inline auto RangeException(
+	std::string_view message, 
+	const std::source_location& location = std::source_location::current())
+{
+	return std::range_error(ExceptionMessage(message, location));
+}
+
+inline auto RuntimeException(
+	std::string_view message, 
+	const std::source_location& location = std::source_location::current())
+{
+	return std::runtime_error(ExceptionMessage(message, location));
+}
+
+inline auto OutOfRangeException(
+	std::string_view message, 
+	const std::source_location& location = std::source_location::current())
+{
+	return std::out_of_range(ExceptionMessage(message, location));
+}
+
+inline auto LogicException(
+	std::string_view message, 
+	const std::source_location& location = std::source_location::current())
+{
+	return std::logic_error(ExceptionMessage(message, location));
+}
+
+inline auto Win32Exception(
+	std::string_view message, 
+	int64_t error = GetLastError(), // large enough to hold any error
+	const std::source_location& location = std::source_location::current())
+{
+	return std::system_error(
+		static_cast<int>(error), // just has to be downcasted :-D ...
+		std::system_category(),
+		ExceptionMessage(message, location)); 
+	
+	// ... this fuckery is to prevent compiler warnings
+	// Thanks Micro$soft for having DWORD, HRESULT, LSTATUS, NTSTATUS etc.
+	// Exceptions are different in that regard as in the end they are
+	// derived from the same class i.e. std::exception. Of course throwing
+	// anything is possible, but that's just pure evil.
+}

@@ -31,7 +31,7 @@ public:
 
 		if (result != ERROR_SUCCESS)
 		{
-			throw Win32ExceptionEx("RegGetValueW", result);
+			throw Win32Exception("RegGetValueW", result);
 		}
 
 		std::wstring value(valueSize / sizeof(wchar_t), 0);
@@ -47,7 +47,7 @@ public:
 
 		if (result != ERROR_SUCCESS)
 		{
-			throw Win32ExceptionEx("RegGetValueW", result);
+			throw Win32Exception("RegGetValueW", result);
 		}
 
 		value.resize(valueSize / sizeof(wchar_t) - 1);
@@ -78,7 +78,7 @@ public:
 
 		if (result != ERROR_SUCCESS)
 		{
-			throw Win32ExceptionEx("RegGetValueW", result);
+			throw Win32Exception("RegGetValueW", result);
 		}
 
 		_ASSERT_EXPR(valueSize == sizeof(DWORD), L"RegGetValueW size mismatch!");
@@ -105,7 +105,7 @@ public:
 
 		if (result != ERROR_SUCCESS)
 		{
-			throw Win32ExceptionEx("RegSetValueExW", result);
+			throw Win32Exception("RegSetValueExW", result);
 		}
 	}
 
@@ -122,7 +122,7 @@ public:
 
 		if (result != ERROR_SUCCESS)
 		{
-			throw Win32ExceptionEx("RegSetValueExW", result);
+			throw Win32Exception("RegSetValueExW", result);
 		}
 	}
 
