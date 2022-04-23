@@ -6,7 +6,7 @@ int wmain(int argc, wchar_t** argv)
 	{
 		// Use this as a template, or start hacking away!
 
-		CmdArgs args(argc, argv,
+		const CmdArgs args(argc, argv,
 		{
 			{ L"calculator", typeid(std::nullopt), L"Just an example" }
 		});

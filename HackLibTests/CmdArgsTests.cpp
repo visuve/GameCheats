@@ -10,7 +10,7 @@ TEST(CmdArgsTests, ContainsSimple)
 		L"bar"
 	};
 
-	CmdArgs args(argc, const_cast<wchar_t**>(argv),
+	const CmdArgs args(argc, const_cast<wchar_t**>(argv),
 	{
 		{ L"foo", typeid(std::nullopt), L"Foos, not bars" },
 		{ L"bar", typeid(std::nullopt), L"Bars, not foos" }
@@ -48,7 +48,7 @@ TEST(CmdArgsTests, ContainsValuedArgument)
 		L"bar=456"
 	};
 
-	CmdArgs args(argc, const_cast<wchar_t**>(argv),
+	const CmdArgs args(argc, const_cast<wchar_t**>(argv),
 	{
 		{ L"foo", typeid(int), L"Foos, not bars" },
 		{ L"bar", typeid(int), L"Bars, not foos" }
@@ -72,7 +72,7 @@ TEST(CmdArgsTests, ParseArgument)
 		_wcsdup(L"echo=3.14159265359"),
 	};
 
-	CmdArgs args(argc, argv,
+	const CmdArgs args(argc, argv,
 	{
 		{ L"alpha", typeid(std::nullopt), L"Null option" },
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },
@@ -114,7 +114,7 @@ TEST(CmdArgsTests, InvalidType)
 		_wcsdup(L"echo=3.14159265359"),
 	};
 
-	CmdArgs args(argc, argv,
+	const CmdArgs args(argc, argv,
 	{
 		{ L"alpha", typeid(std::nullopt), L"Null option" },
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },
@@ -148,7 +148,7 @@ TEST(CmdArgsTests, InvalidFormat)
 		_wcsdup(L"echo@3.14159265359"),
 	};
 
-	CmdArgs args(argc, argv,
+	const CmdArgs args(argc, argv,
 	{
 		{ L"alpha", typeid(std::nullopt), L"Null option" },
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },

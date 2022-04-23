@@ -4,7 +4,7 @@ int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
-		CmdArgs args(argc, argv,
+		const CmdArgs args(argc, argv,
 		{
 			{ L"totalammo", typeid(std::nullopt), L"Set 999 total ammo for current weapon" },
 			{ L"magammo", typeid(std::nullopt), L"Set 999 magazine ammo for current weapon" },

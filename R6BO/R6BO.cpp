@@ -168,7 +168,7 @@ int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
-		CmdArgs args(argc, argv,
+		const CmdArgs args(argc, argv,
 		{
 			{ L"persistent", typeid(std::nullopt), L"Hack the registry & some mission files to allow more terrorists" },
 			{ L"persistent", typeid(std::nullopt), L"Apply various in memory hacks, e.g. increasing ammo" },

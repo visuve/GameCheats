@@ -4,7 +4,7 @@ int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
-		CmdArgs args(argc, argv,
+		const CmdArgs args(argc, argv,
 		{
 			{ L"patch", typeid(std::filesystem::path), L"Remove XR_3DA.exe administrator requirement" },
 		});
@@ -22,7 +22,7 @@ int wmain(int argc, wchar_t** argv)
 
 			if (SHA256(path) != "52d325e3fbf0f468062090b9d594457e3fe0eb80827d49a157e745fa7f3da3ea")
 			{
-				std::cout << "Cheksum mismatch, stabbin the .exe failed :-( The game might be broken." << std::endl;
+				std::cout << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken." << std::endl;
 			}
 		}
 	}

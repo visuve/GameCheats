@@ -40,7 +40,7 @@ int wmain(int argc, wchar_t** argv)
 {
 	try
 	{
-		CmdArgs args(argc, argv,
+		const CmdArgs args(argc, argv,
 		{
 			{ L"addresources", typeid(std::nullopt), L"Adds 48879 to each resource" },
 		});
