@@ -56,33 +56,15 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"giveammo", L"Set 255 ammo for all weapons" },
 			{ L"infammo", L"255 ammo always" }
 		});
 
 		Process process(L"Quake_x64_steam.exe");
 
-		if (!process.Verify("094cceaabbbc3fbc794e70de97e107da7a6ef8ea818372a598908ecc8bca71f6"))
+		if (!process.Verify("39d0a522918f078425bda90d43292e9bb83866d442059deb5be75ae8f4f8109a"))
 		{
-			std::cerr << "Expected Quake 1 Remake v1.0.4831 (Steam)" << std::endl;
+			std::cerr << "Expected Quake 1 Remake v1.0.5036 (Steam)" << std::endl;
 			return ERROR_REVISION_MISMATCH;
-		}
-
-		if (args.Contains(L"giveammo"))
-		{
-			Pointer ammoPtr = process.ResolvePointer(0x018E2950, 0x88);
-			Player player = process.Read<Player>(ammoPtr);
-
-			std::cout << "Before:" << std::endl;
-			std::cout << player << std::endl;
-
-			player.SetAmmo(0xFF);
-			player.SetItems(AllItems);
-
-			std::cout << "\nAfter:" << std::endl;
-			std::cout << player << std::endl;
-
-			process.Write(ammoPtr, player);
 		}
 
 		if (args.Contains(L"infammo"))
@@ -90,20 +72,29 @@ int wmain(int argc, wchar_t** argv)
 			ByteStream stream;
 
 			// Orig
-			stream << 0x48 << 0x63 << 0x14 << 0xB3;
-			stream << 0x48 << 0xA1 << process.Address(0x18BEEB0);
-			stream << 0x8B << 0x0C << 0xBB;
+			stream << "48 63 14 B3"; // movsxd rdx,dword ptr [rbx+rsi*4]
+			stream << "48 A1" << process.Address(0x18DB3D0); // mov rax,[1418DB3D0]
+			stream << "8B 0C BB"; // mov ecx,[rbx+rdi*4]
 
-			// Hax
-			stream << 0x48 << 0x81 << 0xFA << 0xA8 << 0x05 << 0x00 << 0x00; // 48 81 FA A8050000 - cmp rdx, 000005A8
-			stream << 0X7C << 0X0E; // 7C - jl
-			stream << 0x48 << 0x81 << 0xFA << 0xB4 << 0x05 << 0x00 << 0x00; // 48 81 FA B4050000 - cmp rdx, 000005B4
-			stream << 0X7F << 0X05; // 7F - jg
-			stream << 0xB9 << 0x00 << 0x00 << 0x7F << 0x43; // B9 00007E43 - mov ecx, 437F0000
+			// If rdx hits the spot, lets set 255 to ecx
+			stream << "48 81 FA AC 05 00 00"; // cmp rdx, 000005AC
+			stream << "74 26"; // je
+			stream << "48 81 FA B0 05 00 00"; // cmp rdx, 000005B0
+			stream << "74 1D"; // je
+			stream << "48 81 FA B4 05 00 00"; // cmp rdx, 000005B4
+			stream << "74 14"; // je
+			stream << "48 81 FA B8 05 00 00"; // cmp rdx, 000005B8
+			stream << "74 0B"; // je
+			stream << "48 81 FA BC 05 00 00"; // cmp rdx, 000005BC
+			stream << "74 02"; // je
+			stream << "EB 05"; // jmp 5
+			stream << "B9 00 00 7F 43"; // mov ecx, 437F0000 (float 255)
+			stream << "90"; // nop
 
-			stream << 0x89 << 0x0C << 0x02; // mov [rdx+rax],ecx <- the fucker from the original code
+			// Orig
+			stream << "89 0C 02"; // mov [rdx+rax],ecx <- the fucker from the original code
 
-			process.InjectX64(0x1C7BA1, 3, stream);
+			process.InjectX64(0x1CBE71, 3, stream);
 
 			process.WairForExit();
 		}
