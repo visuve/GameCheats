@@ -170,8 +170,8 @@ int wmain(int argc, wchar_t** argv)
 	{
 		CmdArgs args(argc, argv,
 		{
-			{ L"persistent", L"Hack the registry & some mission files to allow more terrorists" },
-			{ L"persistent", L"Apply various in memory hacks, e.g. increasing ammo" },
+			{ L"persistent", typeid(std::nullopt), L"Hack the registry & some mission files to allow more terrorists" },
+			{ L"persistent", typeid(std::nullopt), L"Apply various in memory hacks, e.g. increasing ammo" },
 		});
 
 		if (args.Contains(L"persistent"))
@@ -184,7 +184,7 @@ int wmain(int argc, wchar_t** argv)
 			R6BO::HackRunningProcess();
 		}
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;

@@ -6,9 +6,9 @@ int wmain(int argc, wchar_t** argv)
 	{
 		CmdArgs args(argc, argv,
 		{
-			{ L"totalammo", L"Set 999 total ammo for current weapon" },
-			{ L"magammo", L"Set 999 magazine ammo for current weapon" },
-			{ L"infammo", L"Ammo is never reduced" },
+			{ L"totalammo", typeid(std::nullopt), L"Set 999 total ammo for current weapon" },
+			{ L"magammo", typeid(std::nullopt), L"Set 999 magazine ammo for current weapon" },
+			{ L"infammo", typeid(std::nullopt), L"Ammo is never reduced" },
 		});
 
 		Process process(L"hde.exe");
@@ -49,7 +49,7 @@ int wmain(int argc, wchar_t** argv)
 			process.Write(ptr, code);
 		}
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;

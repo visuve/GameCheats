@@ -6,8 +6,8 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"reloadadds", L"Reloading adds to total ammo" },
-			{ L"infammo", L"Ammunition is never reduced" }
+			{ L"reloadadds", typeid(std::nullopt), L"Reloading adds to total ammo" },
+			{ L"infammo", typeid(std::nullopt), L"Ammunition is never reduced" }
 		});
 
 		Process process(L"maxpayne2.exe");
@@ -30,7 +30,7 @@ int wmain(int argc, wchar_t** argv)
 			process.ChangeByte(ammoPtr, X86::DecEcx, X86::Nop);
 		}
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;

@@ -6,8 +6,8 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infammo", L"Never decreasing ammunition" },
-			{ L"infhealth", L"Never decreasing health" }
+			{ L"infammo", typeid(std::nullopt), L"Never decreasing ammunition" },
+			{ L"infhealth", typeid(std::nullopt), L"Never decreasing health" }
 		});
 
 		DWORD pid = System::Instance().WaitForWindow(L"Hitman2");
@@ -53,7 +53,7 @@ int wmain(int argc, wchar_t** argv)
 
 		process.WairForExit();
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;

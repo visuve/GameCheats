@@ -11,10 +11,10 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infammo", L"Never decreasing ammunition" },
-			{ L"infarmor", L"Never decreasing armor" },
-			{ L"infhealth", L"Never decreasing health" },
-			{ L"drawdistance", L"10x the maximum drawing distance" }
+			{ L"infammo", typeid(std::nullopt), L"Never decreasing ammunition" },
+			{ L"infarmor", typeid(std::nullopt), L"Never decreasing armor" },
+			{ L"infhealth", typeid(std::nullopt), L"Never decreasing health" },
+			{ L"drawdistance", typeid(std::nullopt), L"10x the maximum drawing distance" }
 		});
 
 		DWORD pid = System::Instance().WaitForWindow(L"Direct3D");
@@ -68,7 +68,7 @@ int wmain(int argc, wchar_t** argv)
 			process.WairForExit();
 		}
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;

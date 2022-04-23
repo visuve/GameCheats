@@ -6,8 +6,8 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infammo", L"Ammunition is never reduced (NOTE: might be flaky)" },
-			{ L"noweard", L"Weapon condition is never reduced" }
+			{ L"infammo", typeid(std::nullopt), L"Ammunition is never reduced (NOTE: might be flaky)" },
+			{ L"noweard", typeid(std::nullopt), L"Weapon condition is never reduced" }
 		});
 
 		Process process(L"FalloutNV.exe");
@@ -53,7 +53,7 @@ int wmain(int argc, wchar_t** argv)
 
 		process.WairForExit();
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;

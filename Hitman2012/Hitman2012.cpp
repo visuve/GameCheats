@@ -6,9 +6,9 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infstealth", L"Infinite stealth" },
-			{ L"infhealth", L"Infinite health" },
-			{ L"infammo", L"Infinite ammo" },
+			{ L"infstealth", typeid(std::nullopt), L"Infinite stealth" },
+			{ L"infhealth", typeid(std::nullopt), L"Infinite health" },
+			{ L"infammo", typeid(std::nullopt), L"Infinite ammo" },
 		});
 
 		Process process(L"HMA.exe");
@@ -34,7 +34,7 @@ int wmain(int argc, wchar_t** argv)
 			process.ChangeByte(0x5ECEAD, X86::DecEax, X86::IncEax);
 		}
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;

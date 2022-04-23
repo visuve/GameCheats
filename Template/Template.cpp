@@ -8,7 +8,7 @@ int wmain(int argc, wchar_t** argv)
 
 		CmdArgs args(argc, argv,
 		{
-			{ L"calculator", L"Just an example" }
+			{ L"calculator", typeid(std::nullopt), L"Just an example" }
 		});
 
 		if (args.Contains(L"calculator"))
@@ -21,7 +21,7 @@ int wmain(int argc, wchar_t** argv)
 			process.Verify("E7760F103569E1D70D011C8137CD8BCAB586980615AB013479F72C3F67E28534");
 		}
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;

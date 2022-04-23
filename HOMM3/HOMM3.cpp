@@ -42,7 +42,7 @@ int wmain(int argc, wchar_t** argv)
 	{
 		CmdArgs args(argc, argv,
 		{
-			{ L"addresources", L"Adds 48879 to each resource" },
+			{ L"addresources", typeid(std::nullopt), L"Adds 48879 to each resource" },
 		});
 
 		Process process(L"HOMM3 2.0.exe");
@@ -71,7 +71,7 @@ int wmain(int argc, wchar_t** argv)
 			process.Write(resourcePointer, resources);
 		}
 	}
-	catch (const CmdArgs::MissingArguments& e)
+	catch (const CmdArgs::Exception& e)
 	{
 		std::cerr << '\n' << e.what() << "!\n" << std::endl;
 		std::wcerr << e.Usage() << std::endl;
