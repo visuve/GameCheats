@@ -28,6 +28,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	add_subdirectory("Hitman2002")
 	add_subdirectory("Hitman2004")
 	add_subdirectory("Hitman2006")
+	add_subdirectory("Stalker2007")
 	add_subdirectory("Template")
 endif()
 

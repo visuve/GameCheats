@@ -39,7 +39,7 @@ CmdArgs::Exception::Exception(
 	const std::string& what,
 	const std::wstring& usage) :
 	_usage(usage),
-	_what("Error:" + what)
+	_what("Error: " + what)
 {
 }
 
