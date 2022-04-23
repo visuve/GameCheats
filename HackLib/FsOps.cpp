@@ -44,11 +44,11 @@ void FsOps::Replicate(
 	const std::filesystem::path& to)
 {
 	std::ifstream input;
-	input.exceptions(std::ifstream::badbit);
+	input.exceptions(std::fstream::badbit);
 	input.open(from);
 
 	std::ofstream output;
-	output.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	output.exceptions(std::fstream::failbit | std::fstream::badbit);
 	output.open(to);
 
 	std::string line;
@@ -70,4 +70,15 @@ std::filesystem::path FsOps::BackupRename(const std::filesystem::path& path)
 	std::filesystem::rename(path, backupPath);
 
 	return backupPath;
+}
+
+void FsOps::Stab(const std::filesystem::path& path, std::streampos offset, std::string_view text)
+{
+	std::fstream file;
+	file.exceptions(std::fstream::failbit | std::fstream::badbit);
+	file.open(path, std::ios::in | std::ios::out | std::ios::binary);
+
+	file.seekp(offset);
+
+	file.write(text.data(), text.size());
 }
