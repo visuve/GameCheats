@@ -312,7 +312,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 
 	{
 		ByteStream detour(JumpAbsolute(target));
-		detour.Fill(nops, X86::Nop);
+		detour.Add(nops, X86::Nop);
 
 		WriteBytes(origin, detour);
 
