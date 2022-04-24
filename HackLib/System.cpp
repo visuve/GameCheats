@@ -109,6 +109,8 @@ System::System()
 	{
 		throw Win32Exception("SetConsoleCtrlHandler");
 	}
+
+	GetSystemInfo(&_systemInfo);
 }
 
 System::~System()
@@ -220,4 +222,9 @@ DWORD System::WaitForWindow(std::wstring_view name)
 	} while (WaitForSingleObject(WaitEvent, 2000) == WAIT_TIMEOUT);
 
 	throw RuntimeException("Aborted");
+}
+
+size_t System::PageSize()
+{
+	return System::Instance()._systemInfo.dwPageSize;
 }

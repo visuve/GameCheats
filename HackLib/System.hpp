@@ -14,6 +14,11 @@ public:
 
 	DWORD WaitForWindow(std::wstring_view name);
 
+	static size_t PageSize();
+
 	HANDLE WaitEvent = nullptr;
+
+private:
+	SYSTEM_INFO _systemInfo = {};
 };
 
