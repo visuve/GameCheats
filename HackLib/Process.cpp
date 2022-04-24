@@ -299,7 +299,6 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 	{
 		ByteStream codeWithJumpBack(code);
 
-		// Add jump op size, because we dont want a forever loop
 		codeWithJumpBack << JumpAbsolute(origin + JumpOpSize);
 
 		WriteBytes(target, codeWithJumpBack);
@@ -347,7 +346,6 @@ Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 	{
 		ByteStream codeWithJumpBack(code);
 
-		// Add jump op size, because we dont want a forever loop
 		codeWithJumpBack << JumpOp(target + codeSize, from + JumpOpSize);
 
 		WriteBytes(target, codeWithJumpBack);

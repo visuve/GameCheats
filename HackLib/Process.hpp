@@ -214,12 +214,8 @@ public:
 	{
 		_ASSERT_EXPR(from != to, L"Jump to nowhere");
 
-		if (from < to)
-		{
-			from += JumpOpSize;
-		}
-
 		Pointer dst(to - from);
+		dst -= JumpOpSize;
 
 		return { 0xE9, dst[0], dst[1], dst[2], dst[3] };
 	}
