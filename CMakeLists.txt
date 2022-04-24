@@ -39,6 +39,10 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
 include("GoogleTest.cmake")
+
+set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+
 include(GoogleTest)
 add_subdirectory("HackLibTests")
 enable_testing()
