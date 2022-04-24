@@ -35,7 +35,7 @@ ByteStream& ByteStream::operator << (std::span<uint8_t> data)
 
 ByteStream& ByteStream::operator << (const Pointer& ptr)
 {
-	std::copy(ptr.cbegin(), ptr.cend(),	std::back_inserter(_bytes));
+	std::copy(ptr.cbegin(), ptr.cend(), std::back_inserter(_bytes));
 	return *this;
 }
 

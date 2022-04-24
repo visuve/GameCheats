@@ -217,7 +217,7 @@ Pointer Process::AllocateMemory(size_t size)
 
 DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 {
-	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value);
+	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value());
 	
 	HANDLE thread = CreateRemoteThread(_handle, nullptr, 0, startAddress, parameter, 0, 0);
 

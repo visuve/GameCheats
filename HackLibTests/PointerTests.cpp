@@ -60,7 +60,7 @@ TEST(PointerTests, Arithmetic)
 
 		EXPECT_EQ(ptr1[0], 10u);
 		EXPECT_EQ(ptr2[0], 10u);
-		EXPECT_TRUE(ptr3.Value == nullptr);
+		EXPECT_TRUE(ptr3.Value() == nullptr);
 	}
 	{
 		Pointer ptr1;
@@ -108,7 +108,7 @@ TEST(PointerTests, Arithmetic)
 
 		ptr1 += 0XFF;
 
-		EXPECT_EQ(reinterpret_cast<size_t>(ptr1.Value), 0xFEu); // Overflow
+		EXPECT_EQ(reinterpret_cast<size_t>(ptr1.Value()), 0xFEu); // Overflow
 	}
 }
 
