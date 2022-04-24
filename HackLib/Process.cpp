@@ -335,7 +335,7 @@ Pointer Process::InjectX64(std::wstring_view module, size_t offset, size_t nops,
 	return InjectX64(Address(module, offset), nops, code);
 }
 #else
-Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
@@ -348,7 +348,7 @@ Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 		ByteStream codeWithJumpBack(code);
 
 		// Add jump op size, because we dont want a forever loop
-		codeWithJumpBack << JumpOp(target + codeSize, origin);
+		codeWithJumpBack << JumpOp(target + codeSize, from + JumpOpSize);
 
 		WriteBytes(target, codeWithJumpBack);
 
@@ -359,12 +359,12 @@ Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 	}
 
 	{
-		ByteStream detour(JumpOp(origin, target));
+		ByteStream detour(JumpOp(from, target));
 		detour.Fill(nops, X86::Nop);
 
-		WriteBytes(origin, detour);
+		WriteBytes(from, detour);
 
-		if (!FlushInstructionCache(_handle, origin, detour.Size()))
+		if (!FlushInstructionCache(_handle, from, detour.Size()))
 		{
 			throw Win32Exception("FlushInstructionCache");
 		}
