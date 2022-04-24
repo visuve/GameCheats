@@ -103,9 +103,23 @@ union Pointer
 		return Value;
 	}
 
-	inline uint8_t operator[](size_t n) const
+	inline uint8_t& operator[](size_t n)
 	{
-		_ASSERT(n < Size);
+		if (n >= Size)
+		{
+			throw OutOfRangeException("index is out of bounds");
+		}
+
+		return Bytes[n];
+	}
+
+	inline const uint8_t operator[](size_t n) const
+	{
+		if (n >= Size)
+		{
+			throw OutOfRangeException("index is out of bounds");
+		}
+
 		return Bytes[n];
 	}
 
