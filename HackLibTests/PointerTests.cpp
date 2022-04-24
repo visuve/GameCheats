@@ -3,7 +3,7 @@
 TEST(PointerTests, Access)
 {
 	Pointer ptr;
-	std::fill(ptr.begin(), ptr.end(), 0x88u);
+	std::fill(ptr.begin(), ptr.end(), uint8_t(0x88));
 
 	EXPECT_EQ(ptr[0], 0x88u);
 	EXPECT_EQ(ptr[1], 0x88u);
@@ -96,7 +96,7 @@ TEST(PointerTests, Arithmetic)
 	}
 	{
 		Pointer ptr1;
-		std::fill(ptr1.begin(), ptr1.end(), 0xFFu);
+		std::fill(ptr1.begin(), ptr1.end(), uint8_t(0xFF));
 
 		ptr1 -= 0XFF;
 
@@ -104,7 +104,7 @@ TEST(PointerTests, Arithmetic)
 	}
 	{
 		Pointer ptr1;
-		std::fill(ptr1.begin(), ptr1.end(), 0xFFu);
+		std::fill(ptr1.begin(), ptr1.end(), uint8_t(0xFF));
 
 		ptr1 += 0XFF;
 
