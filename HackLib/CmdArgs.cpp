@@ -94,6 +94,11 @@ bool CmdArgs::Contains(std::wstring_view x) const
 	return std::any_of(_arguments.cbegin(), _arguments.cend(), equals);
 }
 
+std::wstring CmdArgs::Usage() const
+{
+	return _usage;
+}
+
 std::type_index CmdArgs::TypeByKey(std::wstring_view key) const
 {
 	const auto keyEquals = [&](const Argument& argument)->bool

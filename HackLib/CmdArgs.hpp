@@ -34,6 +34,8 @@ public:
 		return std::any_cast<T>(ValueByKey(key));
 	}
 
+	std::wstring Usage() const;
+
 private:
 	std::type_index TypeByKey(std::wstring_view key) const;
 	std::any ValueByKey(std::wstring_view key) const;
