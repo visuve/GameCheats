@@ -11,7 +11,7 @@ public:
 
 	inline Pointer(uint8_t* value)
 	{
-		_internal.Value = value;
+		_internal.Value = reinterpret_cast<size_t>(value);
 	}
 
 	inline Pointer(const Pointer& other)
@@ -27,24 +27,24 @@ public:
 
 	inline Pointer& operator += (const Pointer& p)
 	{
-		_internal.Value += reinterpret_cast<size_t>(p._internal.Value);
+		_internal.Value += p._internal.Value;
 		return *this;
 	}
 
 	inline Pointer& operator -= (const Pointer& p) 
 	{
-		_internal.Value -= reinterpret_cast<size_t>(p._internal.Value);
+		_internal.Value -= p._internal.Value;
 		return *this;
 	}
 
 	inline Pointer operator + (const Pointer& p) const
 	{
-		return _internal.Value + reinterpret_cast<size_t>(p._internal.Value);
+		return _internal.Value + p._internal.Value;
 	}
 
 	inline Pointer operator - (const Pointer& p) const
 	{
-		return _internal.Value - reinterpret_cast<size_t>(p._internal.Value);
+		return _internal.Value - p._internal.Value;
 	}
 
 	inline Pointer& operator += (size_t offset)
@@ -91,22 +91,22 @@ public:
 
 	inline bool operator < (size_t offset) const
 	{
-		return reinterpret_cast<size_t>(_internal.Value) < offset;
+		return _internal.Value < offset;
 	}
 
 	inline bool operator > (size_t offset) const
 	{
-		return reinterpret_cast<size_t>(_internal.Value) > offset;
+		return _internal.Value > offset;
 	}
 
-	inline uint8_t* Value() const
+	inline const uint8_t* Value() const
 	{
-		return _internal.Value;
+		return reinterpret_cast<uint8_t*>(_internal.Value);
 	}
 
 	inline operator void* () const
 	{
-		return _internal.Value;
+		return reinterpret_cast<void*>(_internal.Value);
 	}
 
 	inline uint8_t& operator[](size_t n)
@@ -150,14 +150,19 @@ public:
 	}
 
 private:
-	union
+	inline Pointer(size_t value)
 	{
-		uint8_t* Value = nullptr;
+		_internal.Value = value;
+	}
+
+	union Internal
+	{
+		size_t Value = 0;
 		uint8_t Bytes[Size];
 	} _internal;
 };
 
 inline std::ostream& operator << (std::ostream& os, const Pointer& p)
 {
-	return os << "0x" << static_cast<void*>(p.Value());
+	return os << "0x" << p.operator void *();
 }
