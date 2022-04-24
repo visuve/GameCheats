@@ -194,8 +194,45 @@ MODULEENTRY32W System::ModuleByName(DWORD pid, std::wstring_view name)
 	return result.value();
 }
 
+
+DWORD System::WaitForExe(std::wstring_view name)
+{
+	const auto filter = [&](const PROCESSENTRY32W& processEntry)
+	{
+		return name.compare(processEntry.szExeFile) == 0;
+	};
+
+	DWORD waitResult = WAIT_FAILED;
+
+	do
+	{
+		const Snapshot snapshot(TH32CS_SNAPPROCESS, 0);
+
+		auto result = snapshot.FindProcess(filter);
+
+		if (result.has_value())
+		{
+			return result.value().th32ProcessID;
+		}
+
+		std::cout << "Process \"" << StrConvert::ToUtf8(name) << "\" has not appeared yet..." << std::endl;
+
+		waitResult = WaitForSingleObject(WaitEvent, 2000);
+
+	} while (waitResult == WAIT_TIMEOUT);
+
+	if (waitResult == WAIT_OBJECT_0 && !ResetEvent(WaitEvent))
+	{
+		throw Win32Exception("ResetEvent");
+	}
+
+	throw RuntimeException("Aborted");
+}
+
 DWORD System::WaitForWindow(std::wstring_view name)
 {
+	DWORD waitResult = WAIT_FAILED;
+
 	do
 	{
 		for (HWND window = GetTopWindow(nullptr); window; window = GetWindow(window, GW_HWNDNEXT))
@@ -219,7 +256,14 @@ DWORD System::WaitForWindow(std::wstring_view name)
 
 		std::cout << "Window \"" << StrConvert::ToUtf8(name) << "\" has not appeared yet..." << std::endl;
 
-	} while (WaitForSingleObject(WaitEvent, 2000) == WAIT_TIMEOUT);
+		waitResult = WaitForSingleObject(WaitEvent, 2000);
+
+	} while (waitResult == WAIT_TIMEOUT);
+
+	if (waitResult == WAIT_OBJECT_0 && !ResetEvent(WaitEvent))
+	{
+		throw Win32Exception("ResetEvent");
+	}
 
 	throw RuntimeException("Aborted");
 }
