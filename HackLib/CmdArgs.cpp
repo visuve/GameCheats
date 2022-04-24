@@ -27,6 +27,10 @@ std::wostream& operator << (std::wostream& stream, const CmdArgs::Argument& argu
 	{
 		stream << std::get<0>(argument) + L"=<integer>";
 	}
+	else if (type == typeid(std::wstring))
+	{
+		stream << std::get<0>(argument) + L"=<word>";
+	}
 	else
 	{
 		throw ArgumentException("Not supported type");
@@ -160,6 +164,10 @@ std::any CmdArgs::ValueByKey(std::wstring_view key) const
 	else if (type == typeid(int))
 	{
 		return std::stoi(value);
+	}
+	else if (type == typeid(std::wstring))
+	{
+		return value;
 	}
 
 	throw CmdArgs::Exception("unsupported argument type requested", _usage);

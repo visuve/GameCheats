@@ -61,7 +61,7 @@ TEST(CmdArgsTests, ContainsValuedArgument)
 
 TEST(CmdArgsTests, ParseArgument)
 {
-	constexpr int argc = 5;
+	constexpr int argc = 6;
 
 	wchar_t* argv[argc] =
 	{
@@ -70,6 +70,7 @@ TEST(CmdArgsTests, ParseArgument)
 		_wcsdup(L"charlie=3.14159265359"),
 		_wcsdup(L"delta=3.14159265359"),
 		_wcsdup(L"echo=3.14159265359"),
+		_wcsdup(L"foxtrot=foobar")
 	};
 
 	const CmdArgs args(argc, argv,
@@ -78,7 +79,8 @@ TEST(CmdArgsTests, ParseArgument)
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },
 		{ L"charlie", typeid(double), L"A double value" },
 		{ L"delta", typeid(float), L"A float value" },
-		{ L"echo", typeid(int), L"An integer value" }
+		{ L"echo", typeid(int), L"An integer value" },
+		{ L"foxtrot", typeid(std::wstring), L"A string value" },
 	});
 
 	EXPECT_TRUE(args.Contains(L"alpha"));
@@ -86,6 +88,7 @@ TEST(CmdArgsTests, ParseArgument)
 	EXPECT_TRUE(args.Contains(L"charlie"));
 	EXPECT_TRUE(args.Contains(L"delta"));
 	EXPECT_TRUE(args.Contains(L"echo"));
+	EXPECT_TRUE(args.Contains(L"foxtrot"));
 
 	EXPECT_TRUE(args.Get<bool>(L"alpha"));
 
@@ -95,6 +98,9 @@ TEST(CmdArgsTests, ParseArgument)
 	EXPECT_EQ(args.Get<float>(L"delta"), float(3.14159265359));
 	EXPECT_EQ(args.Get<int>(L"echo"), int(3));
 
+	auto string = args.Get<std::wstring>(L"foxtrot");
+	EXPECT_STREQ(string.c_str(), L"foobar");
+
 	for (int i = 0; i < argc; ++i)
 	{
 		delete argv[i];
@@ -103,7 +109,7 @@ TEST(CmdArgsTests, ParseArgument)
 
 TEST(CmdArgsTests, InvalidType)
 {
-	constexpr int argc = 5;
+	constexpr int argc = 6;
 
 	wchar_t* argv[argc] =
 	{
@@ -112,6 +118,7 @@ TEST(CmdArgsTests, InvalidType)
 		_wcsdup(L"charlie=3.14159265359"),
 		_wcsdup(L"delta=3.14159265359"),
 		_wcsdup(L"echo=3.14159265359"),
+		_wcsdup(L"foxtrot=foobar")
 	};
 
 	const CmdArgs args(argc, argv,
@@ -120,14 +127,16 @@ TEST(CmdArgsTests, InvalidType)
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },
 		{ L"charlie", typeid(double), L"A double value" },
 		{ L"delta", typeid(float), L"A float value" },
-		{ L"echo", typeid(int), L"An integer value" }
+		{ L"echo", typeid(int), L"An integer value" },
+		{ L"foxtrot", typeid(std::wstring), L"A string value" }
 	});
 
 	EXPECT_THROW(args.Get<std::filesystem::path>(L"alpha"), std::bad_any_cast);
-	EXPECT_THROW(args.Get<double>(L"bravo"), std::bad_any_cast);
+	EXPECT_THROW(args.Get<std::wstring>(L"bravo"), std::bad_any_cast);
 	EXPECT_THROW(args.Get<float>(L"charlie"), std::bad_any_cast);
 	EXPECT_THROW(args.Get<int>(L"delta"), std::bad_any_cast);
 	EXPECT_THROW(args.Get<bool>(L"echo"), std::bad_any_cast);
+	EXPECT_THROW(args.Get<std::filesystem::path>(L"foxtrot"), std::bad_any_cast);
 
 	for (int i = 0; i < argc; ++i)
 	{
@@ -137,7 +146,7 @@ TEST(CmdArgsTests, InvalidType)
 
 TEST(CmdArgsTests, InvalidFormat)
 {
-	constexpr int argc = 5;
+	constexpr int argc = 6;
 
 	wchar_t* argv[argc] =
 	{
@@ -146,6 +155,7 @@ TEST(CmdArgsTests, InvalidFormat)
 		_wcsdup(L"charlie:3.14159265359"),
 		_wcsdup(L"delta#3.14159265359"),
 		_wcsdup(L"echo@3.14159265359"),
+		_wcsdup(L"foxtrot foobar")
 	};
 
 	const CmdArgs args(argc, argv,
@@ -154,7 +164,8 @@ TEST(CmdArgsTests, InvalidFormat)
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },
 		{ L"charlie", typeid(double), L"A double value" },
 		{ L"delta", typeid(float), L"A float value" },
-		{ L"echo", typeid(int), L"An integer value" }
+		{ L"echo", typeid(int), L"An integer value" },
+		{ L"foxtrot", typeid(std::wstring), L"A string value" }
 	});
 
 	EXPECT_THROW(args.Get<bool>(L"alpha"), CmdArgs::Exception);
@@ -166,6 +177,7 @@ TEST(CmdArgsTests, InvalidFormat)
 	EXPECT_THROW(args.Get<double>(L"charlie"), CmdArgs::Exception);
 	EXPECT_THROW(args.Get<float>(L"delta"), CmdArgs::Exception);
 	EXPECT_THROW(args.Get<int>(L"echo"), CmdArgs::Exception);
+	EXPECT_THROW(args.Get<std::wstring>(L"foxtrot"), CmdArgs::Exception);
 
 	for (int i = 0; i < argc; ++i)
 	{
