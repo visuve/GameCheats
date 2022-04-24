@@ -1,5 +1,8 @@
 #include "HackLib.hpp"
 
+constexpr char UnpatchedChecksum[] = "b789f5b63cbf403cd986710e94838e5cb0b631ba31696c382a4575dee242971f";
+constexpr char PatchedChecksum[] = "52d325e3fbf0f468062090b9d594457e3fe0eb80827d49a157e745fa7f3da3ea";
+
 int wmain(int argc, wchar_t** argv)
 {
 	try
@@ -7,7 +10,7 @@ int wmain(int argc, wchar_t** argv)
 		const CmdArgs args(argc, argv,
 		{
 			{ L"patch", typeid(std::filesystem::path), L"Remove XR_3DA.exe administrator requirement" },
-			{ L"infammo", typeid(std::nullopt), L"Infinite ammunition" }
+			{ L"infammo", typeid(std::nullopt), L"Infinite ammunition" },
 			{ L"infammo", typeid(std::nullopt), L"Infinite health" }
 		});
 
@@ -15,14 +18,14 @@ int wmain(int argc, wchar_t** argv)
 		{
 			std::filesystem::path path = args.Get<std::filesystem::path>(L"patch");
 
-			if (SHA256(path) != "b789f5b63cbf403cd986710e94838e5cb0b631ba31696c382a4575dee242971f")
+			if (SHA256(path) != UnpatchedChecksum)
 			{
 				std::cout << "Cheksum mismatch. Won't patch, will definetely break." << std::endl;
 			}
 
 			FsOps::Stab(path, 0x17D73F, "asInvoker\"       ");
 
-			if (SHA256(path) != "52d325e3fbf0f468062090b9d594457e3fe0eb80827d49a157e745fa7f3da3ea")
+			if (SHA256(path) != PatchedChecksum)
 			{
 				std::cout << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken." << std::endl;
 			}
@@ -36,7 +39,7 @@ int wmain(int argc, wchar_t** argv)
 
 		Process process(pid);
 
-		if (!process.Verify("52d325e3fbf0f468062090b9d594457e3fe0eb80827d49a157e745fa7f3da3ea"))
+		if (!process.Verify(PatchedChecksum))
 		{
 			std::cerr << "Please patch the game before applying these cheats" << std::endl;
 			return ERROR_REVISION_MISMATCH;
