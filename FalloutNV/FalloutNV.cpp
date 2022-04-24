@@ -7,7 +7,7 @@ int wmain(int argc, wchar_t** argv)
 		const CmdArgs args(argc, argv,
 		{
 			{ L"infammo", typeid(std::nullopt), L"Ammunition is never reduced (NOTE: might be flaky)" },
-			{ L"noweard", typeid(std::nullopt), L"Weapon condition is never reduced" }
+			{ L"nowear", typeid(std::nullopt), L"Weapon condition is never reduced" }
 		});
 
 		Process process(L"FalloutNV.exe");
