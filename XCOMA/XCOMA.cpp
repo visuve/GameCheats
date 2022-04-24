@@ -43,68 +43,101 @@ std::ostream& operator << (std::ostream& os, const Soldier& s)
 	return os;
 }
 
-int wmain(int argc, wchar_t** argv)
+std::fstream FindName(std::filesystem::path path, const std::string& name)
 {
-	if (argc <= 1)
+	uintmax_t fileSize = std::filesystem::file_size(path);
+
+	if (name.length() > 26)
 	{
-		return ERROR_BAD_ARGUMENTS;
+		throw ArgumentException("The name max is 26 characters");
 	}
 
+	if (fileSize > 0xA00000)
+	{
+		throw ArgumentException("The file size is over 10 MiB. What have you done?");
+	}
+
+	std::fstream file;
+	file.exceptions(std::fstream::failbit | std::fstream::badbit);
+	file.open(path, std::ios::in | std::ios::out | std::ios::binary);
+
+	std::string data;
+	data.reserve(static_cast<size_t>(fileSize));
+
+	data.assign(
+		(std::istreambuf_iterator<char>(file)),
+		std::istreambuf_iterator<char>());
+
+	size_t offset = data.find(name);
+
+	if (!offset || offset == std::string::npos)
+	{
+		throw RangeException(name + " not found");
+	}
+
+	file.seekg(offset, std::ios::beg);
+
+	return file;
+}
+
+int wmain(int argc, wchar_t** argv)
+{
 	try
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"patchsoldier", typeid(std::filesystem::path), L"Patch a soldier" },
-			{ L"name", typeid(std::wstring), L"The name of the soldier" }
+			{ L"path", typeid(std::filesystem::path), L"Path to your save game file" },
+			{ L"patchsoldier", typeid(std::nullopt), L"Patch a soldier" },
+			{ L"patchbiochemist", typeid(std::nullopt), L"Patch a biochemist" },
+			{ L"patchphysicist", typeid(std::nullopt), L"Patch a physicist" },
+			{ L"patchengineer", typeid(std::nullopt), L"Patch an engineer" },
+			{ L"name", typeid(std::wstring), L"The name of the soldier/engineer/scientist" },
 		});
 
-		if (args.Contains(L"patchsoldier") && args.Contains(L"name"))
+		if (!args.Contains(L"name") || !args.Contains(L"path"))
 		{
-			std::filesystem::path path = args.Get<std::filesystem::path>(L"patchsoldier");
-			uintmax_t fileSize = std::filesystem::file_size(path);
+			throw CmdArgs::Exception("All patches require a path and a name to be given", args.Usage());
+		}
 
-			std::string name = StrConvert::ToUtf8(args.Get<std::wstring>(L"name"));
+		std::streamoff offset;
 
-			if (name.length() > 26)
+		if (args.Contains(L"patchsoldier"))
+		{
+			offset = 58;
+		}
+		else if (args.Contains(L"patchbiochemist"))
+		{
+			offset = 73;
+		}
+		else if (args.Contains(L"patchphysicist"))
+		{
+			offset = 74;
+		}
+		if (args.Contains(L"patchengineer"))
+		{
+			offset = 75;
+		}
+		else
+		{
+			throw CmdArgs::Exception("Cannot know what do you want to patch", args.Usage());
+		}
+
+		const std::filesystem::path path = args.Get<std::filesystem::path>(L"path");
+		const std::string name = StrConvert::ToUtf8(args.Get<std::wstring>(L"name"));
+
+		if (args.Contains(L"patchsoldier"))
+		{
+			std::fstream file = FindName(path, name);
+
+			if (!file)
 			{
-				std::cerr << "The name max is 26 characters" << std::endl;
-				return -1;
+				throw LogicException("???");
 			}
-
-			if (fileSize > 0xA00000)
-			{
-				std::cerr << "The file size is over 10 MiB. What have you done?" << std::endl;
-				return -1;
-			}
-
-			// Include the nulls to be safe when searching as the names are 26 bytes
-			name.resize(26);
-
-			std::fstream file;
-			file.exceptions(std::fstream::failbit | std::fstream::badbit);
-			file.open(path, std::ios::in | std::ios::out | std::ios::binary);
-
-			std::string data;
-			data.reserve(static_cast<size_t>(fileSize));
-
-			data.assign(
-				(std::istreambuf_iterator<char>(file)),
-				std::istreambuf_iterator<char>());
-
-			size_t offset = data.find(name);
-
-			if (!offset)
-			{
-				std::cerr << "Could not find " << name;
-				return -1;
-			}
-
-			offset += 58;
-
-			file.seekg(offset, std::ios::beg);
+			
+			file.seekg(offset, std::ios::cur);
 
 			Soldier soldier;
-			file.read(reinterpret_cast<char*>(&soldier), sizeof(soldier));
+			file.read(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
 
 			std::cout << name << " had:" << std::endl;
 			
@@ -112,14 +145,47 @@ int wmain(int argc, wchar_t** argv)
 
 			soldier.MaxOut();
 
-			file.seekp(offset, std::ios::beg);
-			file.write(reinterpret_cast<char*>(&soldier), sizeof(soldier));
+			offset = 0;
+			offset -= sizeof(Soldier);
+
+			file.seekp(offset, std::ios::cur);
+			file.write(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
+			file.flush();
 
 			std::cout << name << " now has:" << std::endl;
 			std::cout << soldier << std::endl;
 
 			std::cout << std::endl << "... KTHXBYE." << std::endl;
 		}
+
+		std::fstream file = FindName(path, name);
+
+		if (!file)
+		{
+			throw LogicException("???");
+		}
+
+		file.seekg(offset, std::ios::cur);
+
+		uint8_t value = 0;
+		file >> value;
+		std::cout << name << " had skill of: " << +value << std::endl;
+
+		value = 0xFF;
+
+		offset = 0;
+		offset -= sizeof(uint8_t);
+
+		file.seekp(offset, std::ios::cur);
+
+		file << value;
+
+		file.flush();
+
+		std::cout << name << " now has skill of: " << +value << std::endl;
+
+		std::cout << std::endl << "... KTHXBYE." << std::endl;
+
 	}
 	catch (const CmdArgs::Exception& e)
 	{
