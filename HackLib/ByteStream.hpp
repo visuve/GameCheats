@@ -38,11 +38,12 @@ public:
 
 	ByteStream& operator << (const std::string& bytes);
 
-	void Fill(size_t n, uint8_t byte);
+	void Add(size_t n, uint8_t byte);
 
 	operator std::span<uint8_t>();
 
 	uint8_t& operator [](size_t i);
+	uint8_t operator [](size_t i) const;
 
 	uint8_t* Data();
 	size_t Size() const;

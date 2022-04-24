@@ -104,17 +104,19 @@ TEST(ByteStreamTests, StreamOperators)
 TEST(ByteStreamTests, Fill)
 {
 	ByteStream stream;
-	stream.Fill(3, 0x90);
+	stream.Add(3, 0x90);
 	EXPECT_EQ(stream.Size(), 3u);
 	EXPECT_EQ(stream[0], 0x90u);
 	EXPECT_EQ(stream[1], 0x90u);
 	EXPECT_EQ(stream[2], 0x90u);
+	EXPECT_THROW(stream[3], std::out_of_range);
 
-	stream.Fill(3, 0x00);
+	stream.Add(3, 0x00);
 	EXPECT_EQ(stream.Size(), 6u);
 	EXPECT_EQ(stream[3], 0x00u);
 	EXPECT_EQ(stream[4], 0x00u);
 	EXPECT_EQ(stream[5], 0x00u);
+	EXPECT_THROW(stream[6], std::out_of_range);
 }
 
 TEST(ByteStreamTests, FromString)

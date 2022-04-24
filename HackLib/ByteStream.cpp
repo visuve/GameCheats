@@ -1,5 +1,5 @@
-#include "Exceptions.hpp"
 #include "ByteStream.hpp"
+#include "Exceptions.hpp"
 
 ByteStream::ByteStream(size_t size, uint8_t byte) :
 	_bytes(size, byte)
@@ -76,7 +76,7 @@ ByteStream& ByteStream::operator << (const std::string& bytes)
 	return *this;
 }
 
-void ByteStream::Fill(size_t n, uint8_t byte)
+void ByteStream::Add(size_t n, uint8_t byte)
 {
 	std::fill_n(std::back_inserter(_bytes), n, byte);
 }
@@ -88,6 +88,21 @@ ByteStream::operator std::span<uint8_t>()
 
 uint8_t& ByteStream::operator [](size_t i)
 {
+	if (i >= _bytes.size())
+	{
+		throw OutOfRangeException("index is out of bounds");
+	}
+
+	return _bytes[i];
+}
+
+uint8_t ByteStream::operator [](size_t i) const
+{
+	if (i >= _bytes.size())
+	{
+		throw OutOfRangeException("index is out of bounds");
+	}
+
 	return _bytes[i];
 }
 

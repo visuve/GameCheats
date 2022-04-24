@@ -360,7 +360,7 @@ Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 
 	{
 		ByteStream detour(JumpOp(from, target));
-		detour.Fill(nops, X86::Nop);
+		detour.Add(nops, X86::Nop);
 
 		WriteBytes(from, detour);
 
