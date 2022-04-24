@@ -1,15 +1,10 @@
 #pragma once
 
-#ifdef _WIN64
-constexpr size_t PointerSizeBytes = 8;
-#else
-constexpr size_t PointerSizeBytes = 4;
-#endif
-
 union Pointer
 {
+	constexpr static size_t Size = sizeof(void*);
 	uint8_t* Value = nullptr;
-	uint8_t Bytes[PointerSizeBytes];
+	uint8_t Bytes[Size];
 
 	inline Pointer() = default;
 
@@ -110,8 +105,28 @@ union Pointer
 
 	inline uint8_t operator[](size_t n) const
 	{
-		_ASSERT(n < PointerSizeBytes);
+		_ASSERT(n < Size);
 		return Bytes[n];
+	}
+
+	inline uint8_t* begin()
+	{
+		return &Bytes[0];
+	}
+
+	inline uint8_t* end()
+	{
+		return &Bytes[Size];
+	}
+
+	inline const uint8_t* cbegin() const
+	{
+		return &Bytes[0];
+	}
+
+	inline const uint8_t* cend() const
+	{
+		return &Bytes[Size];
 	}
 };
 

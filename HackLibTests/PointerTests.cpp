@@ -1,5 +1,23 @@
 #include "Pointer.hpp"
 
+TEST(PointerTests, Access)
+{
+	Pointer ptr;
+	std::fill(ptr.begin(), ptr.end(), 0x88u);
+
+	EXPECT_EQ(ptr.Bytes[0], 0x88u);
+	EXPECT_EQ(ptr.Bytes[1], 0x88u);
+	EXPECT_EQ(ptr.Bytes[2], 0x88u);
+	EXPECT_EQ(ptr.Bytes[3], 0x88u);
+
+#ifdef _WIN64
+	EXPECT_EQ(ptr.Bytes[4], 0x88u);
+	EXPECT_EQ(ptr.Bytes[5], 0x88u);
+	EXPECT_EQ(ptr.Bytes[6], 0x88u);
+	EXPECT_EQ(ptr.Bytes[7], 0x88u);
+#endif
+}
+
 TEST(PointerTests, Arithmetic)
 {
 	{
@@ -75,7 +93,7 @@ TEST(PointerTests, Arithmetic)
 	}
 	{
 		Pointer ptr1;
-		std::memset(ptr1.Bytes, 0xFFu, PointerSizeBytes);
+		std::fill(ptr1.begin(), ptr1.end(), 0xFFu);
 
 		ptr1 -= 0XFF;
 
@@ -83,7 +101,7 @@ TEST(PointerTests, Arithmetic)
 	}
 	{
 		Pointer ptr1;
-		std::memset(ptr1.Bytes, 0xFFu, PointerSizeBytes);
+		std::fill(ptr1.begin(), ptr1.end(), 0xFFu);
 
 		ptr1 += 0XFF;
 
