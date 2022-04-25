@@ -86,6 +86,8 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
+			{ L"infmoney", typeid(std::nullopt), L"Infinite money (DOSBox only). Exclusive to other parameters.\n"
+				L"\t\t\tWarning, very hacky! Make sure you do not have other DOSBox instances running!" },
 			{ L"path", typeid(std::filesystem::path), L"Path to your save game file" },
 			{ L"patchsoldier", typeid(std::nullopt), L"Patch a soldier" },
 			{ L"patchbiochemist", typeid(std::nullopt), L"Patch a biochemist" },
@@ -93,6 +95,24 @@ int wmain(int argc, wchar_t** argv)
 			{ L"patchengineer", typeid(std::nullopt), L"Patch an engineer" },
 			{ L"name", typeid(std::wstring), L"The name of the soldier/engineer/scientist" },
 		});
+
+		if (args.Contains(L"infmoney"))
+		{
+			DWORD pid = System::Instance().WaitForExe(L"dosbox.exe");
+
+			Process process(pid);
+
+			ByteStream bytes;
+
+			bytes << "81 FF CC D4 83 10"; // cmp edi,1083D4CC
+			bytes << "75 05"; // jne 5
+			bytes << "BB 15 CD 5B 07"; // mov ebx,075BCD15
+			bytes << "F7 C7 03 00 00 00"; // test edi,00000003
+
+			process.InjectX86(0xB5B93, 1, bytes);
+
+			return process.WairForExit();
+		}
 
 		if (!args.Contains(L"name") || !args.Contains(L"path"))
 		{
