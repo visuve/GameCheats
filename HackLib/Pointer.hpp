@@ -24,6 +24,8 @@ public:
 		_internal.Value = other._internal.Value;
 	}
 
+	inline virtual ~Pointer() = default;
+
 	inline Pointer& operator = (const Pointer& p)
 	{
 		_internal.Value = p._internal.Value;
@@ -72,6 +74,32 @@ public:
 	inline Pointer operator - (size_t offset) const
 	{
 		return _internal.Value - offset;
+	}
+
+	inline Pointer& operator ++ ()
+	{
+		_internal.Value += Size;
+		return *this;
+	}
+
+	inline Pointer& operator -- ()
+	{
+		_internal.Value -= Size;
+		return *this;
+	}
+
+	inline Pointer operator ++ (int)
+	{
+		Pointer tmp = *this;
+		_internal.Value += Size;
+		return tmp;
+	}
+
+	inline Pointer operator -- (int)
+	{
+		Pointer tmp = *this;
+		_internal.Value -= Size;
+		return tmp;
 	}
 
 	inline bool operator == (const Pointer& other) const

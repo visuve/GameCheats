@@ -110,6 +110,38 @@ TEST(PointerTests, Arithmetic)
 
 		EXPECT_EQ(reinterpret_cast<size_t>(ptr1.Value()), 0xFEu); // Overflow
 	}
+	{
+		Pointer ptr1;
+		++ptr1;
+
+		EXPECT_EQ(ptr1[0], Pointer::Size);
+
+		auto expected = reinterpret_cast<uint8_t*>(Pointer::Size);
+		EXPECT_EQ(ptr1.Value(), expected);
+	}
+	{
+		Pointer ptr1;
+		--ptr1;
+
+		auto expected = reinterpret_cast<uint8_t*>(0u - Pointer::Size);
+		EXPECT_EQ(ptr1.Value(), expected);
+	}
+	{
+		Pointer ptr1;
+		++ptr1;
+		--ptr1;
+
+		auto expected = reinterpret_cast<uint8_t*>(0u);
+		EXPECT_EQ(ptr1.Value(), expected);
+	}
+	{
+		Pointer ptr1;
+		ptr1 -= 1u;
+
+		size_t max = std::numeric_limits<size_t>::max();
+		auto expected = reinterpret_cast<uint8_t*>(max);
+		EXPECT_EQ(ptr1.Value(), expected);
+	}
 }
 
 TEST(PointerTests, Compare)
