@@ -161,10 +161,8 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
 	throw RangeException("Import not found.");
 }
 
-Pointer Process::FindFunction(std::string_view moduleName, std::string_view functionName) const
+Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const
 {
-	IMAGE_IMPORT_DESCRIPTOR iid = FindImport(moduleName);
-
 	Pointer thunkPtr = Address(iid.OriginalFirstThunk);
 	std::string buffer(MAX_PATH, '\0');
 
@@ -190,6 +188,11 @@ Pointer Process::FindFunction(std::string_view moduleName, std::string_view func
 
 
 	throw RangeException("Function not found.");
+}
+
+Pointer Process::FindFunction(std::string_view moduleName, std::string_view functionName) const
+{
+	return FindFunction(FindImport(moduleName), functionName);
 }
 
 Pointer Process::AllocateMemory(size_t size)
@@ -384,7 +387,7 @@ Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops,
 #endif
 
 
-void Process::WairForExit(std::chrono::milliseconds timeout)
+DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 {
 	DWORD waitResult = WaitForSingleObject(_handle, static_cast<DWORD>(timeout.count()));
 
@@ -402,12 +405,12 @@ void Process::WairForExit(std::chrono::milliseconds timeout)
 			CloseHandle(_handle);
 			_handle = nullptr;
 
-			return;
+			return exitCode;
 		}
 		case WAIT_TIMEOUT:
 		{
 			std::cout << "Waiting for " << _pid << " timed out" << std::endl;
-			return;
+			return WAIT_TIMEOUT;
 		}
 	}
 

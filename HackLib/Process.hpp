@@ -159,6 +159,7 @@ public:
 
 	IMAGE_IMPORT_DESCRIPTOR FindImport(std::string_view moduleName) const;
 
+	Pointer FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const;
 	Pointer FindFunction(std::string_view moduleName, std::string_view functionName) const;
 
 	Pointer AllocateMemory(size_t size);
@@ -226,7 +227,7 @@ public:
 	}
 #endif
 
-	void WairForExit(std::chrono::milliseconds = std::chrono::milliseconds(INFINITE));
+	DWORD WairForExit(std::chrono::milliseconds = std::chrono::milliseconds(INFINITE));
 
 private:
 	DWORD _pid = 0;
