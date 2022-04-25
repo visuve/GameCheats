@@ -3,17 +3,18 @@
 class SHA256
 {
 public:
-	SHA256(const std::filesystem::path& path);
+	SHA256(const std::filesystem::path& path, 
+		std::ostream* progressOutput = &std::cout);
 
 	~SHA256();
 
-	bool operator == (std::string_view expected);
+	bool operator == (std::string_view expected) const;
 
 	std::string Value() const;
 
 private:
 	size_t PropertySize(std::wstring_view property);
-	void ProcessFile();
+	void ProcessFile(std::ostream* progressOutput);
 	void Update(std::span<uint8_t> data);
 	void Finish();
 

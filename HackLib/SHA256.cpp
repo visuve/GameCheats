@@ -1,7 +1,8 @@
 #include "Exceptions.hpp"
 #include "SHA256.hpp"
 
-SHA256::SHA256(const std::filesystem::path& path)
+SHA256::SHA256(const std::filesystem::path& path,
+	std::ostream* progressOutput)
 {
 	// Create provider
 	{
@@ -51,6 +52,8 @@ SHA256::SHA256(const std::filesystem::path& path)
 	{
 		throw Win32Exception("CreateFile");
 	}
+
+	ProcessFile(progressOutput);
 }
 
 SHA256::~SHA256()
@@ -92,14 +95,12 @@ size_t SHA256::PropertySize(std::wstring_view property)
 	return object;
 }
 
-bool SHA256::operator == (std::string_view expected)
+bool SHA256::operator == (std::string_view expected) const
 {
 	if (expected.length() != 64)
 	{
 		throw LogicException("SHA-256 hashes are 64 bytes!");
 	}
-
-	ProcessFile();
 
 	std::string actual = Value();
 
@@ -128,7 +129,7 @@ std::string SHA256::Value() const
 	return stream.str();
 }
 
-void SHA256::ProcessFile()
+void SHA256::ProcessFile(std::ostream* progressOutput)
 {
 	std::vector<uint8_t> buffer(0x4000);
 
@@ -160,8 +161,11 @@ void SHA256::ProcessFile()
 			buffer.resize(bytesRead);
 		}
 
-		float complete = 100.0f - (100.0f / (float(fileSize.QuadPart) / float(bytesLeft.QuadPart)));
-		std::cout << std::format("Verifying {:.2f}%", complete) << std::endl;
+		if (progressOutput)
+		{
+			float complete = 100.0f - (100.0f / (float(fileSize.QuadPart) / float(bytesLeft.QuadPart)));
+			*progressOutput << std::format("Verifying {:.2f}%", complete) << std::endl;
+		}
 
 		Update(buffer);
 	}
