@@ -5,7 +5,7 @@ TEST(ProcessTests, Header)
 	DWORD pid = GetCurrentProcessId();
 	Process current(pid);
 
-	EXPECT_EQ(current.NtHeader().OptionalHeader.Subsystem, IMAGE_SUBSYSTEM_WINDOWS_CUI);
+	EXPECT_EQ(current.NtHeader().OptionalHeader.Subsystem, WORD(IMAGE_SUBSYSTEM_WINDOWS_CUI));
 }
 
 TEST(ProcessTests, Name)
@@ -55,9 +55,9 @@ TEST(ProcessTests, Timeout)
 	DWORD pid = GetCurrentProcessId();
 	Process current(pid);
 
-	EXPECT_EQ(current.WairForExit(0ms), WAIT_TIMEOUT);
-	EXPECT_EQ(current.WairForExit(1ms), WAIT_TIMEOUT);
-	EXPECT_EQ(current.WairForExit(2ms), WAIT_TIMEOUT);
+	EXPECT_EQ(current.WairForExit(0ms), DWORD(WAIT_TIMEOUT));
+	EXPECT_EQ(current.WairForExit(1ms), DWORD(WAIT_TIMEOUT));
+	EXPECT_EQ(current.WairForExit(2ms), DWORD(WAIT_TIMEOUT));
 }
 
 #ifndef _WIN64

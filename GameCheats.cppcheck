@@ -21,6 +21,8 @@
 		<dir name="FalloutNV"/>
 		<dir name="Quake1"/>
 		<dir name="R6BO"/>
+		<dir name="Stalker2007"/>
+		<dir name="XOMA"/>
 	</paths>
 	<libraries>
 		<library>windows</library>

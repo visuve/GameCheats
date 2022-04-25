@@ -8,7 +8,7 @@ TEST(RegistryTests, Sanity)
 		L"SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\X64", 
 		KEY_QUERY_VALUE);
 
-	EXPECT_EQ(registry.Read<DWORD>(L"Installed"), 1);
+	EXPECT_EQ(registry.Read<DWORD>(L"Installed"), 1u);
 }
 
 TEST(RegistryTests, WrongType)

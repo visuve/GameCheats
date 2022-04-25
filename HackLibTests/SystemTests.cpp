@@ -6,14 +6,14 @@ TEST(SystemTests, Guid)
 	auto b = System::GenerateGuid();
 
 	EXPECT_NE(a, b);
-	EXPECT_EQ(a.size(), 38);
-	EXPECT_EQ(b.size(), 38);
+	EXPECT_EQ(a.size(), 38u);
+	EXPECT_EQ(b.size(), 38u);
 }
 
 TEST(SystemTests, PageSize)
 {
 	// https://devblogs.microsoft.com/oldnewthing/20210510-00/?p=105200
-	EXPECT_GE(System::PageSize(), 0x1000);
+	EXPECT_GE(System::PageSize(), 0x1000u);
 }
 
 TEST(SystemTests, Sanity)
