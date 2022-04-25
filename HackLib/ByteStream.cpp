@@ -127,9 +127,9 @@ std::ostream& operator << (std::ostream& os, const ByteStream& bs)
 	const std::string sep1 = " ";
 	std::string sep2 = "";
 
-	for (uint16_t byte : bs._bytes)
+	for (uint8_t byte : bs._bytes)
 	{
-		os << sep2 << std::setw(2) << byte;
+		os << sep2 << std::setw(2) << +byte;
 		sep2 = sep1;
 	}
 

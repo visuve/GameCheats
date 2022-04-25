@@ -120,9 +120,9 @@ std::string SHA256::Value() const
 	stream.setf(std::ios::uppercase);
 	stream.fill('0');
 
-	for (uint16_t x : _hashData) // uint8_t will print out wrong
+	for (uint8_t x : _hashData)
 	{
-		stream << std::setw(2) << x;
+		stream << std::setw(2) << +x;
 	}
 
 	return stream.str();
