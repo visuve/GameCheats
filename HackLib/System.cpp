@@ -149,7 +149,7 @@ DWORD System::PidByName(std::wstring_view moduleName)
 	return result.value().th32ProcessID;
 }
 
-MODULEENTRY32W System::ModuleByPid(DWORD pid)
+MODULEENTRY32W System::ModuleEntryByPid(DWORD pid)
 {
 	if (pid == 0)
 	{
@@ -173,7 +173,7 @@ MODULEENTRY32W System::ModuleByPid(DWORD pid)
 	return result.value();
 }
 
-MODULEENTRY32W System::ModuleByName(DWORD pid, std::wstring_view name)
+MODULEENTRY32W System::ModuleEntryByName(DWORD pid, std::wstring_view name)
 {
 	const Snapshot snapshot(TH32CS_SNAPMODULE, pid);
 

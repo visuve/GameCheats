@@ -15,3 +15,38 @@ TEST(SystemTests, PageSize)
 	// https://devblogs.microsoft.com/oldnewthing/20210510-00/?p=105200
 	EXPECT_GE(System::PageSize(), 0x1000);
 }
+
+TEST(SystemTests, Sanity)
+{
+	DWORD pid = System::Instance().WaitForExe(L"HackLibTests.exe");
+	EXPECT_NE(pid, DWORD(0));
+
+	{
+		MODULEENTRY32W module = System::Instance().ModuleEntryByName(pid, L"KERNEL32.dll");
+		EXPECT_EQ(pid, module.th32ProcessID);
+	}
+	{
+		MODULEENTRY32W module = System::Instance().ModuleEntryByPid(pid);
+		EXPECT_EQ(pid, module.th32ProcessID);
+	}
+}
+
+TEST(SystemTests, ModuleEntryNotFound)
+{
+	{
+		DWORD pid = System::Instance().WaitForExe(L"HackLibTests.exe");
+
+		EXPECT_NE(pid, DWORD(0));
+
+		EXPECT_THROW(
+			System::Instance().ModuleEntryByName(pid, L"This does not exist.dll"), std::range_error);
+	}
+	{
+		EXPECT_THROW(System::Instance().ModuleEntryByPid(0), std::system_error);
+		EXPECT_THROW(System::Instance().ModuleEntryByPid(0xFFFFFFFF), std::system_error);
+	}
+	{
+		EXPECT_THROW(System::Instance().PidByName(
+			L"This certainly does not exist 123456789.exe"), std::range_error);
+	}
+}

@@ -8,7 +8,7 @@
 
 Process::Process(DWORD pid) :
 	_pid(pid),
-	_module(System::ModuleByPid(pid)),
+	_module(System::ModuleEntryByPid(pid)),
 	_handle(OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid))
 {
 	if (!_handle)
@@ -90,7 +90,7 @@ bool Process::Verify(std::string_view expectedSHA256) const
 
 MODULEENTRY32W Process::FindModule(std::wstring_view name) const
 {
-	return System::ModuleByName(_pid, name);
+	return System::ModuleEntryByName(_pid, name);
 }
 
 IMAGE_NT_HEADERS Process::NtHeader() const
@@ -145,7 +145,10 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
 	{
 		iid = Read<IMAGE_IMPORT_DESCRIPTOR>(importDescriptorPtr);
 
-		_ASSERT(iid.Characteristics);
+		if (!iid.Characteristics)
+		{
+			break;
+		}
 
 		Read(Address(iid.Name), buffer.data(), buffer.size());
 
@@ -173,7 +176,10 @@ Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view func
 	{
 		thunk = Read<IMAGE_THUNK_DATA>(thunkPtr);
 
-		_ASSERT(thunk.u1.Function);
+		if (!thunk.u1.Function)
+		{
+			break;
+		}
 
 		Read(Address(thunk.u1.AddressOfData + 2), buffer.data(), buffer.size());
 

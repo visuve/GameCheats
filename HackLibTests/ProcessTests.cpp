@@ -1,5 +1,65 @@
 #include "Process.hpp"
 
+TEST(ProcessTests, Header)
+{
+	DWORD pid = GetCurrentProcessId();
+	Process current(pid);
+
+	EXPECT_EQ(current.NtHeader().OptionalHeader.Subsystem, IMAGE_SUBSYSTEM_WINDOWS_CUI);
+}
+
+TEST(ProcessTests, Name)
+{
+	DWORD pid = GetCurrentProcessId();
+	Process current(pid);
+
+	EXPECT_STREQ(current.Path().filename().c_str(), L"HackLibTests.exe");
+}
+
+TEST(ProcessTests, ModuleNotFound)
+{
+	DWORD pid = GetCurrentProcessId();
+	Process currentProcess(pid);
+
+	EXPECT_THROW(currentProcess.FindFunction(
+		"This module does not exists",
+		"Neither does this function"), std::range_error);
+}
+
+TEST(ProcessTests, FunctionNotFound)
+{
+	DWORD pid = GetCurrentProcessId();
+	Process currentProcess(pid);
+
+	EXPECT_THROW(currentProcess.FindFunction(
+		"KERNEL32.dll",
+		"Neither does this function"), std::range_error);
+}
+
+TEST(ProcessTests, FunctionFound)
+{
+	DWORD pid = GetCurrentProcessId();
+	Process currentProcess(pid);
+
+	// It's just called above. It has to be found
+	Pointer fnptr = 
+		currentProcess.FindFunction("KERNEL32.dll", "GetCurrentProcessId");
+
+	EXPECT_NE(fnptr, Pointer());
+}
+
+TEST(ProcessTests, Timeout)
+{
+	using namespace std::chrono_literals;
+
+	DWORD pid = GetCurrentProcessId();
+	Process current(pid);
+
+	EXPECT_EQ(current.WairForExit(0ms), WAIT_TIMEOUT);
+	EXPECT_EQ(current.WairForExit(1ms), WAIT_TIMEOUT);
+	EXPECT_EQ(current.WairForExit(2ms), WAIT_TIMEOUT);
+}
+
 #ifndef _WIN64
 TEST(ProcessTests, Jump)
 {
