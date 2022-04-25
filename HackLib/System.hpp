@@ -17,6 +17,10 @@ public:
 
 	static size_t PageSize();
 
+	// NOTE: probably not the most secure, 
+	// but the Win32 functions were so horrible
+	static std::string GenerateGuid();
+
 	HANDLE WaitEvent = nullptr;
 
 private:

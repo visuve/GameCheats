@@ -272,3 +272,46 @@ size_t System::PageSize()
 {
 	return System::Instance()._systemInfo.dwPageSize;
 }
+
+std::string System::GenerateGuid()
+{
+	union Hack
+	{
+		GUID Guid; // See guiddef.h
+		uint64_t Data[2];
+	} hack = {};
+
+	thread_local std::random_device device;
+	thread_local std::mt19937 engine(device());
+	thread_local std::uniform_int_distribution<uint64_t> distribution(
+		std::numeric_limits<uint64_t>::min(),
+		std::numeric_limits<uint64_t>::max());
+
+	hack.Data[0] = distribution(engine);
+	hack.Data[1] = distribution(engine);
+
+	std::string text(39, '\0');
+
+	int result = std::snprintf(
+		text.data(),
+		text.size(),
+		"{%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
+		hack.Guid.Data1,
+		hack.Guid.Data2,
+		hack.Guid.Data3,
+		hack.Guid.Data4[0],
+		hack.Guid.Data4[1],
+		hack.Guid.Data4[2],
+		hack.Guid.Data4[3],
+		hack.Guid.Data4[4],
+		hack.Guid.Data4[5],
+		hack.Guid.Data4[6],
+		hack.Guid.Data4[7]);
+
+	if (result != 38)
+	{
+		throw RuntimeException("std::snprintf failed to format a GUID");
+	}
+
+	return text.erase(result); // Remove the trailing null which snprintf adds
+}
