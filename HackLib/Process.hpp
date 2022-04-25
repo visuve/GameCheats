@@ -2,7 +2,7 @@
 
 #include "Exceptions.hpp"
 #include "NonCopyable.hpp"
-#include "Pointer.hpp"
+#include "PointerMap.hpp"
 
 class Process
 {
@@ -163,6 +163,14 @@ public:
 	Pointer FindFunction(std::string_view moduleName, std::string_view functionName) const;
 
 	Pointer AllocateMemory(size_t size);
+
+	template <typename... T>
+	PointerMap AllocateMap(T&& ... names)
+	{
+		constexpr size_t sizeNeeded = sizeof ... (T) * Pointer::Size;
+		const Pointer region = AllocateMemory(sizeNeeded);
+		return PointerMap(region, { std::forward<T>(names)... });
+	}
 
 	DWORD CreateThread(Pointer address, Pointer parameter, bool detached = false);
 

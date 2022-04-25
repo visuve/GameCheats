@@ -19,9 +19,14 @@ public:
 		_internal.Value = reinterpret_cast<size_t>(value);
 	}
 
-	inline Pointer(const Pointer& other)
+	inline Pointer(const Pointer& other) :
+		_internal(other._internal)
 	{
-		_internal.Value = other._internal.Value;
+	}
+
+	inline Pointer(Pointer&& other) :
+		_internal(std::move(other._internal))
+	{
 	}
 
 	inline virtual ~Pointer() = default;
