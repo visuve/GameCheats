@@ -290,12 +290,8 @@ std::string System::GenerateGuid()
 	hack.Data[0] = distribution(engine);
 	hack.Data[1] = distribution(engine);
 
-	std::string text(39, '\0');
-
-	int result = std::snprintf(
-		text.data(),
-		text.size(),
-		"{%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}",
+	return std::format(
+		"{{{:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}}}",
 		hack.Guid.Data1,
 		hack.Guid.Data2,
 		hack.Guid.Data3,
@@ -307,11 +303,4 @@ std::string System::GenerateGuid()
 		hack.Guid.Data4[5],
 		hack.Guid.Data4[6],
 		hack.Guid.Data4[7]);
-
-	if (result != 38)
-	{
-		throw RuntimeException("std::snprintf failed to format a GUID");
-	}
-
-	return text.erase(result); // Remove the trailing null which snprintf adds
 }
