@@ -12,6 +12,7 @@ int wmain(int argc, wchar_t** argv)
 			{ L"patch", typeid(std::filesystem::path), L"Remove XR_3DA.exe administrator requirement" },
 			{ L"infammo", typeid(std::nullopt), L"Infinite ammunition" },
 			{ L"nowear", typeid(std::nullopt), L"Weapon condition is never reduced" },
+			{ L"lessweaponweight", typeid(std::nullopt), L"Weapons weight far less in the inventory" },
 			{ L"infhealth", typeid(std::nullopt), L"Infinite health" }
 		});
 
@@ -44,6 +45,14 @@ int wmain(int argc, wchar_t** argv)
 		{
 			std::cerr << "Please patch the game before applying these cheats" << std::endl;
 			return ERROR_REVISION_MISMATCH;
+		}
+
+		if (args.Contains(L"lessweaponweight"))
+		{
+			// original: movss xmm0,[esi+000000A4] - F3 0F 10 86 A4 00 00 00
+			Pointer ptr = process.Address(L"xrGame.dll", 0x21DFBF);
+
+			process.WriteBytes(ptr, ByteStream("F3 0F 59 05 45 23 01 00"));
 		}
 		
 		size_t pageSize = System::PageSize();
@@ -93,7 +102,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"infhealth"))
 		{
-			Pointer ptr = process.Address(L"xrGame.dll", 0x1E30C0);
+			Pointer ptr = process.Address(L"xrGame.dll", 0x1DD3F8);
 
 			// Just overwrite call to health update function to xrGame.dll + 1E30C0
 			// TODO: this crashes the game upon game loads...
