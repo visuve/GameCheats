@@ -8,7 +8,7 @@ public:
 	ByteStream() = default;
 	explicit ByteStream(size_t size, uint8_t byte = 0x00);
 	explicit ByteStream(std::span<uint8_t> data);
-	explicit ByteStream(std::initializer_list<uint8_t> data);
+	explicit ByteStream(std::initializer_list<uint8_t>&& data);
 
 	template <size_t N>
 	explicit  ByteStream(const std::array<uint8_t, N> data) :
@@ -16,7 +16,7 @@ public:
 	{
 	}
 
-	explicit ByteStream(const std::string& data);
+	explicit ByteStream(std::string&& data);
 
 	ByteStream& operator << (const uint8_t byte);
 	ByteStream& operator << (std::span<uint8_t> data);
@@ -36,7 +36,7 @@ public:
 		return *this;
 	}
 
-	ByteStream& operator << (const std::string& bytes);
+	ByteStream& operator << (std::string&& bytes);
 
 	void Add(size_t n, uint8_t byte);
 

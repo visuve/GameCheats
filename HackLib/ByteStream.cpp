@@ -11,14 +11,14 @@ ByteStream::ByteStream(std::span<uint8_t> data) :
 {
 }
 
-ByteStream::ByteStream(std::initializer_list<uint8_t> data) :
-	_bytes(data)
+ByteStream::ByteStream(std::initializer_list<uint8_t>&& data) :
+	_bytes(std::move(data))
 {
 }
 
-ByteStream::ByteStream(const std::string& data)
+ByteStream::ByteStream(std::string&& data)
 {
-	*this << data;
+	*this << std::move(data);
 }
 
 ByteStream& ByteStream::operator << (const uint8_t byte)
@@ -39,13 +39,13 @@ ByteStream& ByteStream::operator << (const Pointer& ptr)
 	return *this;
 }
 
-ByteStream& ByteStream::operator << (const std::string& bytes)
+ByteStream& ByteStream::operator << (std::string&& bytes)
 {
 	std::stringstream stream(bytes);
 
 	std::string raw;
 
-	auto notDigit = [](char c)->bool
+	constexpr auto notDigit = [](char c)->bool
 	{
 		return !std::isxdigit(c);
 	};
@@ -65,12 +65,12 @@ ByteStream& ByteStream::operator << (const std::string& bytes)
 
 		int value = std::stoi(raw, nullptr, 16);
 
-		if (value < 0 || value > 255)
+		if (!std::in_range<uint8_t>(value))
 		{
 			throw ArgumentException("A byte has to be between 0-255!");
 		}
 
-		*this << static_cast<uint8_t>(value);
+		_bytes.push_back(static_cast<uint8_t>(value));
 	}
 
 	return *this;
