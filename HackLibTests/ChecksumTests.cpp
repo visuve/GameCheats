@@ -1,14 +1,29 @@
 #include "SHA256.hpp"
 
-TEST(ChecksumTests, GTestZip)
+TEST(ChecksumTests, Self)
 {
-	// NOTE: this test will fail if run outside the default build directory
+	std::wstring path = GetCommandLineW() + 1;
 
-	std::filesystem::path path(GetCommandLineW() + 1);
-	path.remove_filename();
-	path /= "_deps\\googletest-subbuild\\googletest-populate-prefix\\src\\release-1.11.0.zip";
+	// The command line seems to have some goo by default
+	path.pop_back();
+	path.pop_back();
 
 	EXPECT_TRUE(std::filesystem::exists(path));
 
-	EXPECT_TRUE(SHA256(path, nullptr) == "353571c2440176ded91c2de6d6cd88ddd41401d14692ec1f99e35d013feda55a");
+	EXPECT_EQ(SHA256(path, nullptr).Value().size(), size_t(64));
+}
+
+TEST(ChecksumTests, PathNotExists)
+{
+	EXPECT_THROW(SHA256(L"This path does not exist", nullptr), std::system_error);
+}
+
+TEST(ChecksumTests, InvalidCompare)
+{
+	std::wstring path = GetCommandLineW() + 1;
+
+	path.pop_back();
+	path.pop_back();
+
+	EXPECT_THROW(SHA256(path, nullptr) == "Not a valid SHA-256", std::logic_error);
 }
