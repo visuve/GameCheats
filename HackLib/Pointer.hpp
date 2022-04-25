@@ -9,7 +9,12 @@ public:
 
 	inline Pointer() = default;
 
-	inline Pointer(uint8_t* value)
+	inline Pointer(const uint8_t* value)
+	{
+		_internal.Value = reinterpret_cast<size_t>(value);
+	}
+
+	explicit inline Pointer(const void* value)
 	{
 		_internal.Value = reinterpret_cast<size_t>(value);
 	}

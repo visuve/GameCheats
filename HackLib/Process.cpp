@@ -197,22 +197,22 @@ Pointer Process::FindFunction(std::string_view moduleName, std::string_view func
 
 Pointer Process::AllocateMemory(size_t size)
 {
-	void* memory = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	void* address = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
-	if (!memory)
+	if (!address)
 	{
 		throw Win32Exception("VirtualAllocEx");
 	}
 
-	auto result = _memory.emplace(static_cast<uint8_t*>(memory));
+	auto result = _memory.emplace(address);
 
 	_ASSERT_EXPR(result.second, L"Catastrophic failure, pointer already existed!");
 
 	MEMORY_BASIC_INFORMATION info = {};
 
-	if (VirtualQueryEx(_handle, memory, &info, sizeof(MEMORY_BASIC_INFORMATION)) == sizeof(MEMORY_BASIC_INFORMATION))
+	if (VirtualQueryEx(_handle, address, &info, sizeof(MEMORY_BASIC_INFORMATION)) == sizeof(MEMORY_BASIC_INFORMATION))
 	{
-		std::cout << "Allocated " << info.RegionSize << " bytes at 0x" << memory << std::endl;
+		std::cout << "Allocated " << info.RegionSize << " bytes at 0x" << address << std::endl;
 	}
 
 	return *result.first;
@@ -263,7 +263,7 @@ DWORD Process::InjectLibrary(std::string_view name)
 
 	// LoadLibrary has the same relative address in all processes, hence we can use our "own" address.
 	// The FindFunction does not appear to yield same results.
-	Pointer fnPtr(reinterpret_cast<uint8_t*>(&LoadLibraryA));
+	Pointer fnPtr(&LoadLibraryA);
 
 	DWORD result = CreateThread(fnPtr, namePtr);
 
