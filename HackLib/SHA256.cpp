@@ -119,7 +119,7 @@ void SHA256::ProcessFile(const std::filesystem::path& path)
 {
 	auto before = std::chrono::high_resolution_clock::now();
 
-	std::vector<uint8_t> buffer(0x4000);
+	std::vector<uint8_t> buffer(0x100000);
 
 	std::ifstream file;
 	file.exceptions(std::ifstream::badbit);
