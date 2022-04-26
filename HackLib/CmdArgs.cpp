@@ -64,11 +64,11 @@ CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expec
 	std::wstringstream usage;
 
 	usage << std::filesystem::path(_arguments[0]).stem().wstring();
-	usage << L" - usage:\n\n " << _arguments[0] << std::endl;
+	usage << L" - usage:\n\n " << _arguments[0] ;
 
 	for (const Argument& argument : _expected)
 	{
-		usage << L"  " << argument << std::endl;
+		usage << L"  " << argument ;
 	}
 
 	_usage = usage.str();

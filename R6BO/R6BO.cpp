@@ -49,13 +49,13 @@ namespace R6BO
 
 		if (highestId >= NewTerroristMax)
 		{
-			std::wcout << path << " is already tweaked!" << std::endl;
+			Log << path << " is already tweaked!" ;
 			return;
 		}
 
 		const auto mutator = [&](uint32_t lineNum, const std::string& line, std::ostream& output)
 		{
-			output << line << std::endl;
+			output << line ;
 
 			if (lineNum < highestLineNum)
 			{
@@ -65,7 +65,7 @@ namespace R6BO
 			while (++highestId <= NewTerroristMax)
 			{
 				output << std::regex_replace(
-					highestLine, MemberRegex, std::format("\"Random{}Team\"$2", highestId)) << std::endl;
+					highestLine, MemberRegex, std::format("\"Random{}Team\"$2", highestId)) ;
 			}
 		};
 
@@ -92,7 +92,7 @@ namespace R6BO
 			if (path.filename() == L"MaxTerrorists.txt")
 			{
 				FsOps::BackupRename(path);
-				std::cout << "Disabled: " << path << std::endl;
+				Log << "Disabled:" << path ;
 			}
 
 			return true;
@@ -106,9 +106,9 @@ namespace R6BO
 			{
 				TweakMissionFile(path);
 
-				maxTerroristTxtFile << path.filename() << "\t\t" << NewTerroristMax << std::endl;
+				maxTerroristTxtFile << path.filename() << "\t\t" << NewTerroristMax ;
 
-				std::cout << "Tweaked: " << path << std::endl;
+				Log << "Tweaked:" << path ;
 			}
 
 			return true;
@@ -134,7 +134,7 @@ namespace R6BO
 
 		if (!process.Verify("06ee11a05a029a9827c093caa67de63c395c03082f7bc843ac302eadb9ff6373"))
 		{
-			std::cerr << "Expected Rainbow Six - Black Ops" << std::endl;
+			LogError << "Expected Rainbow Six - Black Ops";
 			return;
 		}
 
@@ -152,10 +152,10 @@ namespace R6BO
 		Pointer uiMax = process.ResolvePointer(base, 0x8u, 0xD4u, 0x18Cu);
 		Pointer uiSelected = process.ResolvePointer(base, 0x8u, 0xD4u, 0x184u);
 
-		std::cout << process.Read<uint32_t>(backgroundMax) << std::endl;
-		std::cout << process.Read<uint32_t>(backgroundSelected) << std::endl;
-		std::cout << process.Read<uint32_t>(uiMax) << std::endl;
-		std::cout << process.Read<uint32_t>(uiSelected) << std::endl;
+		Log << process.Read<uint32_t>(backgroundMax) ;
+		Log << process.Read<uint32_t>(backgroundSelected) ;
+		Log << process.Read<uint32_t>(uiMax) ;
+		Log << process.Read<uint32_t>(uiSelected) ;
 
 		process.Write<uint32_t>(backgroundMax, 100);
 		process.Write<uint32_t>(backgroundSelected, 100);
@@ -186,13 +186,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what() ;
 		return -1;
 	}
 

@@ -13,23 +13,26 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"calculator"))
 		{
-
 			DWORD pid = System::Instance().WaitForWindow(L"Calculator");
 
 			Process process(pid);
 
-			process.Verify("E7760F103569E1D70D011C8137CD8BCAB586980615AB013479F72C3F67E28534");
+			if (!process.Verify("E7760F103569E1D70D011C8137CD8BCAB586980615AB013479F72C3F67E28534"))
+			{
+				LogError << "You have a different calculator than was expected";
+				return ERROR_REVISION_MISMATCH;
+			}
 		}
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

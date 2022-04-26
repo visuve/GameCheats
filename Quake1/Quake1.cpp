@@ -63,7 +63,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("39d0a522918f078425bda90d43292e9bb83866d442059deb5be75ae8f4f8109a"))
 		{
-			std::cerr << "Expected Quake 1 Remake v1.0.5036 (Steam)" << std::endl;
+			LogError << "Expected Quake 1 Remake v1.0.5036 (Steam)";
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -101,13 +101,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

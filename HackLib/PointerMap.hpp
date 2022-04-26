@@ -29,7 +29,7 @@ inline std::ostream& operator << (std::ostream& os, const PointerMap& pm)
 {
 	for (const auto& [key, value] : pm._data)
 	{
-		os << key << '=' << value << std::endl;
+		os << key << '=' << value ;
 	}
 
 	return os;

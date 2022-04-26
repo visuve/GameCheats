@@ -14,7 +14,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("3a87f92f011e5dc9179ddf733cf08be2b39ea6e5b7a8a9e3a9a72dafcc1b104d"))
 		{
-			std::cerr << "Expected Fallout New Vegas v1.4.0.525 (Steam)" << std::endl;
+			LogError << "Expected Fallout New Vegas v1.4.0.525 (Steam)";
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -55,13 +55,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what() ;
 		return -1;
 	}
 

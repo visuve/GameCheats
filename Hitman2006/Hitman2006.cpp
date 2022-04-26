@@ -16,7 +16,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("b45bf59665f98b6547152218f33a0fe006836290f004960a49c37918f22d2713"))
 		{
-			std::cerr << "Expected Hitman Blood Money v1.2 (Steam)" << std::endl;
+			LogError << "Expected Hitman Blood Money v1.2 (Steam)" ;
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -50,13 +50,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

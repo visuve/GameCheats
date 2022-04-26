@@ -16,7 +16,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("189f8ce2e40603db1387266e960fcf102c479ad4de83d31b1cbfe3647b6cd702"))
 		{
-			std::cerr << "Expected Hitman Contracts" << std::endl;
+			LogError << "Expected Hitman Contracts";
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -64,13 +64,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

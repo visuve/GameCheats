@@ -31,14 +31,14 @@ struct Soldier
 
 std::ostream& operator << (std::ostream& os, const Soldier& s)
 {
-	os << "Speed:       " << +s.Speed << std::endl;
-	os << "Health:      " << +s.HealthA << '/' << +s.HealthB << std::endl;
-	os << "Stamina:     " << +(s.Stamina / 2) << std::endl;
-	os << "Reactions:   " << +s.Reactions << std::endl;
-	os << "Bravery:     " << uint16_t(s.Bravery) * 10u << std::endl;
-	os << "Strength:    " << +s.Strength << std::endl;
-	os << "Psi-energy:  " << +s.PsiEnergy << std::endl;
-	os << "Psi-attack:  " << +s.PsiAttack << std::endl;
+	os << "Speed:       " << +s.Speed ;
+	os << "Health:      " << +s.HealthA << '/' << +s.HealthB ;
+	os << "Stamina:     " << +(s.Stamina / 2) ;
+	os << "Reactions:   " << +s.Reactions ;
+	os << "Bravery:     " << uint16_t(s.Bravery) * 10u ;
+	os << "Strength:    " << +s.Strength ;
+	os << "Psi-energy:  " << +s.PsiEnergy ;
+	os << "Psi-attack:  " << +s.PsiAttack ;
 	os << "Psi-defense: " << +s.PsiDefence;
 	return os;
 }
@@ -159,9 +159,8 @@ int wmain(int argc, wchar_t** argv)
 			Soldier soldier;
 			file.read(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
 
-			std::cout << name << " had:" << std::endl;
-			
-			std::cout << soldier << std::endl << std::endl;
+			Log << name << " had:";
+			std::cout << soldier << std::endl;
 
 			soldier.MaxOut();
 
@@ -172,10 +171,10 @@ int wmain(int argc, wchar_t** argv)
 			file.write(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
 			file.flush();
 
-			std::cout << name << " now has:" << std::endl;
+			Log << name << " now has:";
 			std::cout << soldier << std::endl;
 
-			std::cout << std::endl << "... KTHXBYE." << std::endl;
+			Log << "\n... KTHXBYE.";
 		}
 
 		std::fstream file = FindName(path, name);
@@ -189,7 +188,7 @@ int wmain(int argc, wchar_t** argv)
 
 		uint8_t value = 0;
 		file >> value;
-		std::cout << name << " had skill of: " << +value << std::endl;
+		Log << name << " had skill of: " << +value;
 
 		value = 0xFF;
 
@@ -202,20 +201,20 @@ int wmain(int argc, wchar_t** argv)
 
 		file.flush();
 
-		std::cout << name << " now has skill of: " << +value << std::endl;
+		Log << name << " now has skill of: " << +value;
 
-		std::cout << std::endl << "... KTHXBYE." << std::endl;
+		Log << "\n... KTHXBYE." ;
 
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

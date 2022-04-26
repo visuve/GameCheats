@@ -15,7 +15,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("58607bbc54bd577c752ee0f04a8cfec6873855639c43d4a24bd2d1b6c693e9da"))
 		{
-			std::cerr << "Expected Hitman Absolution v1.0.447 (Steam)" << std::endl;
+			LogError << "Expected Hitman Absolution v1.0.447 (Steam)";
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -36,13 +36,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what() ;
 		return -1;
 	}
 

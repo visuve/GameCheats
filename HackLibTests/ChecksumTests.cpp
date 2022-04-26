@@ -10,12 +10,12 @@ TEST(ChecksumTests, Self)
 
 	EXPECT_TRUE(std::filesystem::exists(path));
 
-	EXPECT_EQ(SHA256(path, nullptr).Value().size(), size_t(64));
+	EXPECT_EQ(SHA256(path).Value().size(), size_t(64));
 }
 
 TEST(ChecksumTests, PathNotExists)
 {
-	EXPECT_THROW(SHA256(L"This path does not exist", nullptr), std::system_error);
+	EXPECT_THROW(SHA256(L"This path does not exist"), std::system_error);
 }
 
 TEST(ChecksumTests, InvalidCompare)
@@ -25,5 +25,5 @@ TEST(ChecksumTests, InvalidCompare)
 	path.pop_back();
 	path.pop_back();
 
-	EXPECT_THROW(SHA256(path, nullptr) == "Not a valid SHA-256", std::logic_error);
+	EXPECT_THROW(SHA256(path) == "Not a valid SHA-256", std::logic_error);
 }

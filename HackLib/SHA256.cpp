@@ -1,10 +1,11 @@
 #include "Exceptions.hpp"
+#include "Logger.hpp"
 #include "SHA256.hpp"
 
-SHA256::SHA256(const std::filesystem::path& path, std::ostream* progressOutput) :
+SHA256::SHA256(const std::filesystem::path& path) :
 	SHA256()
 {
-	ProcessFile(path, progressOutput);
+	ProcessFile(path);
 }
 
 SHA256::~SHA256()
@@ -52,7 +53,7 @@ bool SHA256::operator == (std::string_view expected) const
 
 	if (_strnicmp(actual.c_str(), expected.data(), 64) != 0)
 	{
-		std::cerr << "Expected " << expected << ", got " << actual << std::endl;
+		LogError << "Expected " << expected << ", got " << actual;
 		return false;
 	}
 
@@ -114,8 +115,10 @@ SHA256::SHA256()
 	_hashData.resize(PropertySize(BCRYPT_HASH_LENGTH));
 }
 
-void SHA256::ProcessFile(const std::filesystem::path& path, std::ostream* progressOutput)
+void SHA256::ProcessFile(const std::filesystem::path& path)
 {
+	auto before = std::chrono::high_resolution_clock::now();
+
 	std::vector<uint8_t> buffer(0x4000);
 
 	std::ifstream file;
@@ -154,16 +157,17 @@ void SHA256::ProcessFile(const std::filesystem::path& path, std::ostream* progre
 			buffer.resize(bytesRead);
 		}
 
-		if (progressOutput)
-		{
-			float complete = float(bytesProcessed) / float(fileSize) * 100.f;
-			*progressOutput << std::format("Verifying {:.2f}%", complete) << std::endl;
-		}
+		float complete = float(bytesProcessed) / float(fileSize) * 100.f;
+		Log << std::format("Verifying {:.2f}%", complete);
 
 		Update(buffer);
 	}
 
 	Finish();
+
+	auto after = std::chrono::high_resolution_clock::now();
+
+	Log << "Verifying took" << std::chrono::duration_cast<std::chrono::milliseconds>(after - before);
 }
 
 void SHA256::Update(std::span<uint8_t> data)

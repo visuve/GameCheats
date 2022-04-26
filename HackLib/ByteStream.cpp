@@ -90,7 +90,7 @@ uint8_t& ByteStream::operator [](size_t i)
 {
 	if (i >= _bytes.size())
 	{
-		throw OutOfRangeException("index is out of bounds");
+		throw OutOfRangeException("Index is out of bounds");
 	}
 
 	return _bytes[i];
@@ -100,7 +100,7 @@ uint8_t ByteStream::operator [](size_t i) const
 {
 	if (i >= _bytes.size())
 	{
-		throw OutOfRangeException("index is out of bounds");
+		throw OutOfRangeException("Index is out of bounds");
 	}
 
 	return _bytes[i];

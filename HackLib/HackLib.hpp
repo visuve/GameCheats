@@ -5,6 +5,7 @@
 #include "Exceptions.hpp"
 #include "FsOps.hpp"
 #include "Handle.hpp"
+#include "Logger.hpp"
 #include "OpCodes.hpp"
 #include "Pointer.hpp"
 #include "PointerMap.hpp"

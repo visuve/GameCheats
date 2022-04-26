@@ -2,6 +2,7 @@
 
 #include "Exceptions.hpp"
 #include "Handle.hpp"
+#include "Logger.hpp"
 #include "NonCopyable.hpp"
 #include "PointerMap.hpp"
 #include "VirtualMemory.hpp"
@@ -51,7 +52,7 @@ public:
 
 		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
 
-		std::cout << "Read " << bytesRead << " bytes from " << pointer << std::endl;
+		Log << "Read" << bytesRead << "bytes from" << pointer ;
 	}
 
 	template<typename T>
@@ -80,7 +81,7 @@ public:
 
 		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
 
-		std::cout << "Wrote " << bytesWritten << " bytes at " << pointer << std::endl;
+		Log << "Wrote" << bytesWritten << "bytes at" << pointer ;
 	}
 
 	template<typename T>

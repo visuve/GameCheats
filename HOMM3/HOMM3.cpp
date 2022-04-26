@@ -49,7 +49,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("608da95c6dae5de21b2135701365e18d3de173d3f0fd9753812afe6a5b13fa05"))
 		{
-			std::cerr << "Expected Heroes of Might & Magic III - HD Edition (Steam)" << std::endl;
+			LogError << "Expected Heroes of Might & Magic III - HD Edition (Steam)";
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -60,26 +60,26 @@ int wmain(int argc, wchar_t** argv)
 
 			Resources resources = process.Read<Resources>(resourcePointer);
 
-			std::cout << "Before:" << std::endl;
-			std::cout << resources << std::endl;
+			Log << "Before:";
+			Log << resources;
 
 			resources += 0xBEEF;
 
-			std::cout << "\nAfter:" << std::endl;
-			std::cout << resources << std::endl;
+			Log << "\nAfter:";
+			Log << resources;
 
 			process.Write(resourcePointer, resources);
 		}
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

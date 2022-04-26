@@ -23,7 +23,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("137c3cbf328225085cf3532819b4574714fba263a6121328de6583ba8a0648f5"))
 		{
-			std::cerr << "Expected Hitman: Codename 47 (Steam)" << std::endl;
+			LogError << "Expected Hitman: Codename 47 (Steam)";
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -70,13 +70,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

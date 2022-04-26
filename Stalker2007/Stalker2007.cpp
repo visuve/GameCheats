@@ -22,17 +22,19 @@ int wmain(int argc, wchar_t** argv)
 
 			if (SHA256(path) != UnpatchedChecksum)
 			{
-				std::cout << "Cheksum mismatch. Won't patch, will definetely break." << std::endl;
+				LogError << "Cheksum mismatch. Won't patch, will definetely break." ;
+				return ERROR_REVISION_MISMATCH;
 			}
 
 			FsOps::Stab(path, 0x17D73F, "asInvoker\"       ");
 
 			if (SHA256(path) != PatchedChecksum)
 			{
-				std::cout << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken." << std::endl;
+				LogError << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken." ;
+				return ERROR_REVISION_MISMATCH;
 			}
 
-			std::wcout << path << L" stabbed" << std::endl;
+			std::wcout << path << L" stabbed" ;
 
 			return 0;
 		}
@@ -43,7 +45,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify(PatchedChecksum))
 		{
-			std::cerr << "Please patch the game before applying these cheats" << std::endl;
+			LogError << "Please patch the game before applying these cheats" ;
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -57,7 +59,7 @@ int wmain(int argc, wchar_t** argv)
 		
 		PointerMap ptrs = process.AllocateMap("player", "weapon"); // Let's just allocate a whole page
 
-		std::cout << ptrs;
+		Log << ptrs;
 		
 		// Hmmm IAT @ xrGame.dll+451278
 
@@ -114,13 +116,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

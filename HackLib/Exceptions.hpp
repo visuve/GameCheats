@@ -1,7 +1,5 @@
 #pragma once
 
-#include <source_location>
-
 inline std::string ExceptionMessage(std::string_view message, const std::source_location& location)
 {
 	return std::format("{0}:{1}: {2}", 

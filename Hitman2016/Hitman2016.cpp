@@ -16,7 +16,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("31c33c1937b1ddc3cad21bd7d761f12f962286d55c48d3582a704ca35e2830f9"))
 		{
-			std::cerr << "Expected Hitman v1.15.0 with DX 12 (Steam)" << std::endl;
+			LogError << "Expected Hitman v1.15.0 with DX 12 (Steam)";
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -54,13 +54,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what() ;
 		return -1;
 	}
 

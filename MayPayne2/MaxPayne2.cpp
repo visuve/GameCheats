@@ -14,7 +14,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (!process.Verify("75b46ceaaaecd44173358654f67abd20057fd4298fc6a0d74437c0c884328fc3"))
 		{
-			std::cerr << "Expected Max Payne 2 - The Fall of Max of Payne (Steam)" << std::endl;
+			LogError << "Expected Max Payne 2 - The Fall of Max of Payne (Steam)";
 			return ERROR_REVISION_MISMATCH;
 		}
 
@@ -32,13 +32,13 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		std::cerr << '\n' << e.what() << "!\n" << std::endl;
-		std::wcerr << e.Usage() << std::endl;
+		LogError << '\n' << e.what() << "!\n";
+		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		LogError << e.what();
 		return -1;
 	}
 

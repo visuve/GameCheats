@@ -1,5 +1,6 @@
 #include "Exceptions.hpp"
 #include "Handle.hpp"
+#include "Logger.hpp"
 #include "NonCopyable.hpp"
 #include "StrConvert.hpp"
 #include "System.hpp"
@@ -8,7 +9,7 @@
 
 BOOL WINAPI ConsoleHandler(DWORD signal)
 {
-	std::cout << "Signaled " << signal << std::endl;
+	Log << "Signaled" << signal;
 	return SetEvent(System::Instance().WaitEvent);
 }
 
@@ -133,7 +134,7 @@ DWORD System::PidByName(std::wstring_view moduleName)
 	if (!result.has_value())
 	{
 		throw RangeException(
-			std::format("Process {} not found", StrConvert::ToUtf8(moduleName)));
+			std::format("Process \"{}\" not found", StrConvert::ToUtf8(moduleName)));
 	}
 
 	return result.value().th32ProcessID;
@@ -178,7 +179,7 @@ MODULEENTRY32W System::ModuleEntryByName(DWORD pid, std::wstring_view name)
 	if (!result.has_value())
 	{
 		throw RangeException(
-			std::format("Module {} not found", StrConvert::ToUtf8(name)));
+			std::format("Module \"{}\" not found", StrConvert::ToUtf8(name)));
 	}
 
 	return result.value();
@@ -205,7 +206,7 @@ DWORD System::WaitForExe(std::wstring_view name)
 			return result.value().th32ProcessID;
 		}
 
-		std::cout << "Process \"" << StrConvert::ToUtf8(name) << "\" has not appeared yet..." << std::endl;
+		Log << "Process" << Logger::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
 
 		waitResult = WaitForSingleObject(WaitEvent, 2000);
 
@@ -244,7 +245,7 @@ DWORD System::WaitForWindow(std::wstring_view name)
 			return pid;
 		}
 
-		std::cout << "Window \"" << StrConvert::ToUtf8(name) << "\" has not appeared yet..." << std::endl;
+		Log << "Window" << Logger::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
 
 		waitResult = WaitForSingleObject(WaitEvent, 2000);
 

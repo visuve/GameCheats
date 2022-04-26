@@ -199,7 +199,7 @@ Pointer Process::AllocateMemory(size_t size)
 
 	MEMORY_BASIC_INFORMATION info = result.first->Query();
 
-	std::cout << "Allocated " << info.RegionSize << " bytes at " << result.first->Address() << std::endl;
+	Log << "Allocated" << info.RegionSize << "bytes at" << result.first->Address() ;
 
 	return result.first->Address();
 }
@@ -380,7 +380,7 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 
 			if (GetExitCodeProcess(_handle.Value(), &exitCode))
 			{
-				std::cout << "Process " << _pid << " exited with code: " << exitCode << std::endl;
+				Log << "Process" << _pid << "exited with code:" << exitCode ;
 			}
 
 			CloseHandle(_handle.Value());
@@ -390,7 +390,7 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 		}
 		case WAIT_TIMEOUT:
 		{
-			std::cout << "Waiting for " << _pid << " timed out" << std::endl;
+			Log << "Waiting for" << _pid << "timed out" ;
 			return WAIT_TIMEOUT;
 		}
 	}
