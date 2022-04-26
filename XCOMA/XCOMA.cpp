@@ -142,8 +142,8 @@ int wmain(int argc, wchar_t** argv)
 			throw CmdArgs::Exception("Cannot know what do you want to patch", args.Usage());
 		}
 
-		const std::filesystem::path path = args.Get<std::filesystem::path>(L"path");
-		const std::string name = StrConvert::ToUtf8(args.Get<std::wstring>(L"name"));
+		const std::filesystem::path path = args.Value<std::filesystem::path>(L"path");
+		const std::string name = StrConvert::ToUtf8(args.Value<std::wstring>(L"name"));
 
 		if (args.Contains(L"patchsoldier"))
 		{

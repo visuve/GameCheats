@@ -29,7 +29,7 @@ public:
 	bool Contains(std::wstring_view x) const;
 
 	template<typename T>
-	T Get(std::wstring_view key) const
+	T Value(std::wstring_view key) const
 	{
 		return std::any_cast<T>(ValueByKey(key));
 	}

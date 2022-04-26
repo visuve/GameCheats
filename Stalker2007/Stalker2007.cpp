@@ -13,12 +13,12 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infammo", typeid(std::nullopt), L"Infinite ammunition" },
 			{ L"nowear", typeid(std::nullopt), L"Weapon condition is never reduced" },
 			{ L"lessweaponweight", typeid(std::nullopt), L"Weapons weight far less in the inventory" },
-			{ L"infhealth", typeid(std::nullopt), L"Infinite health" }
+			{ L"infenergy", typeid(std::nullopt), L"Infinite health & stamina" }
 		});
 
 		if (args.Contains(L"patch"))
 		{
-			std::filesystem::path path = args.Get<std::filesystem::path>(L"patch");
+			std::filesystem::path path = args.Value<std::filesystem::path>(L"patch");
 
 			if (SHA256(path) != UnpatchedChecksum)
 			{
@@ -55,17 +55,20 @@ int wmain(int argc, wchar_t** argv)
 			process.WriteBytes(ptr, ByteStream("F3 0F 59 05 45 23 01 00"));
 		}
 		
-		size_t pageSize = System::PageSize();
-		Pointer weapon = process.AllocateMemory(pageSize); // Let's just allocate a whole page
+		PointerMap ptrs = process.AllocateMap("player", "weapon"); // Let's just allocate a whole page
+
+		std::cout << ptrs;
+		
+		// Hmmm IAT @ xrGame.dll+451278
 
 		{
 			ByteStream stream;
 
 			stream << "8B 93 38 34 00 00"; // mov edx,[ebx+00003438]
-			stream << "89 15" << weapon; // mov [player], edx
+			stream << "89 15" << ptrs["weapon"]; // mov [weapon], edx
 			stream << "8B 93 34 34 00 00"; // mov edx,[ebx+00003434]
+			stream << "89 15" << ptrs["player"]; // mov [player], edx
 
-			// Hmmm IAT @ xrGame.dll+451278
 			process.InjectX86(L"xrGame.dll", 0x3D136C, 1, stream);
 		}
 
@@ -73,7 +76,7 @@ int wmain(int argc, wchar_t** argv)
 		{
 			ByteStream stream;
 
-			stream << "39 3D" << weapon; // cmp dword ptr [weapon],edi
+			stream << "39 3D" << ptrs["weapon"]; // cmp dword ptr [weapon],edi
 			stream << "74 10"; // je 10
 			stream << "83 87 C0 05 00 00 C8";
 			stream << "83 87 7C 05 00 00 FF";
@@ -88,7 +91,7 @@ int wmain(int argc, wchar_t** argv)
 		{
 			ByteStream stream;
 
-			stream << "39 3D" << weapon; // cmp dword ptr [weapon],edi
+			stream << "39 3D" << ptrs["weapon"]; // cmp dword ptr [weapon],edi
 			stream << "75 04"; // jne 4
 			stream << "DD D9"; // fstp st(0)
 			stream << "D9 E8"; // fld1
@@ -100,12 +103,10 @@ int wmain(int argc, wchar_t** argv)
 			process.InjectX86(L"xrGame.dll", 0x21F0D9, 7, stream);
 		}
 
-		if (args.Contains(L"infhealth"))
+		if (args.Contains(L"infenergy"))
 		{
 			Pointer ptr = process.Address(L"xrGame.dll", 0x1DD3F8);
 
-			// Just overwrite call to health update function to xrGame.dll + 1E30C0
-			// TODO: this crashes the game upon game loads...
 			process.WriteBytes(ptr, ByteStream("90 90 90 90 90"));
 		}
 

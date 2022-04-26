@@ -90,15 +90,15 @@ TEST(CmdArgsTests, ParseArgument)
 	EXPECT_TRUE(args.Contains(L"echo"));
 	EXPECT_TRUE(args.Contains(L"foxtrot"));
 
-	EXPECT_TRUE(args.Get<bool>(L"alpha"));
+	EXPECT_TRUE(args.Value<bool>(L"alpha"));
 
-	auto path = args.Get<std::filesystem::path>(L"bravo");
+	auto path = args.Value<std::filesystem::path>(L"bravo");
 	EXPECT_STREQ(path.c_str(), L"nonexistent/path");
-	EXPECT_EQ(args.Get<double>(L"charlie"), double(3.14159265359));
-	EXPECT_EQ(args.Get<float>(L"delta"), float(3.14159265359));
-	EXPECT_EQ(args.Get<int>(L"echo"), int(3));
+	EXPECT_EQ(args.Value<double>(L"charlie"), double(3.14159265359));
+	EXPECT_EQ(args.Value<float>(L"delta"), float(3.14159265359));
+	EXPECT_EQ(args.Value<int>(L"echo"), int(3));
 
-	auto string = args.Get<std::wstring>(L"foxtrot");
+	auto string = args.Value<std::wstring>(L"foxtrot");
 	EXPECT_STREQ(string.c_str(), L"foobar");
 
 	for (int i = 0; i < argc; ++i)
@@ -131,12 +131,12 @@ TEST(CmdArgsTests, InvalidType)
 		{ L"foxtrot", typeid(std::wstring), L"A string value" }
 	});
 
-	EXPECT_THROW(args.Get<std::filesystem::path>(L"alpha"), std::bad_any_cast);
-	EXPECT_THROW(args.Get<std::wstring>(L"bravo"), std::bad_any_cast);
-	EXPECT_THROW(args.Get<float>(L"charlie"), std::bad_any_cast);
-	EXPECT_THROW(args.Get<int>(L"delta"), std::bad_any_cast);
-	EXPECT_THROW(args.Get<bool>(L"echo"), std::bad_any_cast);
-	EXPECT_THROW(args.Get<std::filesystem::path>(L"foxtrot"), std::bad_any_cast);
+	EXPECT_THROW(args.Value<std::filesystem::path>(L"alpha"), std::bad_any_cast);
+	EXPECT_THROW(args.Value<std::wstring>(L"bravo"), std::bad_any_cast);
+	EXPECT_THROW(args.Value<float>(L"charlie"), std::bad_any_cast);
+	EXPECT_THROW(args.Value<int>(L"delta"), std::bad_any_cast);
+	EXPECT_THROW(args.Value<bool>(L"echo"), std::bad_any_cast);
+	EXPECT_THROW(args.Value<std::filesystem::path>(L"foxtrot"), std::bad_any_cast);
 
 	for (int i = 0; i < argc; ++i)
 	{
@@ -168,16 +168,16 @@ TEST(CmdArgsTests, InvalidFormat)
 		{ L"foxtrot", typeid(std::wstring), L"A string value" }
 	});
 
-	EXPECT_THROW(args.Get<bool>(L"alpha"), CmdArgs::Exception);
+	EXPECT_THROW(args.Value<bool>(L"alpha"), CmdArgs::Exception);
 
 	// I need one "valid" argument for the CmdArgs ctor not to throw
-	auto path = args.Get<std::filesystem::path>(L"bravo");
+	auto path = args.Value<std::filesystem::path>(L"bravo");
 	EXPECT_STREQ(path.c_str(), L"=nonexistent/path");
 
-	EXPECT_THROW(args.Get<double>(L"charlie"), CmdArgs::Exception);
-	EXPECT_THROW(args.Get<float>(L"delta"), CmdArgs::Exception);
-	EXPECT_THROW(args.Get<int>(L"echo"), CmdArgs::Exception);
-	EXPECT_THROW(args.Get<std::wstring>(L"foxtrot"), CmdArgs::Exception);
+	EXPECT_THROW(args.Value<double>(L"charlie"), CmdArgs::Exception);
+	EXPECT_THROW(args.Value<float>(L"delta"), CmdArgs::Exception);
+	EXPECT_THROW(args.Value<int>(L"echo"), CmdArgs::Exception);
+	EXPECT_THROW(args.Value<std::wstring>(L"foxtrot"), CmdArgs::Exception);
 
 	for (int i = 0; i < argc; ++i)
 	{
