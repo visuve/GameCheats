@@ -13,9 +13,17 @@ Logger::Logger(std::ostream& stream, const std::source_location& location) :
 		_stream << "\033[91m\033[40m"; // light red, black background
 	}
 
-	_stream << std::format("[{:%T}][{}:{}]",
-		std::chrono::system_clock::now(),
-		std::filesystem::path(location.file_name()).filename().string(),
+	const std::chrono::zoned_time currentTime(
+		std::chrono::current_zone(), 
+		std::chrono::system_clock::now());
+
+	const std::string fileName = std::filesystem::path(
+		location.file_name()).filename().string();
+
+	_stream << std::format(
+		"[{:%T%z}][{}:{}]",
+		currentTime,
+		fileName,
 		location.line());
 }
 
