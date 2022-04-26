@@ -98,7 +98,7 @@ int wmain(int argc, wchar_t** argv)
 
 			process.InjectX64(0x1CBE71, 3, stream);
 
-			process.WairForExit();
+			return process.WairForExit();
 		}
 	}
 	catch (const CmdArgs::Exception& e)

@@ -60,7 +60,7 @@ int wmain(int argc, wchar_t** argv)
 			process.Fill(0x12EBBD, 0x12EBC1, X86::Nop);
 		}
 
-		process.WairForExit();
+		return process.WairForExit();
 	}
 	catch (const CmdArgs::Exception& e)
 	{

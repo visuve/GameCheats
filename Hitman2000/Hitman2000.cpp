@@ -65,7 +65,7 @@ int wmain(int argc, wchar_t** argv)
 			
 			process.InjectX86(L"HitmanDlc.dlc", 0x904A0, 1, code);
 
-			process.WairForExit();
+			return process.WairForExit();
 		}
 	}
 	catch (const CmdArgs::Exception& e)

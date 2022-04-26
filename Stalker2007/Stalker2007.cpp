@@ -112,7 +112,7 @@ int wmain(int argc, wchar_t** argv)
 			process.WriteBytes(ptr, ByteStream("90 90 90 90 90"));
 		}
 
-		process.WairForExit();
+		return process.WairForExit();
 	}
 	catch (const CmdArgs::Exception& e)
 	{

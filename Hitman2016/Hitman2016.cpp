@@ -49,7 +49,7 @@ int wmain(int argc, wchar_t** argv)
 			
 			process.InjectX64(0x1028A0, 6, code);
 
-			process.WairForExit();
+			return process.WairForExit();
 		}
 	}
 	catch (const CmdArgs::Exception& e)

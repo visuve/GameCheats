@@ -46,7 +46,7 @@ int wmain(int argc, wchar_t** argv)
 			process.Fill(0x1FB973, 0x1FB977, X86::Nop);
 		}
 
-		process.WairForExit();
+		return process.WairForExit();
 	}
 	catch (const CmdArgs::Exception& e)
 	{

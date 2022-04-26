@@ -51,7 +51,7 @@ int wmain(int argc, wchar_t** argv)
 			process.WriteBytes(0x1193A7, stream);
 		}
 
-		process.WairForExit();
+		return process.WairForExit();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
