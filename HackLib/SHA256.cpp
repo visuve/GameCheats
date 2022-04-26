@@ -114,26 +114,40 @@ SHA256::SHA256()
 	_hashData.resize(PropertySize(BCRYPT_HASH_LENGTH));
 }
 
-void SHA256::ProcessFile(const File& file, std::ostream* progressOutput)
+void SHA256::ProcessFile(const std::filesystem::path& path, std::ostream* progressOutput)
 {
 	std::vector<uint8_t> buffer(0x4000);
 
-	uint64_t fileSize = file.Size();
-	uint64_t bytesLeft = fileSize;
+	std::ifstream file;
+	file.exceptions(std::ifstream::badbit);
+	file.open(path, std::ios::binary);
 
-	while (bytesLeft > 0)
+	uintmax_t fileSize = std::filesystem::file_size(path);
+	uintmax_t bytesProcessed = 0;
+
+	while (file)
 	{
-		DWORD bytesRead = 0;
+		file.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
 
-		if (!file.Read(buffer.data(), buffer.size(), &bytesRead))
+		const size_t bytesRead = static_cast<size_t>(file.gcount());
+
+		if (bytesRead > buffer.size())
 		{
-			throw Win32Exception("ReadFile");
+			throw RuntimeException(
+				std::format("Read {0} bytes when the buffer had a size of {1}",
+					bytesRead,
+					buffer.size()));
 		}
 
-		_ASSERT(bytesRead != 0);
-		_ASSERT(bytesRead <= buffer.size());
+		bytesProcessed += bytesRead;
 
-		bytesLeft -= bytesRead;
+		if (bytesProcessed > fileSize)
+		{
+			throw RuntimeException(
+				std::format("Read {0} bytes when the file size was {1}",
+					bytesRead, 
+					fileSize));
+		}
 
 		if (bytesRead < buffer.size())
 		{
@@ -142,7 +156,7 @@ void SHA256::ProcessFile(const File& file, std::ostream* progressOutput)
 
 		if (progressOutput)
 		{
-			float complete = 100.0f - (100.0f / (float(fileSize) / float(bytesLeft)));
+			float complete = float(bytesProcessed) / float(fileSize) * 100.f;
 			*progressOutput << std::format("Verifying {:.2f}%", complete) << std::endl;
 		}
 

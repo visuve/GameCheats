@@ -6,7 +6,7 @@
 class SHA256
 {
 public:
-	SHA256(const std::filesystem::path& path, 
+	SHA256(const std::filesystem::path& path,
 		std::ostream* progressOutput = &std::cout);
 
 	~SHA256();
@@ -21,7 +21,7 @@ private:
 	SHA256();
 
 	size_t PropertySize(std::wstring_view property);
-	void ProcessFile(const File& file, std::ostream* progressOutput);
+	void ProcessFile(const std::filesystem::path& path, std::ostream* progressOutput);
 	void Update(std::span<uint8_t> data);
 	void Finish();
 
