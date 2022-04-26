@@ -217,7 +217,7 @@ DWORD System::WaitForExe(std::wstring_view name)
 		throw Win32Exception("ResetEvent");
 	}
 
-	throw RuntimeException("Aborted");
+	throw Win32Exception("Aborted", ERROR_CANCELLED);
 }
 
 DWORD System::WaitForWindow(std::wstring_view name)
@@ -256,7 +256,7 @@ DWORD System::WaitForWindow(std::wstring_view name)
 		throw Win32Exception("ResetEvent");
 	}
 
-	throw RuntimeException("Aborted");
+	throw Win32Exception("Aborted", ERROR_CANCELLED);
 }
 
 size_t System::PageSize()
