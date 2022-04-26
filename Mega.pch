@@ -14,6 +14,7 @@
 #include <map>
 #include <random>
 #include <set>
+#include <source_location>
 #include <span>
 #include <sstream>
 #include <stdexcept>
@@ -23,7 +24,5 @@
 #include <regex>
 #include <vector>
 
-#define NOMINMAX
-#define VC_EXTRALEAN
 #include <Windows.h>
 #include <TlHelp32.h>
