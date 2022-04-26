@@ -26,21 +26,14 @@ Process::~Process()
 {
 	if (_handle)
 	{
-		for (HANDLE thread : _threads)
-		{
-			bool result = CloseHandle(thread);
-			_ASSERT(result);
-			UNUSED(result);
-		}
+		_threads.clear();
 
 		for (Pointer memory : _memory)
 		{
-			bool result = VirtualFreeEx(_handle, memory, 0, MEM_RELEASE);
+			bool result = VirtualFreeEx(_handle.Get(), memory, 0, MEM_RELEASE);
 			_ASSERT(result);
 			UNUSED(result);
 		}
-	
-		CloseHandle(_handle);
 	}
 }
 
@@ -50,7 +43,7 @@ std::filesystem::path Process::Path() const
 	DWORD size = 0x7FFF;
 	std::wstring buffer(size, 0); // A gigantic buffer, but I do not care for now
 
-	if (!QueryFullProcessImageNameW(_handle, 0, buffer.data(), &size))
+	if (!QueryFullProcessImageNameW(_handle.Get(), 0, buffer.data(), &size))
 	{
 		throw Win32Exception("GetModuleFileNameEx");
 	}
@@ -68,7 +61,7 @@ void Process::WaitForIdle()
 
 	do
 	{
-		result = WaitForInputIdle(_handle, 1000);
+		result = WaitForInputIdle(_handle.Get(), 1000);
 
 	} while (result == WAIT_TIMEOUT);
 
@@ -169,7 +162,7 @@ Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view func
 	Pointer thunkPtr = Address(iid.OriginalFirstThunk);
 	std::string buffer(MAX_PATH, '\0');
 
-	const size_t offset = iid.OriginalFirstThunk - iid.FirstThunk;
+	const size_t offset = size_t(iid.OriginalFirstThunk) - iid.FirstThunk;
 	IMAGE_THUNK_DATA thunk = {};
 
 	do
@@ -203,7 +196,7 @@ Pointer Process::FindFunction(std::string_view moduleName, std::string_view func
 
 Pointer Process::AllocateMemory(size_t size)
 {
-	void* address = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	void* address = VirtualAllocEx(_handle.Get(), nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
 	if (!address)
 	{
@@ -216,7 +209,7 @@ Pointer Process::AllocateMemory(size_t size)
 
 	MEMORY_BASIC_INFORMATION info = {};
 
-	if (VirtualQueryEx(_handle, address, &info, sizeof(MEMORY_BASIC_INFORMATION)) == sizeof(MEMORY_BASIC_INFORMATION))
+	if (VirtualQueryEx(_handle.Get(), address, &info, sizeof(MEMORY_BASIC_INFORMATION)) == sizeof(MEMORY_BASIC_INFORMATION))
 	{
 		std::cout << "Allocated " << info.RegionSize << " bytes at 0x" << address << std::endl;
 	}
@@ -228,7 +221,7 @@ DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 {
 	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value());
 	
-	HANDLE thread = CreateRemoteThread(_handle, nullptr, 0, startAddress, parameter, 0, 0);
+	Handle thread(CreateRemoteThread(_handle.Get(), nullptr, 0, startAddress, parameter, 0, 0));
 
 	if (!thread)
 	{
@@ -237,26 +230,21 @@ DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 
 	if (detached)
 	{
-		auto result = _threads.emplace(thread);
+		auto result = _threads.emplace(std::move(thread));
 		_ASSERT_EXPR(result.second, L"Catastrophic failure, thread already existed!");
 		return 0;
 	}
 
-	if (!WaitForSingleObject(thread, INFINITE))
+	if (!WaitForSingleObject(thread.Get(), INFINITE))
 	{
 		throw Win32Exception("WaitForSingleObject");
 	}
 
 	DWORD exitCode = 0;
 
-	if (!GetExitCodeThread(thread, &exitCode))
+	if (!GetExitCodeThread(thread.Get(), &exitCode))
 	{
 		throw Win32Exception("GetExitCodeThread");
-	}
-
-	if (!CloseHandle(thread))
-	{
-		throw Win32Exception("CloseHandle");
 	}
 
 	return exitCode;
@@ -289,7 +277,7 @@ void Process::FreeMemory(Pointer pointer)
 
 	_memory.erase(it);
 
-	if (!VirtualFreeEx(_handle, pointer, 0, MEM_RELEASE))
+	if (!VirtualFreeEx(_handle.Get(), pointer, 0, MEM_RELEASE))
 	{
 		throw Win32Exception("VirtualFreeEx");
 	}
@@ -312,7 +300,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 
 		WriteBytes(target, codeWithJumpBack);
 
-		if (!FlushInstructionCache(_handle, target, bytesRequired))
+		if (!FlushInstructionCache(_handle.Get(), target, bytesRequired))
 		{
 			throw Win32Exception("FlushInstructionCache");
 		}
@@ -324,7 +312,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 
 		WriteBytes(origin, detour);
 
-		if (!FlushInstructionCache(_handle, origin, detour.Size()))
+		if (!FlushInstructionCache(_handle.Get(), origin, detour.Size()))
 		{
 			throw Win32Exception("FlushInstructionCache");
 		}
@@ -359,7 +347,7 @@ Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 
 		WriteBytes(target, codeWithJumpBack);
 
-		if (!FlushInstructionCache(_handle, target, codeWithJumpBack.Size()))
+		if (!FlushInstructionCache(_handle.Get(), target, codeWithJumpBack.Size()))
 		{
 			throw Win32Exception("FlushInstructionCache");
 		}
@@ -371,7 +359,7 @@ Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 
 		WriteBytes(from, detour);
 
-		if (!FlushInstructionCache(_handle, from, detour.Size()))
+		if (!FlushInstructionCache(_handle.Get(), from, detour.Size()))
 		{
 			throw Win32Exception("FlushInstructionCache");
 		}
@@ -395,7 +383,7 @@ Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops,
 
 DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 {
-	DWORD waitResult = WaitForSingleObject(_handle, static_cast<DWORD>(timeout.count()));
+	DWORD waitResult = WaitForSingleObject(_handle.Get(), static_cast<DWORD>(timeout.count()));
 
 	switch (waitResult)
 	{
@@ -403,12 +391,12 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 		{
 			DWORD exitCode = 0;
 
-			if (GetExitCodeProcess(_handle, &exitCode))
+			if (GetExitCodeProcess(_handle.Get(), &exitCode))
 			{
 				std::cout << "Process " << _pid << " exited with code: " << exitCode << std::endl;
 			}
 
-			CloseHandle(_handle);
+			CloseHandle(_handle.Get());
 			_handle = nullptr;
 
 			return exitCode;

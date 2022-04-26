@@ -1,4 +1,5 @@
 #include "Exceptions.hpp"
+#include "Handle.hpp"
 #include "NonCopyable.hpp"
 #include "StrConvert.hpp"
 #include "System.hpp"
@@ -25,13 +26,7 @@ public:
 
 	NonCopyable(Snapshot);
 
-	virtual ~Snapshot()
-	{
-		if (_handle)
-		{
-			CloseHandle(_handle);
-		}
-	}
+	virtual ~Snapshot() = default;
 
 	template <typename T>
 	std::optional<T> Find(
@@ -42,7 +37,7 @@ public:
 		T entry = {};
 		entry.dwSize = sizeof(T);
 
-		if (!first(_handle, &entry))
+		if (!first(_handle.Get(), &entry))
 		{
 			throw Win32Exception("Failed to iterate");
 		}
@@ -54,7 +49,7 @@ public:
 				return entry;
 			}
 
-		} while (next(_handle, &entry));
+		} while (next(_handle.Get(), &entry));
 
 		return {};
 	}
@@ -70,7 +65,7 @@ public:
 	}
 
 private:
-	HANDLE _handle = nullptr;
+	Handle _handle;
 };
 
 std::optional<std::wstring> WindowTitle(HWND window) 

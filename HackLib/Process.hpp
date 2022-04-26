@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Exceptions.hpp"
+#include "Handle.hpp"
 #include "NonCopyable.hpp"
 #include "PointerMap.hpp"
 
@@ -42,7 +43,7 @@ public:
 	{
 		SIZE_T bytesRead = 0;
 
-		if (!ReadProcessMemory(_handle, pointer, value, size, &bytesRead))
+		if (!ReadProcessMemory(_handle.Get(), pointer, value, size, &bytesRead))
 		{
 			throw Win32Exception("ReadProcessMemory");
 		}
@@ -71,7 +72,7 @@ public:
 	{
 		SIZE_T bytesWritten = 0;
 
-		if (!WriteProcessMemory(_handle, pointer, value, size, &bytesWritten))
+		if (!WriteProcessMemory(_handle.Get(), pointer, value, size, &bytesWritten))
 		{
 			throw Win32Exception("WriteProcessMemory");
 		}
@@ -240,7 +241,7 @@ public:
 private:
 	DWORD _pid = 0;
 	MODULEENTRY32W _module = {};
-	HANDLE _handle = nullptr;
-	std::set<HANDLE> _threads;
+	Handle _handle;
+	std::set<Handle> _threads;
 	std::set<Pointer> _memory;
 };

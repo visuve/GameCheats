@@ -1,10 +1,14 @@
 #pragma once
 
+#include "NonCopyable.hpp"
+
 class System
 {
 public:
 	System();
 	~System();
+
+	NonCopyable(System);
 
 	static System& Instance();
 
