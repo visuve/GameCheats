@@ -53,7 +53,8 @@ public:
 
 	inline virtual bool IsValid() const
 	{
-		return _handle && _handle != INVALID_HANDLE_VALUE;
+		return _handle != nullptr && 
+			_handle != INVALID_HANDLE_VALUE;
 	}
 
 	inline operator bool() const
@@ -68,7 +69,7 @@ public:
 			return;
 		}
 
-		if (_handle)
+		if (IsValid())
 		{
 			bool result = CloseHandle(_handle);
 			_ASSERT(result);

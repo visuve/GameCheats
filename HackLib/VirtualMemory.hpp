@@ -5,9 +5,9 @@
 class VirtualMemory
 {
 public:
-	inline VirtualMemory(HANDLE parent, size_t size) :
-		_parent(parent),
-		_address(VirtualAllocEx(parent, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE))
+	inline VirtualMemory(const Handle& parentProcess, size_t size) :
+		_parentProcess(parentProcess),
+		_address(VirtualAllocEx(parentProcess.Value(), nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE))
 	{
 		if (!_address)
 		{
@@ -17,9 +17,12 @@ public:
 
 	inline ~VirtualMemory()
 	{
-		bool result = VirtualFreeEx(_parent, _address, 0, MEM_RELEASE);
-		_ASSERT(result);
-		(void)result;
+		if (_parentProcess.IsValid())
+		{
+			bool result = VirtualFreeEx(_parentProcess.Value(), _address, 0, MEM_RELEASE);
+			_ASSERT(result);
+			(void)result;
+		}
 	}
 
 	inline MEMORY_BASIC_INFORMATION Query() const
@@ -27,7 +30,7 @@ public:
 		constexpr DWORD memInfoSize = sizeof(MEMORY_BASIC_INFORMATION);
 		MEMORY_BASIC_INFORMATION info = {};
 
-		if (VirtualQueryEx(_parent, _address, &info, memInfoSize) != memInfoSize)
+		if (VirtualQueryEx(_parentProcess.Value(), _address, &info, memInfoSize) != memInfoSize)
 		{
 			throw Win32Exception("VirtualQueryEx");
 		}
@@ -51,6 +54,6 @@ public:
 	}
 
 private:
-	Pointer _address;
-	HANDLE _parent = nullptr;
+	const Handle& _parentProcess;
+	const Pointer _address;
 };

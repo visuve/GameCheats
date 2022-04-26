@@ -24,11 +24,8 @@ Process::Process(std::wstring_view name) :
 
 Process::~Process()
 {
-	if (_handle)
-	{
-		_threads.clear();
-		_regions.clear();
-	}
+	_threads.clear();
+	_regions.clear();
 }
 
 std::filesystem::path Process::Path() const
@@ -190,9 +187,9 @@ Pointer Process::FindFunction(std::string_view moduleName, std::string_view func
 
 Pointer Process::AllocateMemory(size_t size)
 {
-	auto result = _regions.emplace(_handle.Value(), size);
+	auto result = _regions.emplace(_handle, size);
 
-	if (result.second)
+	if (!result.second)
 	{
 		throw RuntimeException("Catastrophic failure, pointer already existed!");
 	}
@@ -255,7 +252,7 @@ DWORD Process::InjectLibrary(std::string_view name)
 
 void Process::FreeMemory(Pointer pointer)
 {
-	const auto equalPointer = [&](VirtualMemory x)->bool
+	const auto equalPointer = [&](const VirtualMemory& x)->bool
 	{
 		return x.Address() == pointer;
 	};
@@ -383,8 +380,7 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 				Log << "Process" << _pid << "exited with code:" << exitCode ;
 			}
 
-			CloseHandle(_handle.Value());
-			_handle = nullptr;
+			_handle.Reset();
 
 			return exitCode;
 		}
