@@ -4,6 +4,7 @@
 #include "Handle.hpp"
 #include "NonCopyable.hpp"
 #include "PointerMap.hpp"
+#include "VirtualMemory.hpp"
 
 class Process
 {
@@ -43,7 +44,7 @@ public:
 	{
 		SIZE_T bytesRead = 0;
 
-		if (!ReadProcessMemory(_handle.Get(), pointer, value, size, &bytesRead))
+		if (!ReadProcessMemory(_handle.Value(), pointer, value, size, &bytesRead))
 		{
 			throw Win32Exception("ReadProcessMemory");
 		}
@@ -72,7 +73,7 @@ public:
 	{
 		SIZE_T bytesWritten = 0;
 
-		if (!WriteProcessMemory(_handle.Get(), pointer, value, size, &bytesWritten))
+		if (!WriteProcessMemory(_handle.Value(), pointer, value, size, &bytesWritten))
 		{
 			throw Win32Exception("WriteProcessMemory");
 		}
@@ -243,5 +244,5 @@ private:
 	MODULEENTRY32W _module = {};
 	Handle _handle;
 	std::set<Handle> _threads;
-	std::set<Pointer> _memory;
+	std::set<VirtualMemory> _regions;
 };

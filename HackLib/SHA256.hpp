@@ -18,14 +18,15 @@ public:
 	std::string Value() const;
 
 private:
+	SHA256();
+
 	size_t PropertySize(std::wstring_view property);
-	void ProcessFile(std::ostream* progressOutput);
+	void ProcessFile(const File& file, std::ostream* progressOutput);
 	void Update(std::span<uint8_t> data);
 	void Finish();
 
 	BCRYPT_ALG_HANDLE _algorithmHandle = nullptr;
 	BCRYPT_HASH_HANDLE _hashHandle = nullptr;
-	Handle _file;
 
 	std::vector<uint8_t> _hashObject;
 	std::vector<uint8_t> _hashData;

@@ -12,21 +12,19 @@ BOOL WINAPI ConsoleHandler(DWORD signal)
 	return SetEvent(System::Instance().WaitEvent);
 }
 
-class Snapshot
+class Snapshot : public Handle
 {
 public:
 	Snapshot(DWORD flags, DWORD pid) :
-		_handle(CreateToolhelp32Snapshot(flags, pid))
+		Handle(CreateToolhelp32Snapshot(flags, pid))
 	{
-		if (!_handle)
+		if (!IsValid())
 		{
 			throw Win32Exception("CreateToolhelp32Snapshot");
 		}
 	}
 
 	NonCopyable(Snapshot);
-
-	virtual ~Snapshot() = default;
 
 	template <typename T>
 	std::optional<T> Find(
@@ -37,7 +35,7 @@ public:
 		T entry = {};
 		entry.dwSize = sizeof(T);
 
-		if (!first(_handle.Get(), &entry))
+		if (!first(_handle, &entry))
 		{
 			throw Win32Exception("Failed to iterate");
 		}
@@ -49,7 +47,7 @@ public:
 				return entry;
 			}
 
-		} while (next(_handle.Get(), &entry));
+		} while (next(_handle, &entry));
 
 		return {};
 	}
@@ -63,9 +61,6 @@ public:
 	{
 		return Find<MODULEENTRY32W>(&Module32FirstW, &Module32NextW, filter);
 	}
-
-private:
-	Handle _handle;
 };
 
 std::optional<std::wstring> WindowTitle(HWND window) 

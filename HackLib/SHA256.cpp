@@ -2,56 +2,9 @@
 #include "SHA256.hpp"
 
 SHA256::SHA256(const std::filesystem::path& path, std::ostream* progressOutput) :
-	_file(CreateFileW(path.wstring().c_str(),
-		GENERIC_READ,
-		FILE_SHARE_READ,
-		nullptr,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		nullptr))
+	SHA256()
 {
-	if (!_file)
-	{
-		throw Win32Exception("CreateFile");
-	}
-
-	// Create provider
-	{
-		NTSTATUS status = BCryptOpenAlgorithmProvider(
-			&_algorithmHandle,
-			BCRYPT_SHA256_ALGORITHM,
-			nullptr,
-			0);
-
-		if (status != 0)
-		{
-			throw Win32Exception("BCryptOpenAlgorithmProvider", status);
-		}
-	}
-
-	// Create hash object
-	{
-		_hashObject.resize(PropertySize(BCRYPT_OBJECT_LENGTH));
-
-		NTSTATUS status = BCryptCreateHash(
-			_algorithmHandle,
-			&_hashHandle,
-			_hashObject.data(),
-			static_cast<ULONG>(_hashObject.size()),
-			nullptr,
-			0,
-			0);
-
-		if (status != 0 || !_hashHandle)
-		{
-			throw Win32Exception("BCryptCreateHash", status);
-		}
-	}
-
-	// Prepare hash data
-	_hashData.resize(PropertySize(BCRYPT_HASH_LENGTH));;
-
-	ProcessFile(progressOutput);
+	ProcessFile(path, progressOutput);
 }
 
 SHA256::~SHA256()
@@ -122,24 +75,57 @@ std::string SHA256::Value() const
 	return stream.str();
 }
 
-void SHA256::ProcessFile(std::ostream* progressOutput)
+SHA256::SHA256()
+{
+	// Create provider
+	{
+		NTSTATUS status = BCryptOpenAlgorithmProvider(
+			&_algorithmHandle,
+			BCRYPT_SHA256_ALGORITHM,
+			nullptr,
+			0);
+
+		if (status != 0)
+		{
+			throw Win32Exception("BCryptOpenAlgorithmProvider", status);
+		}
+	}
+
+	// Create hash object
+	{
+		_hashObject.resize(PropertySize(BCRYPT_OBJECT_LENGTH));
+
+		NTSTATUS status = BCryptCreateHash(
+			_algorithmHandle,
+			&_hashHandle,
+			_hashObject.data(),
+			static_cast<ULONG>(_hashObject.size()),
+			nullptr,
+			0,
+			0);
+
+		if (status != 0 || !_hashHandle)
+		{
+			throw Win32Exception("BCryptCreateHash", status);
+		}
+	}
+
+	// Prepare hash data
+	_hashData.resize(PropertySize(BCRYPT_HASH_LENGTH));
+}
+
+void SHA256::ProcessFile(const File& file, std::ostream* progressOutput)
 {
 	std::vector<uint8_t> buffer(0x4000);
 
-	LARGE_INTEGER fileSize = {};
+	uint64_t fileSize = file.Size();
+	uint64_t bytesLeft = fileSize;
 
-	if (!GetFileSizeEx(_file.Get(), &fileSize))
-	{
-		throw Win32Exception("GetFileSizeEx");
-	}
-
-	LARGE_INTEGER bytesLeft = fileSize;
-
-	while (bytesLeft.QuadPart > 0)
+	while (bytesLeft > 0)
 	{
 		DWORD bytesRead = 0;
 
-		if (!ReadFile(_file.Get(), buffer.data(), static_cast<DWORD>(buffer.size()), &bytesRead, nullptr))
+		if (!file.Read(buffer.data(), buffer.size(), &bytesRead))
 		{
 			throw Win32Exception("ReadFile");
 		}
@@ -147,7 +133,7 @@ void SHA256::ProcessFile(std::ostream* progressOutput)
 		_ASSERT(bytesRead != 0);
 		_ASSERT(bytesRead <= buffer.size());
 
-		bytesLeft.QuadPart -= bytesRead;
+		bytesLeft -= bytesRead;
 
 		if (bytesRead < buffer.size())
 		{
@@ -156,7 +142,7 @@ void SHA256::ProcessFile(std::ostream* progressOutput)
 
 		if (progressOutput)
 		{
-			float complete = 100.0f - (100.0f / (float(fileSize.QuadPart) / float(bytesLeft.QuadPart)));
+			float complete = 100.0f - (100.0f / (float(fileSize) / float(bytesLeft)));
 			*progressOutput << std::format("Verifying {:.2f}%", complete) << std::endl;
 		}
 
