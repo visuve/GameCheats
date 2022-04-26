@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NonCopyable.hpp"
-#include "Handle.hpp"
 
 class SHA256
 {

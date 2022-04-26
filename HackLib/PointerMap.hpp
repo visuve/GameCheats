@@ -2,9 +2,6 @@
 
 #include "Pointer.hpp"
 
-#include <map>
-#include <ostream>
-
 class PointerMap
 {
 public:
