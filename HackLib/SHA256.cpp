@@ -1,9 +1,20 @@
 #include "Exceptions.hpp"
 #include "SHA256.hpp"
 
-SHA256::SHA256(const std::filesystem::path& path,
-	std::ostream* progressOutput)
+SHA256::SHA256(const std::filesystem::path& path, std::ostream* progressOutput) :
+	_file(CreateFileW(path.wstring().c_str(),
+		GENERIC_READ,
+		FILE_SHARE_READ,
+		nullptr,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		nullptr))
 {
+	if (!_file)
+	{
+		throw Win32Exception("CreateFile");
+	}
+
 	// Create provider
 	{
 		NTSTATUS status = BCryptOpenAlgorithmProvider(
@@ -38,20 +49,7 @@ SHA256::SHA256(const std::filesystem::path& path,
 	}
 
 	// Prepare hash data
-	_hashData.resize(PropertySize(BCRYPT_HASH_LENGTH));
-
-	_file = CreateFileW(path.wstring().c_str(),
-		GENERIC_READ,
-		FILE_SHARE_READ,
-		nullptr,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		nullptr);
-
-	if (_file == INVALID_HANDLE_VALUE || !_file)
-	{
-		throw Win32Exception("CreateFile");
-	}
+	_hashData.resize(PropertySize(BCRYPT_HASH_LENGTH));;
 
 	ProcessFile(progressOutput);
 }
@@ -66,11 +64,6 @@ SHA256::~SHA256()
 	if (_hashHandle)
 	{
 		BCryptDestroyHash(_hashHandle);
-	}
-
-	if (_file)
-	{
-		CloseHandle(_file);
 	}
 }
 
@@ -135,7 +128,7 @@ void SHA256::ProcessFile(std::ostream* progressOutput)
 
 	LARGE_INTEGER fileSize = {};
 
-	if (!GetFileSizeEx(_file, &fileSize))
+	if (!GetFileSizeEx(_file.Get(), &fileSize))
 	{
 		throw Win32Exception("GetFileSizeEx");
 	}
@@ -146,7 +139,7 @@ void SHA256::ProcessFile(std::ostream* progressOutput)
 	{
 		DWORD bytesRead = 0;
 
-		if (!ReadFile(_file, buffer.data(), static_cast<DWORD>(buffer.size()), &bytesRead, nullptr))
+		if (!ReadFile(_file.Get(), buffer.data(), static_cast<DWORD>(buffer.size()), &bytesRead, nullptr))
 		{
 			throw Win32Exception("ReadFile");
 		}

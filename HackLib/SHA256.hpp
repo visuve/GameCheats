@@ -1,5 +1,8 @@
 #pragma once
 
+#include "NonCopyable.hpp"
+#include "Handle.hpp"
+
 class SHA256
 {
 public:
@@ -7,6 +10,8 @@ public:
 		std::ostream* progressOutput = &std::cout);
 
 	~SHA256();
+
+	NonCopyable(SHA256);
 
 	bool operator == (std::string_view expected) const;
 
@@ -20,7 +25,7 @@ private:
 
 	BCRYPT_ALG_HANDLE _algorithmHandle = nullptr;
 	BCRYPT_HASH_HANDLE _hashHandle = nullptr;
-	HANDLE _file = nullptr;
+	Handle _file;
 
 	std::vector<uint8_t> _hashObject;
 	std::vector<uint8_t> _hashData;
