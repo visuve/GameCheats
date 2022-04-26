@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="1">
 	<builddir>out/cppcheck</builddir>
+	<platform>win64</platform>
 	<analyze-all-vs-configs>false</analyze-all-vs-configs>
 	<check-headers>true</check-headers>
 	<check-unused-templates>true</check-unused-templates>
 	<max-ctu-depth>10</max-ctu-depth>
+	<includedir>
+		<dir name="."/>
+	</includedir>
 	<paths>
 		<dir name="HackLib"/>
 		<dir name="FalloutNV"/>
@@ -22,7 +26,7 @@
 		<dir name="Quake1"/>
 		<dir name="R6BO"/>
 		<dir name="Stalker2007"/>
-		<dir name="XOMA"/>
+		<dir name="XCOMA"/>
 	</paths>
 	<libraries>
 		<library>windows</library>
