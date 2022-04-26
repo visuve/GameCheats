@@ -105,10 +105,15 @@ int wmain(int argc, wchar_t** argv)
 		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
+	catch (const std::system_error& e)
+	{
+		LogError << e.what();
+		return e.code().value();
+	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
-		return -1;
+		return ERROR_PROCESS_ABORTED;
 	}
 
 	return 0;
