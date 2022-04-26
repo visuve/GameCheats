@@ -21,7 +21,7 @@ Logger::Logger(std::ostream& stream, const std::source_location& location) :
 		location.file_name()).filename().string();
 
 	_stream << std::format(
-		"[{:%T%z}][{}:{}]",
+		"[{:%T}][{}:{}]",
 		currentTime,
 		fileName,
 		location.line());

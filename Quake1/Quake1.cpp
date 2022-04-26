@@ -59,7 +59,9 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infammo", typeid(std::nullopt), L"255 ammo always" }
 		});
 
-		Process process(L"Quake_x64_steam.exe");
+		DWORD pid = System::Instance().WaitForExe(L"Quake_x64_steam.exe");
+
+		Process process(pid);
 
 		if (!process.Verify("39d0a522918f078425bda90d43292e9bb83866d442059deb5be75ae8f4f8109a"))
 		{
