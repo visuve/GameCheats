@@ -49,7 +49,7 @@ TEST(ByteStreamTests, StreamOperators)
 	{
 		ByteStream stream;
 #pragma warning(suppress: 4312)
-		stream << Pointer(reinterpret_cast<uint8_t*>(0xDEADBEEF));
+		stream << Pointer(0xDEADBEEFu);
 
 		EXPECT_EQ(stream[0], 0xEFu);
 		EXPECT_EQ(stream[1], 0xBEu);

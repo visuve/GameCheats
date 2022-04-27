@@ -129,7 +129,7 @@ Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view func
 	Pointer thunkPtr = Address(iid.OriginalFirstThunk);
 	std::string buffer(MAX_PATH, '\0');
 
-	const size_t offset = size_t(iid.OriginalFirstThunk) - iid.FirstThunk;
+	const Pointer offset = thunkPtr - iid.FirstThunk;
 	IMAGE_THUNK_DATA thunk = {};
 
 	do
@@ -207,7 +207,8 @@ DWORD Process::InjectLibrary(std::string_view name)
 
 	// LoadLibrary has the same relative address in all processes, hence we can use our "own" address.
 	// The FindFunction does not appear to yield same results.
-	Pointer fnPtr(&LoadLibraryA);
+
+	Pointer fnPtr(reinterpret_cast<void*>(&LoadLibraryA));
 
 	DWORD result = CreateThread(fnPtr, namePtr);
 

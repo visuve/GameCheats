@@ -17,7 +17,7 @@ public:
 
 	inline Pointer Address(size_t offset) const
 	{
-		return { _baseAddress + offset };
+		return _baseAddress + offset;
 	}
 
 	inline Pointer Address(std::wstring_view module, size_t offset) const
@@ -25,8 +25,7 @@ public:
 		return FindModule(module).modBaseAddr + offset;
 	}
 
-	template<typename ... T>
-	Pointer ResolvePointer(size_t base, T ... offsets) const
+	Pointer ResolvePointer(size_t base, auto ... offsets) const
 	{
 		Pointer pointer = Address(base);
 
@@ -40,15 +39,14 @@ public:
 		return pointer;
 	}
 
-	template<typename T>
-	void Read(Pointer pointer, T* value, size_t size) const
+	void Read(Pointer pointer, auto* value, size_t size) const
 	{
 		size_t bytesRead = _targetProcess.ReadProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
 		Log << "Read" << bytesRead << "bytes from" << pointer ;
 	}
 
-	template<typename T>
+	template<std::semiregular T>
 	T Read(Pointer pointer) const
 	{
 		T value = {};
@@ -56,28 +54,25 @@ public:
 		return value;
 	}
 
-	template<typename T>
+	template<std::semiregular T>
 	T Read(size_t offset) const
 	{
 		return Read<T>(Address(offset));
 	}
 
-	template<typename T>
-	void Write(Pointer pointer, const T* value, size_t size) const
+	void Write(Pointer pointer, const auto* value, size_t size) const
 	{
 		size_t bytesWritten = _targetProcess.WriteProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
 		Log << "Wrote" << bytesWritten << "bytes at" << pointer ;
 	}
 
-	template<typename T>
-	void Write(Pointer pointer, const T& value) const
+	void Write(Pointer pointer, const auto& value) const
 	{
 		Write(pointer, &value, sizeof(value));
 	}
 	
-	template<typename T>
-	void Write(size_t offset, const T& value) const
+	void Write(size_t offset, const auto& value) const
 	{
 		Write(Address(offset), value);
 	}

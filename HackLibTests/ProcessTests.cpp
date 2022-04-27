@@ -54,9 +54,7 @@ TEST(ProcessTests, Timeout)
 TEST(ProcessTests, Jump)
 {
 	{
-		auto jump = Process::JumpOp(
-			reinterpret_cast<uint8_t*>(0x009A0000),
-			reinterpret_cast<uint8_t*>(0x009A0201));
+		auto jump = Process::JumpOp(0x009A0000u, 0x009A0201u);
 
 		EXPECT_EQ(jump[0], 0xE9u);
 		EXPECT_EQ(jump[1], 0xFCu);
@@ -65,9 +63,7 @@ TEST(ProcessTests, Jump)
 		EXPECT_EQ(jump[4], 0x00u);
 	}
 	{
-		auto jump = Process::JumpOp(
-			reinterpret_cast<uint8_t*>(0x009A0201),
-			reinterpret_cast<uint8_t*>(0x009A0000));
+		auto jump = Process::JumpOp(0x009A0201u, 0x009A0000u);
 
 		EXPECT_EQ(jump[0], 0xE9u);
 		EXPECT_EQ(jump[1], 0xFAu);

@@ -9,12 +9,14 @@ public:
 
 	inline Pointer() = default;
 
-	inline Pointer(const uint8_t* value)
+	template <typename T>
+	inline Pointer(T value) requires std::unsigned_integral<T>&& std::convertible_to<T, size_t>
 	{
-		_internal.Value = reinterpret_cast<size_t>(value);
+		_internal.Value = value;
 	}
 
-	explicit inline Pointer(const void* value)
+	template <typename T>
+	inline Pointer(const T* value) requires std::is_unsigned<T>::value || std::is_void<T>::value
 	{
 		_internal.Value = reinterpret_cast<size_t>(value);
 	}
@@ -188,11 +190,6 @@ public:
 	}
 
 private:
-	inline Pointer(size_t value)
-	{
-		_internal.Value = value;
-	}
-
 	union Internal
 	{
 		size_t Value = 0;
