@@ -1,6 +1,7 @@
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "SHA256.hpp"
+#include "StrConvert.hpp"
 
 SHA256::SHA256(const std::filesystem::path& path) :
 	SHA256()
@@ -44,14 +45,14 @@ size_t SHA256::PropertySize(std::wstring_view property)
 
 bool SHA256::operator == (std::string_view expected) const
 {
-	if (expected.length() != 64)
+	if (expected.length() != HashCharacters)
 	{
-		throw LogicException("SHA-256 hashes are 64 bytes");
+		throw LogicException("SHA-256 hashes are 32 bytes, i.e. 64 hex characters");
 	}
 
 	std::string actual = Value();
 
-	if (_strnicmp(actual.c_str(), expected.data(), 64) != 0)
+	if (StrConvert::IEquals(expected, actual))
 	{
 		LogError << "Expected " << expected << ", got " << actual;
 		return false;
@@ -62,18 +63,15 @@ bool SHA256::operator == (std::string_view expected) const
 
 std::string SHA256::Value() const
 {
-	std::stringstream stream;
-
-	stream.setf(std::ios::hex, std::ios::basefield);
-	stream.setf(std::ios::uppercase);
-	stream.fill('0');
+	std::string hash;
+	hash.reserve(HashCharacters);
 
 	for (uint8_t x : _hashData)
 	{
-		stream << std::setw(2) << +x;
+		std::format_to(std::back_inserter(hash), "{:02X}", x);
 	}
 
-	return stream.str();
+	return hash;
 }
 
 SHA256::SHA256()
@@ -112,7 +110,12 @@ SHA256::SHA256()
 	}
 
 	// Prepare hash data
-	_hashData.resize(PropertySize(BCRYPT_HASH_LENGTH));
+	size_t hashLength = PropertySize(BCRYPT_HASH_LENGTH);
+
+	if (hashLength != _hashData.size())
+	{
+		throw RuntimeException(std::format("Hash data has size of {} and BCrypt expects {}", _hashData.size(), hashLength));
+	}
 }
 
 void SHA256::ProcessFile(const std::filesystem::path& path)

@@ -2,6 +2,7 @@
 #include "OpCodes.hpp"
 #include "Process.hpp"
 #include "SHA256.hpp"
+#include "StrConvert.hpp"
 #include "System.hpp"
 #include "Win32Thread.hpp"
 #include "Win32Event.hpp"
@@ -112,7 +113,7 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
 
 		Read(Address(iid.Name), buffer.data(), buffer.size());
 
-		if (_strnicmp(moduleName.data(), buffer.data(), buffer.size()) == 0)
+		if (StrConvert::IEquals(moduleName, buffer))
 		{
 			return iid;
 		}
@@ -143,7 +144,7 @@ Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view func
 
 		Read(Address(thunk.u1.AddressOfData + 2), buffer.data(), buffer.size());
 
-		if (_strnicmp(functionName.data(), buffer.data(), buffer.size()) == 0)
+		if (StrConvert::IEquals(functionName, buffer))
 		{
 			return thunkPtr - offset;
 		}

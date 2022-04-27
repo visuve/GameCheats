@@ -1,3 +1,4 @@
+#include "Exceptions.hpp"
 #include "StrConvert.hpp"
 
 std::string StrConvert::ToUtf8(const std::wstring_view str)
@@ -62,4 +63,14 @@ std::wstring StrConvert::ToUtf8(const std::string_view str)
 	_ASSERT(result.size() == static_cast<size_t>(required));
 
 	return result;
+}
+
+bool StrConvert::IEquals(std::string_view a, std::string_view b)
+{
+	if (a.size() != b.size())
+	{
+		return false;
+	}
+
+	return _strnicmp(a.data(), b.data(), a.size()) == 0;
 }
