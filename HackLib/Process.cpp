@@ -3,15 +3,21 @@
 #include "Process.hpp"
 #include "SHA256.hpp"
 #include "System.hpp"
+#include "Win32Thread.hpp"
 
-#define UNUSED(x) (void)x;
+BOOL WINAPI ConsoleHandler(const Win32Event& event, DWORD signal)
+{
+	Log << "Signaled" << signal;
+	event.SetEvent();
+	return true;
+}
 
 Process::Process(DWORD pid) :
 	_pid(pid),
 	_module(System::ModuleEntryByPid(pid)),
-	_handle(OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid))
+	_targetProcess(PROCESS_ALL_ACCESS, pid)
 {
-	if (!_handle)
+	if (!_targetProcess)
 	{
 		throw Win32Exception("OpenProcess");
 	}
@@ -26,24 +32,7 @@ Process::~Process()
 {
 	_threads.clear();
 	_regions.clear();
-}
-
-std::filesystem::path Process::Path() const
-{
-	// https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
-	DWORD size = 0x7FFF;
-	std::wstring buffer(size, 0); // A gigantic buffer, but I do not care for now
-
-	if (!QueryFullProcessImageNameW(_handle.Value(), 0, buffer.data(), &size))
-	{
-		throw Win32Exception("GetModuleFileNameEx");
-	}
-
-	_ASSERT(buffer.size() >= size);
-
-	buffer.resize(size);
-
-	return buffer;
+	_targetProcess.Reset();
 }
 
 void Process::WaitForIdle()
@@ -52,7 +41,7 @@ void Process::WaitForIdle()
 
 	do
 	{
-		result = WaitForInputIdle(_handle.Value(), 1000);
+		result = _targetProcess.WaitForInputIdle(1000ms);
 
 	} while (result == WAIT_TIMEOUT);
 
@@ -60,16 +49,12 @@ void Process::WaitForIdle()
 	{
 		throw Win32Exception("WaitForInputIdle", result);
 	}
-
-	for (DWORD i = 0x40; i < 0x1000; i *= 2)
-	{
-		Beep(i, 75u);
-	}
 }
 
 bool Process::Verify(std::string_view expectedSHA256) const
 {
-	return SHA256(Path()) == expectedSHA256;
+	const std::filesystem::path path = _targetProcess.Path();
+	return SHA256(path) == expectedSHA256;
 }
 
 MODULEENTRY32W Process::FindModule(std::wstring_view name) const
@@ -187,14 +172,14 @@ Pointer Process::FindFunction(std::string_view moduleName, std::string_view func
 
 Pointer Process::AllocateMemory(size_t size)
 {
-	auto result = _regions.emplace(_handle, size);
+	auto result = _regions.emplace(_targetProcess, size);
 
 	if (!result.second)
 	{
 		throw RuntimeException("Catastrophic failure, pointer already existed!");
 	}
 
-	MEMORY_BASIC_INFORMATION info = result.first->Query();
+	MEMORY_BASIC_INFORMATION info = _targetProcess.QueryVirtualMemory(result.first->Address());
 
 	Log << "Allocated" << info.RegionSize << "bytes at" << result.first->Address() ;
 
@@ -203,40 +188,30 @@ Pointer Process::AllocateMemory(size_t size)
 
 DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 {
-	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value());
-	
-	Handle thread(CreateRemoteThread(_handle.Value(), nullptr, 0, startAddress, parameter, 0, 0));
-
-	if (!thread)
-	{
-		throw Win32Exception("CreateRemoteThread");
-	}
+	HANDLE bare = _targetProcess.CreateRemoteThread(address, parameter);
 
 	if (detached)
 	{
-		auto result = _threads.emplace(std::move(thread));
-		_ASSERT_EXPR(result.second, L"Catastrophic failure, thread already existed!");
+		auto result = _threads.emplace(bare);
+
+		if (!result.second)
+		{
+			throw RuntimeException("Catastrophic failure, pointer already existed!");
+		}
+
 		return 0;
 	}
 
-	if (!WaitForSingleObject(thread.Value(), INFINITE))
-	{
-		throw Win32Exception("WaitForSingleObject");
-	}
+	Win32Thread thread(bare);
 
-	DWORD exitCode = 0;
+	thread.Wait();
 
-	if (!GetExitCodeThread(thread.Value(), &exitCode))
-	{
-		throw Win32Exception("GetExitCodeThread");
-	}
-
-	return exitCode;
+	return thread.ExitCode();
 }
 
 DWORD Process::InjectLibrary(std::string_view name)
 {
-	Pointer namePtr = AllocateMemory(name.size() + 1); // +1 to include null terminator
+	Pointer namePtr(reinterpret_cast<uint8_t*>(0));// = AllocateMemory(name.size() + 1); // +1 to include null terminator
 	Write(namePtr, name.data(), name.size());
 
 	// LoadLibrary has the same relative address in all processes, hence we can use our "own" address.
@@ -284,10 +259,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 
 		WriteBytes(target, codeWithJumpBack);
 
-		if (!FlushInstructionCache(_handle.Value(), target, bytesRequired))
-		{
-			throw Win32Exception("FlushInstructionCache");
-		}
+		_targetProcess.FlushInstructionCache(target, bytesRequired);
 	}
 
 	{
@@ -296,10 +268,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 
 		WriteBytes(origin, detour);
 
-		if (!FlushInstructionCache(_handle.Value(), origin, detour.Size()))
-		{
-			throw Win32Exception("FlushInstructionCache");
-		}
+		_targetProcess.FlushInstructionCache(origin, detour.Size());
 	}
 
 	return target;
@@ -331,10 +300,7 @@ Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 
 		WriteBytes(target, codeWithJumpBack);
 
-		if (!FlushInstructionCache(_handle.Value(), target, codeWithJumpBack.Size()))
-		{
-			throw Win32Exception("FlushInstructionCache");
-		}
+		_targetProcess.FlushInstructionCache(target, codeWithJumpBack.Size());
 	}
 
 	{
@@ -343,10 +309,7 @@ Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 
 		WriteBytes(from, detour);
 
-		if (!FlushInstructionCache(_handle.Value(), from, detour.Size()))
-		{
-			throw Win32Exception("FlushInstructionCache");
-		}
+		_targetProcess.FlushInstructionCache(from, detour.Size());
 	}
 
 	return target;
@@ -367,22 +330,26 @@ Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops,
 
 DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 {
-	DWORD waitResult = WaitForSingleObject(_handle.Value(), static_cast<DWORD>(timeout.count()));
+	Win32Event event(L"WaitForExe", true);
 
-	switch (waitResult)
+	HANDLE handles[2] = { _targetProcess.Value(), event.Value() };
+
+	DWORD result = WaitForMultipleObjects(2, handles, false, static_cast<DWORD>(timeout.count()));
+
+	switch (result)
 	{
 		case WAIT_OBJECT_0:
 		{
-			DWORD exitCode = 0;
+			DWORD exitCode = _targetProcess.ExitCode();
 
-			if (GetExitCodeProcess(_handle.Value(), &exitCode))
-			{
-				Log << "Process" << _pid << "exited with code:" << exitCode ;
-			}
-
-			_handle.Reset();
+			Log << "Process" << _pid << "exited with code:" << exitCode;
 
 			return exitCode;
+		}
+		case WAIT_OBJECT_0 + 1u:
+		{
+			Log << "User aborted";
+			return ERROR_CANCELLED;
 		}
 		case WAIT_TIMEOUT:
 		{
@@ -391,5 +358,5 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 		}
 	}
 
-	throw Win32Exception("WaitForSingleObject", waitResult);
+	throw Win32Exception("WaitForSingleObject", result);
 }

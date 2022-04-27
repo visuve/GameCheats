@@ -10,7 +10,7 @@ int wmain(int argc, wchar_t** argv)
 			{ L"dummyai", typeid(std::nullopt), L"AI cannot shoot"  }
 		});
 
-		DWORD pid = System::Instance().WaitForWindow(L"Hitman");
+		DWORD pid = System::WaitForWindow(L"Hitman");
 
 		Process process(pid);
 

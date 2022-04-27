@@ -1,33 +1,25 @@
 #pragma once
 
 #include "NonCopyable.hpp"
+#include "Win32Event.hpp"
 
-class System
+namespace System
 {
-public:
-	System();
-	~System();
-
-	NonCopyable(System);
-
-	static System& Instance();
-
-	static DWORD PidByName(std::wstring_view moduleName);
-	static MODULEENTRY32W ModuleEntryByPid(DWORD pid);
-	static MODULEENTRY32W ModuleEntryByName(DWORD pid, std::wstring_view name);
+	DWORD PidByName(std::wstring_view moduleName);
+	MODULEENTRY32W ModuleEntryByPid(DWORD pid);
+	MODULEENTRY32W ModuleEntryByName(DWORD pid, std::wstring_view name);
 
 	DWORD WaitForExe(std::wstring_view name);
 	DWORD WaitForWindow(std::wstring_view name);
 
-	static size_t PageSize();
+	size_t PageSize();
 
 	// NOTE: probably not the most secure, 
 	// but the Win32 functions were so horrible
-	static std::string GenerateGuid();
+	std::string GenerateGuid();
 
-	HANDLE WaitEvent = nullptr;
-
-private:
-	SYSTEM_INFO _systemInfo = {};
+	void BeepUp();
+	void BeepBurst();
+	void BeepDown();
 };
 

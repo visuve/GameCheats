@@ -13,7 +13,7 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"calculator"))
 		{
-			DWORD pid = System::Instance().WaitForWindow(L"Calculator");
+			DWORD pid = System::WaitForWindow(L"Calculator");
 
 			Process process(pid);
 
@@ -22,6 +22,16 @@ int wmain(int argc, wchar_t** argv)
 				LogError << "You have a different calculator than was expected";
 				return ERROR_REVISION_MISMATCH;
 			}
+
+			process.WaitForIdle();
+
+			System::BeepUp();
+
+			DWORD result = process.WairForExit();
+
+			System::BeepDown();
+
+			return result;
 		}
 	}
 	catch (const CmdArgs::Exception& e)
@@ -33,11 +43,13 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 

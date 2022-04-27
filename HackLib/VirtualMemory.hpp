@@ -1,41 +1,24 @@
 #pragma once
 
-#include "Pointer.hpp"
+#include "Win32Process.hpp"
 
 class VirtualMemory
 {
 public:
-	inline VirtualMemory(const Handle& parentProcess, size_t size) :
+	inline VirtualMemory(const Win32Process& parentProcess, size_t size) :
 		_parentProcess(parentProcess),
-		_address(VirtualAllocEx(parentProcess.Value(), nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE))
+		_address(parentProcess.AllocateVirtualMemory(size))
 	{
-		if (!_address)
-		{
-			throw Win32Exception("VirtualAllocEx");
-		}
 	}
 
 	inline ~VirtualMemory()
 	{
-		if (_parentProcess.IsValid())
+		if (_parentProcess.IsValid() && _address.Value())
 		{
-			bool result = VirtualFreeEx(_parentProcess.Value(), _address, 0, MEM_RELEASE);
+			bool result = _parentProcess.FreeVirtualMemory(_address);
 			_ASSERT(result);
 			(void)result;
 		}
-	}
-
-	inline MEMORY_BASIC_INFORMATION Query() const
-	{
-		constexpr DWORD memInfoSize = sizeof(MEMORY_BASIC_INFORMATION);
-		MEMORY_BASIC_INFORMATION info = {};
-
-		if (VirtualQueryEx(_parentProcess.Value(), _address, &info, memInfoSize) != memInfoSize)
-		{
-			throw Win32Exception("VirtualQueryEx");
-		}
-
-		return info;
 	}
 
 	inline Pointer Address() const
@@ -54,6 +37,6 @@ public:
 	}
 
 private:
-	const Handle& _parentProcess;
+	const Win32Process& _parentProcess;
 	const Pointer _address;
 };

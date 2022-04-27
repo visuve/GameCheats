@@ -1,23 +1,24 @@
 #include "Exceptions.hpp"
-#include "Handle.hpp"
 #include "Logger.hpp"
 #include "NonCopyable.hpp"
 #include "StrConvert.hpp"
 #include "System.hpp"
+#include "Win32Handle.hpp"
 
-#define UNUSED(x) (void)x;
+//Win32Event* WaitEvent = nullptr;
+//
+//BOOL WINAPI ConsoleHandler(const Win32Event& event, DWORD signal)
+//{
+//	Log << "Signaled" << signal;
+//	event.SetEvent();
+//	return true;
+//}
 
-BOOL WINAPI ConsoleHandler(DWORD signal)
-{
-	Log << "Signaled" << signal;
-	return SetEvent(System::Instance().WaitEvent);
-}
-
-class Snapshot : public Handle
+class Snapshot : public Win32Handle
 {
 public:
 	Snapshot(DWORD flags, DWORD pid) :
-		Handle(CreateToolhelp32Snapshot(flags, pid))
+		Win32Handle(CreateToolhelp32Snapshot(flags, pid))
 	{
 		if (!IsValid())
 		{
@@ -26,6 +27,11 @@ public:
 	}
 
 	NonCopyable(Snapshot);
+
+	~Snapshot()
+	{
+
+	}
 
 	template <typename T>
 	std::optional<T> Find(
@@ -85,39 +91,6 @@ std::optional<std::wstring> WindowTitle(HWND window)
 	_ASSERT(title.size() == static_cast<size_t>(length));
 
 	return title;
-}
-
-System::System()
-{
-	WaitEvent = CreateEventW(nullptr, true, false, L"Exit");
-
-	if (!WaitEvent)
-	{
-		throw Win32Exception("CreateEventW");
-	}
-
-	if (!SetConsoleCtrlHandler(ConsoleHandler, true))
-	{
-		throw Win32Exception("SetConsoleCtrlHandler");
-	}
-
-	GetSystemInfo(&_systemInfo);
-}
-
-System::~System()
-{
-	if (SetEvent(WaitEvent))
-	{
-		bool result = CloseHandle(WaitEvent);
-		_ASSERT(result);
-		UNUSED(result);
-	}
-}
-
-System& System::Instance()
-{
-	static System instance;
-	return instance;
 }
 
 DWORD System::PidByName(std::wstring_view moduleName)
@@ -195,6 +168,8 @@ DWORD System::WaitForExe(std::wstring_view name)
 
 	DWORD waitResult = WAIT_FAILED;
 
+	Win32Event event(L"WaitForExe", true);
+
 	do
 	{
 		const Snapshot snapshot(TH32CS_SNAPPROCESS, 0);
@@ -208,14 +183,9 @@ DWORD System::WaitForExe(std::wstring_view name)
 
 		Log << "Process" << Logger::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
 
-		waitResult = WaitForSingleObject(WaitEvent, 2000);
+		waitResult = event.Wait(2000ms);
 
 	} while (waitResult == WAIT_TIMEOUT);
-
-	if (waitResult == WAIT_OBJECT_0 && !ResetEvent(WaitEvent))
-	{
-		throw Win32Exception("ResetEvent");
-	}
 
 	throw Win32Exception("Aborted", ERROR_CANCELLED);
 }
@@ -223,6 +193,8 @@ DWORD System::WaitForExe(std::wstring_view name)
 DWORD System::WaitForWindow(std::wstring_view name)
 {
 	DWORD waitResult = WAIT_FAILED;
+
+	Win32Event event(L"WaitForExe", true);
 
 	do
 	{
@@ -247,21 +219,18 @@ DWORD System::WaitForWindow(std::wstring_view name)
 
 		Log << "Window" << Logger::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
 
-		waitResult = WaitForSingleObject(WaitEvent, 2000);
+		waitResult = event.Wait(2000ms);
 
 	} while (waitResult == WAIT_TIMEOUT);
-
-	if (waitResult == WAIT_OBJECT_0 && !ResetEvent(WaitEvent))
-	{
-		throw Win32Exception("ResetEvent");
-	}
 
 	throw Win32Exception("Aborted", ERROR_CANCELLED);
 }
 
 size_t System::PageSize()
 {
-	return System::Instance()._systemInfo.dwPageSize;
+	SYSTEM_INFO systemInfo = {};
+	GetSystemInfo(&systemInfo);
+	return systemInfo.dwPageSize;
 }
 
 std::string System::GenerateGuid()
@@ -294,4 +263,29 @@ std::string System::GenerateGuid()
 		hack.Guid.Data4[5],
 		hack.Guid.Data4[6],
 		hack.Guid.Data4[7]);
+}
+
+void System::BeepUp()
+{
+	for (DWORD i = 0x40u; i < 0x1000u; i *= 2)
+	{
+		Beep(i, 75u);
+	}
+}
+
+void System::BeepBurst()
+{
+	for (DWORD i = 0; i < 0xFu; ++i)
+	{
+		Beep(0x800u, 0x30u);
+		Sleep(0x30u);
+	}
+}
+
+void System::BeepDown()
+{
+	for (DWORD i = 0x1000u; i > 0x20u; i /= 2)
+	{
+		Beep(i, 75u);
+	}
 }

@@ -18,15 +18,15 @@ TEST(SystemTests, PageSize)
 
 TEST(SystemTests, Sanity)
 {
-	DWORD pid = System::Instance().WaitForExe(L"HackLibTests.exe");
+	DWORD pid = System::WaitForExe(L"HackLibTests.exe");
 	EXPECT_NE(pid, DWORD(0));
 
 	{
-		MODULEENTRY32W module = System::Instance().ModuleEntryByName(pid, L"KERNEL32.dll");
+		MODULEENTRY32W module = System::ModuleEntryByName(pid, L"KERNEL32.dll");
 		EXPECT_EQ(pid, module.th32ProcessID);
 	}
 	{
-		MODULEENTRY32W module = System::Instance().ModuleEntryByPid(pid);
+		MODULEENTRY32W module = System::ModuleEntryByPid(pid);
 		EXPECT_EQ(pid, module.th32ProcessID);
 	}
 }
@@ -34,19 +34,26 @@ TEST(SystemTests, Sanity)
 TEST(SystemTests, ModuleEntryNotFound)
 {
 	{
-		DWORD pid = System::Instance().WaitForExe(L"HackLibTests.exe");
+		DWORD pid = System::WaitForExe(L"HackLibTests.exe");
 
 		EXPECT_NE(pid, DWORD(0));
 
 		EXPECT_THROW(
-			System::Instance().ModuleEntryByName(pid, L"This does not exist.dll"), std::range_error);
+			System::ModuleEntryByName(pid, L"This does not exist.dll"), std::range_error);
 	}
 	{
-		EXPECT_THROW(System::Instance().ModuleEntryByPid(0), std::system_error);
-		EXPECT_THROW(System::Instance().ModuleEntryByPid(0xFFFFFFFF), std::system_error);
+		EXPECT_THROW(System::ModuleEntryByPid(0), std::system_error);
+		EXPECT_THROW(System::ModuleEntryByPid(0xFFFFFFFF), std::system_error);
 	}
 	{
-		EXPECT_THROW(System::Instance().PidByName(
+		EXPECT_THROW(System::PidByName(
 			L"This certainly does not exist 123456789.exe"), std::range_error);
 	}
+}
+
+TEST(SystemTests, Beep)
+{
+	// EXPECT_NO_THROW(System::BeepUp());
+	EXPECT_NO_THROW(System::BeepBurst());
+	// EXPECT_NO_THROW(System::BeepDown());
 }

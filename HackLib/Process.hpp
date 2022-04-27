@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Exceptions.hpp"
-#include "Handle.hpp"
 #include "Logger.hpp"
 #include "NonCopyable.hpp"
 #include "PointerMap.hpp"
 #include "VirtualMemory.hpp"
+#include "Win32Process.hpp"
+#include "Win32Thread.hpp"
 
 class Process
 {
@@ -43,15 +44,8 @@ public:
 	template<typename T>
 	void Read(Pointer pointer, T* value, size_t size) const
 	{
-		SIZE_T bytesRead = 0;
-
-		if (!ReadProcessMemory(_handle.Value(), pointer, value, size, &bytesRead))
-		{
-			throw Win32Exception("ReadProcessMemory");
-		}
-
+		size_t bytesRead = _targetProcess.ReadProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
-
 		Log << "Read" << bytesRead << "bytes from" << pointer ;
 	}
 
@@ -72,15 +66,8 @@ public:
 	template<typename T>
 	void Write(Pointer pointer, const T* value, size_t size) const
 	{
-		SIZE_T bytesWritten = 0;
-
-		if (!WriteProcessMemory(_handle.Value(), pointer, value, size, &bytesWritten))
-		{
-			throw Win32Exception("WriteProcessMemory");
-		}
-
+		size_t bytesWritten = _targetProcess.WriteProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
-
 		Log << "Wrote" << bytesWritten << "bytes at" << pointer ;
 	}
 
@@ -149,8 +136,6 @@ public:
 	{
 		ChangeByte(Address(offset), from, to);
 	}
-
-	std::filesystem::path Path() const;
 
 	void WaitForIdle();
 
@@ -243,7 +228,7 @@ public:
 private:
 	DWORD _pid = 0;
 	MODULEENTRY32W _module = {};
-	Handle _handle;
-	std::set<Handle> _threads;
+	Win32Process _targetProcess;
+	std::set<Win32Thread> _threads;
 	std::set<VirtualMemory> _regions;
 };

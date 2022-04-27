@@ -8,14 +8,6 @@ TEST(ProcessTests, Header)
 	EXPECT_EQ(current.NtHeader().OptionalHeader.Subsystem, WORD(IMAGE_SUBSYSTEM_WINDOWS_CUI));
 }
 
-TEST(ProcessTests, Name)
-{
-	DWORD pid = GetCurrentProcessId();
-	Process current(pid);
-
-	EXPECT_STREQ(current.Path().filename().c_str(), L"HackLibTests.exe");
-}
-
 TEST(ProcessTests, ModuleNotFound)
 {
 	DWORD pid = GetCurrentProcessId();
@@ -50,8 +42,6 @@ TEST(ProcessTests, FunctionFound)
 
 TEST(ProcessTests, Timeout)
 {
-	using namespace std::chrono_literals;
-
 	DWORD pid = GetCurrentProcessId();
 	Process current(pid);
 
