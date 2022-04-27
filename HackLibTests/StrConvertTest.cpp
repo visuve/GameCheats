@@ -23,3 +23,15 @@ TEST(StrConvert, ToUtf8)
 		EXPECT_EQ(test.size(), 0u);
 	}
 }
+
+TEST(StrConvert, IEquals)
+{
+	EXPECT_FALSE(StrConvert::IEquals("foobar", "fooba"));
+	EXPECT_FALSE(StrConvert::IEquals("fooba", "foobar"));
+	EXPECT_FALSE(StrConvert::IEquals("foobar", "barfoo"));
+
+	EXPECT_TRUE(StrConvert::IEquals("foobar", "fooBAR"));
+	EXPECT_TRUE(StrConvert::IEquals("foobar", "FOObar"));
+	EXPECT_TRUE(StrConvert::IEquals("fooBAR", "foobar"));
+	EXPECT_TRUE(StrConvert::IEquals("FOObar", "foobar"));
+}
