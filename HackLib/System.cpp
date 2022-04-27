@@ -113,9 +113,12 @@ MODULEENTRY32W System::ModuleEntryByPid(DWORD pid)
 	}
 
 	const Snapshot snapshot(TH32CS_SNAPMODULE, pid);
+	
+	uint32_t processed = 0;
 
 	const auto filter = [&](const MODULEENTRY32W& moduleEntry)
 	{
+		++processed;
 		return pid == moduleEntry.th32ProcessID;
 	};
 
@@ -125,6 +128,9 @@ MODULEENTRY32W System::ModuleEntryByPid(DWORD pid)
 	{
 		throw RangeException("Module not found");
 	}
+
+	_ASSERT_EXPR(processed == 1, "The module ID is expected to be the 1st");
+	(void)processed;
 
 	return result.value();
 }

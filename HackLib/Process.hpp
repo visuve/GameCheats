@@ -17,7 +17,7 @@ public:
 
 	inline Pointer Address(size_t offset) const
 	{
-		return { _module.modBaseAddr + offset };
+		return { _baseAddress + offset };
 	}
 
 	inline Pointer Address(std::wstring_view module, size_t offset) const
@@ -226,7 +226,7 @@ public:
 
 private:
 	DWORD _pid = 0;
-	MODULEENTRY32W _module = {};
+	Pointer _baseAddress;
 	Win32Process _targetProcess;
 	std::set<Win32Thread> _threads;
 	std::set<VirtualMemory> _regions;
