@@ -60,7 +60,7 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		LogError << '\n' << e.what() << "!\n";
+		LogError << e.what() << "\n";
 		std::wcerr << e.Usage();
 		System::BeepBurst();
 		return ERROR_BAD_ARGUMENTS;

@@ -2,7 +2,7 @@
 
 inline std::string ExceptionMessage(std::string_view message, const std::source_location& location)
 {
-	return std::format("{0}:{1}: {2}", 
+	return std::format("{0}:{1}: {2}!", 
 		std::filesystem::path(location.file_name()).filename().string(),
 		location.line(), 
 		message);

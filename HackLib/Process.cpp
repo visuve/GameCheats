@@ -121,7 +121,7 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
 
 	} while (iid.Characteristics);
 
-	throw RangeException("Import not found.");
+	throw RangeException("Import not found");
 }
 
 Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const
@@ -153,7 +153,7 @@ Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view func
 	} while (thunk.u1.Function);
 
 
-	throw RangeException("Function not found.");
+	throw RangeException("Function not found");
 }
 
 Pointer Process::FindFunction(std::string_view moduleName, std::string_view functionName) const
@@ -167,7 +167,7 @@ Pointer Process::AllocateMemory(size_t size)
 
 	if (!result.second)
 	{
-		throw RuntimeException("Catastrophic failure, pointer already existed!");
+		throw RuntimeException("Catastrophic failure, pointer already existed");
 	}
 
 	MEMORY_BASIC_INFORMATION info = result.first->Query();
@@ -187,7 +187,7 @@ DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 
 		if (!result.second)
 		{
-			throw RuntimeException("Catastrophic failure, pointer already existed!");
+			throw RuntimeException("Catastrophic failure, pointer already existed");
 		}
 
 		return 0;
@@ -228,7 +228,7 @@ void Process::FreeMemory(Pointer pointer)
 
 	if (it == _regions.cend())
 	{
-		throw OutOfRangeException("No such memory allocated!");
+		throw OutOfRangeException("No such memory allocated");
 	}
 
 	_regions.erase(it);

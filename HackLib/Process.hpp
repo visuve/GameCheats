@@ -95,7 +95,7 @@ public:
 		
 		if (bytes % sizeof(T))
 		{
-			throw LogicException("Alignment mismatch!");
+			throw LogicException("Alignment mismatch");
 		}
 
 		Pointer pointer = Address(from);
@@ -110,17 +110,11 @@ public:
 
 		if (current != from)
 		{
-			char message[0x40] = {};
-
-			std::snprintf(
-				message,
-				sizeof(message) - 1,
-				"Error @ %p. Expected 0x%02X, got 0x%02X.",
-				address.Value(),
+			throw LogicException(
+				std::format("Error @ {}. Expected {:02x}, got {:02x}",
+				address,
 				from,
-				current);
-
-			throw LogicException(message);
+				current));
 		}
 
 		Write<uint8_t>(address, to);

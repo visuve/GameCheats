@@ -24,7 +24,7 @@ int wmain(int argc, wchar_t** argv)
 
 			if (SHA256(path) != UnpatchedChecksum)
 			{
-				LogError << "Cheksum mismatch. Won't patch, will definetely break.";
+				LogError << "Cheksum mismatch. Won't patch, will definetely break!";
 				return ERROR_REVISION_MISMATCH;
 			}
 
@@ -32,7 +32,7 @@ int wmain(int argc, wchar_t** argv)
 
 			if (SHA256(path) != PatchedChecksum)
 			{
-				LogError << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken.";
+				LogError << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken!";
 				return ERROR_REVISION_MISMATCH;
 			}
 
@@ -123,7 +123,7 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		LogError << '\n' << e.what() << "!\n";
+		LogError << e.what() << "\n";
 		std::wcerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}

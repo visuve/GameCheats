@@ -46,7 +46,7 @@ bool SHA256::operator == (std::string_view expected) const
 {
 	if (expected.length() != 64)
 	{
-		throw LogicException("SHA-256 hashes are 64 bytes!");
+		throw LogicException("SHA-256 hashes are 64 bytes");
 	}
 
 	std::string actual = Value();

@@ -44,7 +44,7 @@ namespace R6BO
 
 		if (FsOps::CountLines(path, predicate) != highestId)
 		{
-			throw LogicException("Terrorist count does not match with highest ID!");
+			throw LogicException("Terrorist count does not match with highest ID");
 		}
 
 		if (highestId >= NewTerroristMax)
@@ -188,7 +188,7 @@ int wmain(int argc, wchar_t** argv)
 	}
 	catch (const CmdArgs::Exception& e)
 	{
-		LogError << '\n' << e.what() << "!\n";
+		LogError << e.what() << "\n";
 		std::wcerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}

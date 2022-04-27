@@ -81,7 +81,7 @@ public:
 			throw Win32Exception("RegGetValueW", result);
 		}
 
-		_ASSERT_EXPR(valueSize == sizeof(DWORD), L"RegGetValueW size mismatch!");
+		_ASSERT_EXPR(valueSize == sizeof(DWORD), L"RegGetValueW size mismatch");
 
 		return value;
 	}

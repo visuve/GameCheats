@@ -23,14 +23,14 @@ public:
 		{
 			case Quoted:
 				_stream << " \"" << x << '"';
-				_modifier = Space;
 				break;
 			default:
 				_stream << ' ' << x;
 				break;
 		}
 
-		
+
+		_modifier = Space;
 		return *this;
 	}
 

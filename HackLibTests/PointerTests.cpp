@@ -172,6 +172,38 @@ TEST(PointerTests, Compare)
 TEST(PointerTests, ToString)
 {
 	{
+		std::string str = std::format("{0}", Pointer());
+
+#ifdef _WIN64
+		EXPECT_STREQ(str.c_str(), "0x0000000000000000");
+#else
+		EXPECT_STREQ(str.c_str(), "0x00000000");
+#endif
+	}
+
+	{
+		std::string str = std::format("{0}", Pointer(0xDEADBEEFu));
+
+#ifdef _WIN64
+		EXPECT_STREQ(str.c_str(), "0x00000000DEADBEEF");
+#else
+		EXPECT_STREQ(str.c_str(), "0xDEADBEEF");
+#endif
+	}
+	{
+		std::string str = std::format("{0}", Pointer(reinterpret_cast<uint8_t*>(-1)));
+
+#ifdef _WIN64
+		EXPECT_STREQ(str.c_str(), "0xFFFFFFFFFFFFFFFF");
+#else
+		EXPECT_STREQ(str.c_str(), "0xFFFFFFFF");
+#endif
+	}
+}
+
+TEST(PointerTests, ToStream)
+{
+	{
 		std::stringstream stream;
 		stream << Pointer();
 

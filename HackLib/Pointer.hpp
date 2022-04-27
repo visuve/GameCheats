@@ -188,6 +188,8 @@ public:
 	{
 		return &_internal.Bytes[Size];
 	}
+	
+	friend std::formatter<Pointer>;
 
 private:
 	union Internal
@@ -199,5 +201,19 @@ private:
 
 inline std::ostream& operator << (std::ostream& os, const Pointer& p)
 {
-	return os << "0x" << p.operator void *();
+	return os << std::format("{0}", p);
 }
+
+template <>
+struct std::formatter<Pointer> : std::formatter<std::string>
+{
+	template <typename FormatContext>
+	inline auto format(const Pointer& p, FormatContext& ctx)
+	{
+#ifdef _WIN64
+		return std::format_to(ctx.out(), "0x{:016X}", p._internal.Value);
+#else
+		return std::format_to(ctx.out(), "0x{:08X}", p._internal.Value);
+#endif
+	}
+};

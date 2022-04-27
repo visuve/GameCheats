@@ -25,7 +25,7 @@ public:
 		if (_parentProcess.IsValid())
 		{
 			bool result = VirtualFreeEx(_parentProcess.Value(), _address, 0, MEM_RELEASE);
-			_ASSERT_EXPR(result, "Could not free virtual memory!");
+			_ASSERT_EXPR(result, "Could not free virtual memory");
 			(void)result;
 		}
 	}

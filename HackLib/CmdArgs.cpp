@@ -81,7 +81,7 @@ CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expec
 		}
 	}
 
-	throw CmdArgs::Exception("missing arguments", _usage);
+	throw CmdArgs::Exception("Missing arguments", _usage);
 }
 
 bool CmdArgs::Contains(std::wstring_view x) const
@@ -110,7 +110,7 @@ std::type_index CmdArgs::TypeByKey(std::wstring_view key) const
 
 	if (expectedArgument == _expected.cend())
 	{
-		throw CmdArgs::Exception("unknown key requested", _usage);
+		throw CmdArgs::Exception("Unknown key requested", _usage);
 	}
 
 	return std::get<1>(*expectedArgument);
@@ -126,7 +126,7 @@ std::any CmdArgs::ValueByKey(std::wstring_view key) const
 
 		if (result == _arguments.cend())
 		{
-			throw CmdArgs::Exception("missing value requested", _usage);
+			throw CmdArgs::Exception("Missing value requested", _usage);
 		}
 
 		return true;
@@ -146,7 +146,7 @@ std::any CmdArgs::ValueByKey(std::wstring_view key) const
 		if (providedArgument.front() != L'=')
 		{
 			throw CmdArgs::Exception(
-				"arguments with values should be passed with equal sign \'=\'", _usage);
+				"Arguments with values should be passed with \'=\' sign", _usage);
 		}
 
 		providedArgument.remove_prefix(1);
@@ -175,5 +175,5 @@ std::any CmdArgs::ValueByKey(std::wstring_view key) const
 		return value;
 	}
 
-	throw CmdArgs::Exception("unsupported argument type requested", _usage);
+	throw CmdArgs::Exception("Unsupported argument type requested", _usage);
 }

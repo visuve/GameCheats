@@ -55,19 +55,19 @@ ByteStream& ByteStream::operator << (std::string&& bytes)
 		if (raw.length() != 2)
 		{
 			throw ArgumentException(
-				"Arguments have to be between 00-FF (zero padded) and separated with space!");
+				"Arguments have to be between 00-FF (zero padded) and separated with space");
 		}
 
 		if (std::any_of(raw.cbegin(), raw.cend(), notDigit))
 		{
-			throw ArgumentException("Only hexadecimal characters accepted!");
+			throw ArgumentException("Only hexadecimal characters accepted");
 		}
 
 		int value = std::stoi(raw, nullptr, 16);
 
 		if (!std::in_range<uint8_t>(value))
 		{
-			throw ArgumentException("A byte has to be between 0-255!");
+			throw ArgumentException("A byte has to be between 0-255");
 		}
 
 		_bytes.push_back(static_cast<uint8_t>(value));
@@ -118,22 +118,14 @@ size_t ByteStream::Size() const
 
 std::ostream& operator << (std::ostream& os, const ByteStream& bs)
 {
-	std::ios_base::fmtflags formatFlags = os.flags();
-
-	os.setf(std::ios::hex, std::ios::basefield);
-	os.setf(std::ios::uppercase);
-	os.fill('0');
-
 	const std::string sep1 = " ";
 	std::string sep2 = "";
 
 	for (uint8_t byte : bs._bytes)
 	{
-		os << sep2 << std::setw(2) << +byte;
+		os << sep2 << std::format("{:02X}", byte);
 		sep2 = sep1;
 	}
-
-	os.flags(formatFlags);
 	
 	return os;
 }

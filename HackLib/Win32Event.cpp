@@ -36,7 +36,7 @@ BOOL WINAPI ConsoleHandler(_In_ DWORD signal)
 		if (event)
 		{
 			bool result = SetEvent(event);
-			_ASSERT_EXPR(result, "Could not set event!");
+			_ASSERT_EXPR(result, "Could not set event");
 			(void)result;
 		}
 	}
