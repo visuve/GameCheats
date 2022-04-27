@@ -2,6 +2,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		const CmdArgs args(argc, argv,
@@ -10,15 +12,19 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infhealth", typeid(std::nullopt), L"Never decreasing health" }
 		});
 
-		DWORD pid = System::Instance().WaitForWindow(L"Hitman2");
+		DWORD pid = System::WaitForWindow(L"Hitman2");
 
 		Process process(pid);
 
 		if (process.Verify("f85765f1b36734165fc22122050ca39ca1b8873f9b2d430b50a8271cde5d5136"))
 		{
-			LogError << "Expected Hitman 2: Silent Assasin" ;
+			LogError << "Expected Hitman 2: Silent Assasin";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"infammo"))
 		{
@@ -51,7 +57,8 @@ int wmain(int argc, wchar_t** argv)
 			process.WriteBytes(0x1193A7, stream);
 		}
 
-		return process.WairForExit();
+		exitCode = process.WairForExit();
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -62,13 +69,15 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

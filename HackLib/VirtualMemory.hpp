@@ -7,16 +7,25 @@ class VirtualMemory
 public:
 	inline VirtualMemory(const Win32Process& parentProcess, size_t size) :
 		_parentProcess(parentProcess),
-		_address(parentProcess.AllocateVirtualMemory(size))
+		_address(VirtualAllocEx(
+			_parentProcess.Value(),
+			nullptr,
+			size,
+			MEM_COMMIT | MEM_RESERVE,
+			PAGE_EXECUTE_READWRITE))
 	{
+		if (!_address)
+		{
+			throw Win32Exception("VirtualAllocEx");
+		}
 	}
 
 	inline ~VirtualMemory()
 	{
-		if (_parentProcess.IsValid() && _address.Value())
+		if (_parentProcess.IsValid())
 		{
-			bool result = _parentProcess.FreeVirtualMemory(_address);
-			_ASSERT(result);
+			bool result = VirtualFreeEx(_parentProcess.Value(), _address, 0, MEM_RELEASE);
+			_ASSERT_EXPR(result, "Could not free virtual memory!");
 			(void)result;
 		}
 	}
@@ -26,12 +35,30 @@ public:
 		return _address;
 	}
 
-	bool operator < (const VirtualMemory& other) const
+	inline MEMORY_BASIC_INFORMATION Query() const
+	{
+		if (!_parentProcess.IsValid())
+		{
+			throw RuntimeException("The parent process is invalid");
+		}
+
+		constexpr DWORD memInfoSize = sizeof(MEMORY_BASIC_INFORMATION);
+		MEMORY_BASIC_INFORMATION info = {};
+
+		if (VirtualQueryEx(_parentProcess.Value(), _address, &info, memInfoSize) != memInfoSize)
+		{
+			throw Win32Exception("VirtualQueryEx");
+		}
+
+		return info;
+	}
+
+	inline bool operator < (const VirtualMemory& other) const
 	{
 		return _address < other._address;
 	}
 
-	bool operator == (const VirtualMemory& other) const
+	inline bool operator == (const VirtualMemory& other) const
 	{
 		return _address == other._address;
 	}

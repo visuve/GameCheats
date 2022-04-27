@@ -10,13 +10,19 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infammo", typeid(std::nullopt), L"Ammunition is never reduced" }
 		});
 
-		Process process(L"maxpayne2.exe");
+		DWORD pid = System::WaitForExe(L"maxpayne2.exe");
+
+		Process process(pid);
 
 		if (!process.Verify("75b46ceaaaecd44173358654f67abd20057fd4298fc6a0d74437c0c884328fc3"))
 		{
 			LogError << "Expected Max Payne 2 - The Fall of Max of Payne (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"reloadadds") || args.Contains(L"infammo"))
 		{
@@ -29,6 +35,8 @@ int wmain(int argc, wchar_t** argv)
 			Pointer ammoPtr = process.Address(L"X_GameObjectsMFC.dll", 0x7D265);
 			process.ChangeByte(ammoPtr, X86::DecEcx, X86::Nop);
 		}
+
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -39,11 +47,13 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 

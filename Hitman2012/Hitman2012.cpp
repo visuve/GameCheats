@@ -11,13 +11,19 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infammo", typeid(std::nullopt), L"Infinite ammo" },
 		});
 
-		Process process(L"HMA.exe");
+		DWORD pid = System::WaitForExe(L"HMA.exe");
+
+		Process process(pid);
 
 		if (!process.Verify("58607bbc54bd577c752ee0f04a8cfec6873855639c43d4a24bd2d1b6c693e9da"))
 		{
 			LogError << "Expected Hitman Absolution v1.0.447 (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"infstealth"))
 		{
@@ -33,6 +39,8 @@ int wmain(int argc, wchar_t** argv)
 		{
 			process.ChangeByte(0x5ECEAD, X86::DecEax, X86::IncEax);
 		}
+		
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -43,11 +51,13 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what() ;
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 

@@ -52,6 +52,8 @@ std::ostream& operator << (std::ostream& os, const Player& p)
 
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		const CmdArgs args(argc, argv,
@@ -66,8 +68,12 @@ int wmain(int argc, wchar_t** argv)
 		if (!process.Verify("39d0a522918f078425bda90d43292e9bb83866d442059deb5be75ae8f4f8109a"))
 		{
 			LogError << "Expected Quake 1 Remake v1.0.5036 (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepDown();
 
 		if (args.Contains(L"infammo"))
 		{
@@ -98,8 +104,10 @@ int wmain(int argc, wchar_t** argv)
 
 			process.InjectX64(0x1CBE71, 3, stream);
 
-			return process.WairForExit();
+			exitCode = process.WairForExit();
 		}
+
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -110,13 +118,15 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

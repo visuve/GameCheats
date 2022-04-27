@@ -33,16 +33,10 @@ DWORD Win32Process::WaitForInputIdle(std::chrono::milliseconds timeout) const
 	return ::WaitForInputIdle(_handle, static_cast<DWORD>(timeout.count()));
 }
 
-DWORD Win32Process::WaitForSingleObject(std::chrono::milliseconds timeout) const
+DWORD Win32Process::WaitForExit(std::chrono::milliseconds timeout) const
 {
 	return ::WaitForSingleObject(_handle, static_cast<DWORD>(timeout.count()));
 }
-
-//DWORD Win32Process::WaitForExit(std::chrono::milliseconds timeout) const
-//{
-//	const HANDLE handles[2] = { _handle, System::Instance().WaitEvent };
-//	return WaitForMultipleObjects(handles, false, timeout);
-//}
 
 size_t Win32Process::ReadProcessMemory(Pointer pointer, void* buffer, size_t size) const
 {
@@ -66,36 +60,6 @@ size_t Win32Process::WriteProcessMemory(Pointer pointer, const void* value, size
 	}
 
 	return bytesWritten;
-}
-
-Pointer Win32Process::AllocateVirtualMemory(size_t size) const
-{
-	void* result = VirtualAllocEx(_handle, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
-
-	if (!result)
-	{
-		throw Win32Exception("VirtualAllocEx");
-	}
-
-	return Pointer(result);
-}
-
-MEMORY_BASIC_INFORMATION Win32Process::QueryVirtualMemory(Pointer address) const
-{
-	constexpr DWORD memInfoSize = sizeof(MEMORY_BASIC_INFORMATION);
-	MEMORY_BASIC_INFORMATION info = {};
-
-	if (VirtualQueryEx(_handle, address, &info, memInfoSize) != memInfoSize)
-	{
-		throw Win32Exception("VirtualQueryEx");
-	}
-
-	return info;
-}
-
-bool Win32Process::FreeVirtualMemory(Pointer address) const
-{
-	return VirtualFreeEx(_handle, address, 0, MEM_RELEASE);
 }
 
 HANDLE Win32Process::CreateRemoteThread(Pointer address, Pointer parameter) const

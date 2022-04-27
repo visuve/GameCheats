@@ -45,17 +45,22 @@ int wmain(int argc, wchar_t** argv)
 			{ L"addresources", typeid(std::nullopt), L"Adds 48879 to each resource" },
 		});
 
-		Process process(L"HOMM3 2.0.exe");
+		DWORD pid = System::WaitForExe(L"HOMM3 2.0.exe");
+
+		Process process(pid);
 
 		if (!process.Verify("608da95c6dae5de21b2135701365e18d3de173d3f0fd9753812afe6a5b13fa05"))
 		{
 			LogError << "Expected Heroes of Might & Magic III - HD Edition (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
 
+		process.WaitForIdle();
+		System::BeepUp();
+
 		if (args.Contains(L"addresources"))
 		{
-
 			Pointer resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
 
 			Resources resources = process.Read<Resources>(resourcePointer);
@@ -70,6 +75,8 @@ int wmain(int argc, wchar_t** argv)
 
 			process.Write(resourcePointer, resources);
 		}
+
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -80,11 +87,13 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 

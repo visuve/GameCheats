@@ -11,13 +11,19 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infbullettime", typeid(std::nullopt), L"Infinite \"bullet time\"" },
 		});
 
-		Process process(L"maxpayne.exe");
+		DWORD pid = System::WaitForExe(L"maxpayne.exe");
+
+		Process process(pid);
 
 		if (!process.Verify("e0b3b859c28adbf510dfc6285e1667173aaa7b05ac66a62403eb96d50eefae7b"))
 		{
 			LogError << "Expected Max Payne v1.05 (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"reloadadds") || args.Contains(L"infammo"))
 		{
@@ -36,6 +42,8 @@ int wmain(int argc, wchar_t** argv)
 		{
 			process.Fill(0x4CED0, 0x4CEDC, X86::Nop);
 		}
+
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -46,11 +54,13 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 

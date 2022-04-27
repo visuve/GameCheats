@@ -5,6 +5,8 @@ constexpr char PatchedChecksum[] = "52d325e3fbf0f468062090b9d594457e3fe0eb80827d
 
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		const CmdArgs args(argc, argv,
@@ -22,7 +24,7 @@ int wmain(int argc, wchar_t** argv)
 
 			if (SHA256(path) != UnpatchedChecksum)
 			{
-				LogError << "Cheksum mismatch. Won't patch, will definetely break." ;
+				LogError << "Cheksum mismatch. Won't patch, will definetely break.";
 				return ERROR_REVISION_MISMATCH;
 			}
 
@@ -30,7 +32,7 @@ int wmain(int argc, wchar_t** argv)
 
 			if (SHA256(path) != PatchedChecksum)
 			{
-				LogError << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken." ;
+				LogError << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken.";
 				return ERROR_REVISION_MISMATCH;
 			}
 
@@ -39,15 +41,19 @@ int wmain(int argc, wchar_t** argv)
 			return 0;
 		}
 
-		DWORD pid = System::Instance().WaitForWindow(L"S.T.A.L.K.E.R.: Shadow Of Chernobyl");
+		DWORD pid = System::WaitForWindow(L"S.T.A.L.K.E.R.: Shadow Of Chernobyl");
 
 		Process process(pid);
 
 		if (!process.Verify(PatchedChecksum))
 		{
-			LogError << "Please patch the game before applying these cheats" ;
+			LogError << "Please patch the game before applying these cheats";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"lessweaponweight"))
 		{
@@ -112,7 +118,8 @@ int wmain(int argc, wchar_t** argv)
 			process.WriteBytes(ptr, ByteStream("90 90 90 90 90"));
 		}
 
-		return process.WairForExit();
+		exitCode = process.WairForExit();
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -123,13 +130,15 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

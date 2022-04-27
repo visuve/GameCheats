@@ -50,10 +50,3 @@ TEST(SystemTests, ModuleEntryNotFound)
 			L"This certainly does not exist 123456789.exe"), std::range_error);
 	}
 }
-
-TEST(SystemTests, Beep)
-{
-	// EXPECT_NO_THROW(System::BeepUp());
-	EXPECT_NO_THROW(System::BeepBurst());
-	// EXPECT_NO_THROW(System::BeepDown());
-}

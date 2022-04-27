@@ -2,6 +2,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		const CmdArgs args(argc, argv,
@@ -10,14 +12,23 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infhealth", typeid(std::nullopt), L"Never decreasing health" }
 		});
 
-		DWORD pid = System::Instance().WaitForWindow(L"Hitman Blood Money");
+		DWORD pid = System::WaitForWindow(L"Hitman Blood Money");
 
 		Process process(pid);
 
 		if (!process.Verify("b45bf59665f98b6547152218f33a0fe006836290f004960a49c37918f22d2713"))
 		{
 			LogError << "Expected Hitman Blood Money v1.2 (Steam)" ;
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
+		}
+
+		process.WaitForIdle();
+		System::BeepUp();
+
+		if (args.Contains(L"infhealth"))
+		{
+			process.Fill(0x1FB973, 0x1FB977, X86::Nop);
 		}
 
 		if (args.Contains(L"infammo"))
@@ -39,14 +50,10 @@ int wmain(int argc, wchar_t** argv)
 			code << "90"; // nop
 
 			process.InjectX86(0x1140DB, 8, code);
+			exitCode = process.WairForExit();
 		}
 
-		if (args.Contains(L"infhealth"))
-		{
-			process.Fill(0x1FB973, 0x1FB977, X86::Nop);
-		}
-
-		return process.WairForExit();
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -57,13 +64,15 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

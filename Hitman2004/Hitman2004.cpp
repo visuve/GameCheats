@@ -2,6 +2,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		const CmdArgs args(argc, argv,
@@ -10,15 +12,19 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infhealth", typeid(std::nullopt), L"Never decreasing health" }
 		});
 
-		DWORD pid = System::Instance().WaitForWindow(L"Hitman Contracts");
+		DWORD pid = System::WaitForWindow(L"Hitman Contracts");
 
 		Process process(pid);
 
 		if (!process.Verify("189f8ce2e40603db1387266e960fcf102c479ad4de83d31b1cbfe3647b6cd702"))
 		{
 			LogError << "Expected Hitman Contracts";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"infammo"))
 		{
@@ -60,7 +66,8 @@ int wmain(int argc, wchar_t** argv)
 			process.Fill(0x12EBBD, 0x12EBC1, X86::Nop);
 		}
 
-		return process.WairForExit();
+		exitCode = process.WairForExit();
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -71,13 +78,15 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

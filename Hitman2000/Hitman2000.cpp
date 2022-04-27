@@ -7,6 +7,8 @@
 */
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		const CmdArgs args(argc, argv,
@@ -17,15 +19,19 @@ int wmain(int argc, wchar_t** argv)
 			{ L"drawdistance", typeid(std::nullopt), L"10x the maximum drawing distance" }
 		});
 
-		DWORD pid = System::Instance().WaitForWindow(L"Direct3D");
+		DWORD pid = System::WaitForWindow(L"Direct3D");
 
 		Process process(pid);
 
 		if (!process.Verify("137c3cbf328225085cf3532819b4574714fba263a6121328de6583ba8a0648f5"))
 		{
 			LogError << "Expected Hitman: Codename 47 (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"infammo"))
 		{
@@ -65,8 +71,10 @@ int wmain(int argc, wchar_t** argv)
 			
 			process.InjectX86(L"HitmanDlc.dlc", 0x904A0, 1, code);
 
-			return process.WairForExit();
+			exitCode = process.WairForExit();
 		}
+		
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -85,5 +93,5 @@ int wmain(int argc, wchar_t** argv)
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

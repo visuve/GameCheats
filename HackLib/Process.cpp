@@ -4,13 +4,7 @@
 #include "SHA256.hpp"
 #include "System.hpp"
 #include "Win32Thread.hpp"
-
-BOOL WINAPI ConsoleHandler(const Win32Event& event, DWORD signal)
-{
-	Log << "Signaled" << signal;
-	event.SetEvent();
-	return true;
-}
+#include "Win32Event.hpp"
 
 Process::Process(DWORD pid) :
 	_pid(pid),
@@ -21,11 +15,8 @@ Process::Process(DWORD pid) :
 	{
 		throw Win32Exception("OpenProcess");
 	}
-}
 
-Process::Process(std::wstring_view name) :
-	Process(System::PidByName(name))
-{
+	Log << "Process" << pid << "opened";
 }
 
 Process::~Process()
@@ -179,7 +170,7 @@ Pointer Process::AllocateMemory(size_t size)
 		throw RuntimeException("Catastrophic failure, pointer already existed!");
 	}
 
-	MEMORY_BASIC_INFORMATION info = _targetProcess.QueryVirtualMemory(result.first->Address());
+	MEMORY_BASIC_INFORMATION info = result.first->Query();
 
 	Log << "Allocated" << info.RegionSize << "bytes at" << result.first->Address() ;
 
@@ -211,7 +202,7 @@ DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 
 DWORD Process::InjectLibrary(std::string_view name)
 {
-	Pointer namePtr(reinterpret_cast<uint8_t*>(0));// = AllocateMemory(name.size() + 1); // +1 to include null terminator
+	Pointer namePtr = AllocateMemory(name.size() + 1); // +1 to include null terminator
 	Write(namePtr, name.data(), name.size());
 
 	// LoadLibrary has the same relative address in all processes, hence we can use our "own" address.
@@ -330,7 +321,7 @@ Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops,
 
 DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 {
-	Win32Event event(L"WaitForExe", true);
+	Win32Event event;
 
 	HANDLE handles[2] = { _targetProcess.Value(), event.Value() };
 
@@ -348,15 +339,18 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 		}
 		case WAIT_OBJECT_0 + 1u:
 		{
-			Log << "User aborted";
-			return ERROR_CANCELLED;
+			throw Win32Exception("Aborted", ERROR_CANCELLED);
 		}
 		case WAIT_TIMEOUT:
 		{
 			Log << "Waiting for" << _pid << "timed out" ;
 			return WAIT_TIMEOUT;
 		}
+		case WAIT_FAILED:
+		{
+			throw Win32Exception("WaitForMultipleObjects");
+		}
 	}
 
-	throw Win32Exception("WaitForSingleObject", result);
+	throw Win32Exception("WaitForMultipleObjects", result);
 }

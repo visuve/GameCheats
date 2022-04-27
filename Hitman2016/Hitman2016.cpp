@@ -2,6 +2,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		const CmdArgs args(argc, argv,
@@ -17,10 +19,12 @@ int wmain(int argc, wchar_t** argv)
 		if (!process.Verify("31c33c1937b1ddc3cad21bd7d761f12f962286d55c48d3582a704ca35e2830f9"))
 		{
 			LogError << "Expected Hitman v1.15.0 with DX 12 (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
 
 		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"infammo"))
 		{
@@ -49,25 +53,30 @@ int wmain(int argc, wchar_t** argv)
 			
 			process.InjectX64(0x1028A0, 6, code);
 
-			return process.WairForExit();
+			exitCode = process.WairForExit();
 		}
+
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << '\n' << e.what() << "!\n";
 		std::wcerr << e.Usage();
+		System::BeepBurst();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
-		LogError << e.what() ;
+		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

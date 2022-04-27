@@ -1,52 +1,76 @@
-#include "Win32Event.hpp"
-#include "Win32Event.hpp"
 #include "Exceptions.hpp"
 #include "Logger.hpp"
-#include "System.hpp"
 #include "Win32Event.hpp"
 
-HANDLE Handle = nullptr;
+std::once_flag ConsoleCtrlHandlerFlag;
+std::list<std::string> EventNames;
 
-BOOL WINAPI SimpleHandler(_In_ DWORD signal)
+BOOL WINAPI ConsoleHandler(_In_ DWORD signal)
 {
-	Log << "Signaled" << signal;
-	
-	if (Handle)
+	switch (signal)
 	{
-		SetEvent(Handle);
+		case CTRL_C_EVENT:
+			Log << "Signaled CTRL+C event";
+			break;
+		case CTRL_BREAK_EVENT:
+			Log << "Signaled CTRL+BREAK event";
+			break;
+		case CTRL_CLOSE_EVENT:
+			Log << "Signaled close event";
+			break;
+		case CTRL_LOGOFF_EVENT:
+			Log << "Signaled logoff event";
+			break;
+		case CTRL_SHUTDOWN_EVENT:
+			Log << "Signaled shutdown event";
+			break;
+		default:
+			Log << "Signaled" << signal;
+			break;
+	}
+	
+	for (const std::string& eventName : EventNames)
+	{
+		HANDLE event = OpenEventA(EVENT_MODIFY_STATE, false, eventName.data());
+
+		if (event)
+		{
+			bool result = SetEvent(event);
+			_ASSERT_EXPR(result, "Could not set event!");
+			(void)result;
+		}
 	}
 
 	return true;
 }
-
-Win32Event::Win32Event(std::wstring_view name, bool consoleEvent) :
-	Win32Handle(CreateEventW(nullptr, true, false, name.data()))
+Win32Event::Win32Event(const std::string& name) :
+	Win32Handle(CreateEventA(nullptr, true, false, name.data())),
+	_name(name)
 {
-	if (consoleEvent)
+	std::call_once(ConsoleCtrlHandlerFlag, []()
 	{
-		Handle = _handle;
-	}
+		SetConsoleCtrlHandler(ConsoleHandler, true);
+	});
 
-	SetConsoleCtrlHandler(SimpleHandler, true);
+	EventNames.push_back(_name);
 }
 
 Win32Event::~Win32Event()
 {
-	Handle = nullptr;
-	SetConsoleCtrlHandler(SimpleHandler, false);
+	// This is dangerous and probably not needed
+	EventNames.remove(_name);
 }
 
 DWORD Win32Event::Wait(std::chrono::milliseconds timeout) const
 {
-	return WaitForSingleObject(_handle, static_cast<DWORD>(timeout.count()));
-}
+	DWORD result = WaitForSingleObject(_handle, static_cast<DWORD>(timeout.count()));
 
-void Win32Event::SetEvent() const
-{
-	if (!::SetEvent(_handle))
+	if (result == WAIT_FAILED)
 	{
-		throw Win32Exception("SetEvent");
+		throw Win32Exception("WaitForSingleObject");
 	}
+
+	return result;
 }
 
 HANDLE Win32Event::Value() const

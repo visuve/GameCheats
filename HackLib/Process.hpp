@@ -12,7 +12,6 @@ class Process
 {
 public:
 	Process(DWORD pid);
-	Process(std::wstring_view name);
 	NonCopyable(Process);
 	virtual ~Process();
 

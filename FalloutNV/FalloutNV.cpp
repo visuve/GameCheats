@@ -2,6 +2,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		const CmdArgs args(argc, argv,
@@ -10,13 +12,19 @@ int wmain(int argc, wchar_t** argv)
 			{ L"nowear", typeid(std::nullopt), L"Weapon condition is never reduced" }
 		});
 
-		Process process(L"FalloutNV.exe");
+		DWORD pid = System::WaitForExe(L"FalloutNV.exe");
+
+		Process process(pid);
 
 		if (!process.Verify("3a87f92f011e5dc9179ddf733cf08be2b39ea6e5b7a8a9e3a9a72dafcc1b104d"))
 		{
 			LogError << "Expected Fallout New Vegas v1.4.0.525 (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"infammo"))
 		{
@@ -51,7 +59,8 @@ int wmain(int argc, wchar_t** argv)
 			process.InjectX86(0x199AE, 1, stream);
 		}
 
-		return process.WairForExit();
+		exitCode = process.WairForExit();
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{
@@ -62,13 +71,15 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
-		LogError << e.what() ;
+		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

@@ -11,13 +11,19 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infammo", typeid(std::nullopt), L"Ammo is never reduced" },
 		});
 
-		Process process(L"hde.exe");
+		DWORD pid = System::WaitForExe(L"hde.exe");
+
+		Process process(pid);
 
 		if (!process.Verify("4fd0b4e26fd23fcb827a5ab96a4f49d84e2ea07eaf1e3baf10285e3648c63825"))
 		{
 			LogError << "Expected Hidden & Dangerous Deluxe v1.51 (Steam)";
+			System::BeepBurst();
 			return ERROR_REVISION_MISMATCH;
 		}
+
+		process.WaitForIdle();
+		System::BeepUp();
 
 		if (args.Contains(L"totalammo"))
 		{
@@ -48,6 +54,8 @@ int wmain(int argc, wchar_t** argv)
 			uint8_t code[] = { 0xE8, 0xCB, 0xF7, 0x04, 0x00 };
 			process.Write(ptr, code);
 		}
+		
+		System::BeepDown();
 	}
 	catch (const CmdArgs::Exception& e)
 	{

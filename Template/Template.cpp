@@ -2,6 +2,8 @@
 
 int wmain(int argc, wchar_t** argv)
 {
+	DWORD exitCode = 0;
+
 	try
 	{
 		// Use this as a template, or start hacking away!
@@ -20,18 +22,15 @@ int wmain(int argc, wchar_t** argv)
 			if (!process.Verify("E7760F103569E1D70D011C8137CD8BCAB586980615AB013479F72C3F67E28534"))
 			{
 				LogError << "You have a different calculator than was expected";
+				System::BeepBurst();
 				return ERROR_REVISION_MISMATCH;
 			}
 
 			process.WaitForIdle();
-
 			System::BeepUp();
 
-			DWORD result = process.WairForExit();
-
+			exitCode = process.WairForExit();
 			System::BeepDown();
-
-			return result;
 		}
 	}
 	catch (const CmdArgs::Exception& e)
@@ -53,5 +52,5 @@ int wmain(int argc, wchar_t** argv)
 		return ERROR_PROCESS_ABORTED;
 	}
 
-	return 0;
+	return exitCode;
 }

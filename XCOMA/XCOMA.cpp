@@ -98,9 +98,16 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"infmoney"))
 		{
-			DWORD pid = System::Instance().WaitForExe(L"dosbox.exe");
+			DWORD pid = System::WaitForExe(L"dosbox.exe");
 
 			Process process(pid);
+
+			if (!process.Verify("c846e94041bef52cc0700a4c8f64449d72880bcb5a85e195030147c3ee8bd319"))
+			{
+				LogError << "Expected XCOM Apocalypse running in DOSBox v0.7.2";
+				System::BeepBurst();
+				return ERROR_REVISION_MISMATCH;
+			}
 
 			ByteStream bytes;
 
@@ -215,11 +222,13 @@ int wmain(int argc, wchar_t** argv)
 	catch (const std::system_error& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return e.code().value();
 	}
 	catch (const std::exception& e)
 	{
 		LogError << e.what();
+		System::BeepBurst();
 		return ERROR_PROCESS_ABORTED;
 	}
 

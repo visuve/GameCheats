@@ -130,7 +130,9 @@ namespace R6BO
 
 	void HackRunningProcess()
 	{
-		Process process(L"R6BO.exe");
+		DWORD pid = System::WaitForExe(L"R6BO.exe");
+
+		Process process(pid);
 
 		if (!process.Verify("06ee11a05a029a9827c093caa67de63c395c03082f7bc843ac302eadb9ff6373"))
 		{

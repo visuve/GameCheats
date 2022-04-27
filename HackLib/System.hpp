@@ -1,7 +1,6 @@
 #pragma once
 
 #include "NonCopyable.hpp"
-#include "Win32Event.hpp"
 
 namespace System
 {

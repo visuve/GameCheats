@@ -4,15 +4,7 @@
 #include "StrConvert.hpp"
 #include "System.hpp"
 #include "Win32Handle.hpp"
-
-//Win32Event* WaitEvent = nullptr;
-//
-//BOOL WINAPI ConsoleHandler(const Win32Event& event, DWORD signal)
-//{
-//	Log << "Signaled" << signal;
-//	event.SetEvent();
-//	return true;
-//}
+#include "Win32Event.hpp"
 
 class Snapshot : public Win32Handle
 {
@@ -168,7 +160,7 @@ DWORD System::WaitForExe(std::wstring_view name)
 
 	DWORD waitResult = WAIT_FAILED;
 
-	Win32Event event(L"WaitForExe", true);
+	Win32Event event;
 
 	do
 	{
@@ -183,18 +175,23 @@ DWORD System::WaitForExe(std::wstring_view name)
 
 		Log << "Process" << Logger::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
 
-		waitResult = event.Wait(2000ms);
+		waitResult = event.Wait(1000ms);
 
 	} while (waitResult == WAIT_TIMEOUT);
 
-	throw Win32Exception("Aborted", ERROR_CANCELLED);
+	if (waitResult == WAIT_OBJECT_0)
+	{
+		throw Win32Exception("Aborted", ERROR_CANCELLED);
+	}
+
+	throw Win32Exception("Aborted", waitResult);
 }
 
 DWORD System::WaitForWindow(std::wstring_view name)
 {
 	DWORD waitResult = WAIT_FAILED;
 
-	Win32Event event(L"WaitForExe", true);
+	Win32Event event;
 
 	do
 	{
@@ -219,11 +216,16 @@ DWORD System::WaitForWindow(std::wstring_view name)
 
 		Log << "Window" << Logger::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
 
-		waitResult = event.Wait(2000ms);
+		waitResult = event.Wait(1000ms);
 
 	} while (waitResult == WAIT_TIMEOUT);
 
-	throw Win32Exception("Aborted", ERROR_CANCELLED);
+	if (waitResult == WAIT_OBJECT_0)
+	{
+		throw Win32Exception("Aborted", ERROR_CANCELLED);
+	}
+
+	throw Win32Exception("Aborted", waitResult);
 }
 
 size_t System::PageSize()
