@@ -113,7 +113,8 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
 
 		Read(Address(iid.Name), buffer.data(), buffer.size());
 
-		if (StrConvert::IEquals(moduleName, buffer))
+		// Cast to .c_str() because the buffer contains trailing nulls
+		if (StrConvert::IEquals(moduleName, buffer.c_str()))
 		{
 			return iid;
 		}
@@ -144,7 +145,8 @@ Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view func
 
 		Read(Address(thunk.u1.AddressOfData + 2), buffer.data(), buffer.size());
 
-		if (StrConvert::IEquals(functionName, buffer))
+		// Cast to .c_str() because the buffer contains trailing nulls
+		if (StrConvert::IEquals(functionName, buffer.c_str()))
 		{
 			return thunkPtr - offset;
 		}
