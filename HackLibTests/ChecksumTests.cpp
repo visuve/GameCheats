@@ -1,29 +1,30 @@
 #include "SHA256.hpp"
 
-TEST(ChecksumTests, Self)
+struct ChecksumTests : ::testing::Test
 {
-	std::wstring path = GetCommandLineW() + 1;
+	ChecksumTests() :
+		Test()
+	{
+		// https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+		_path.resize(0x7FFFu);
+		size_t required = GetModuleFileNameW(nullptr, _path.data(), 0x7FFFu);
+		_path.resize(required);
+	}
 
-	// The command line seems to have some goo by default
-	path.pop_back();
-	path.pop_back();
+	std::wstring _path;
+};
 
-	EXPECT_TRUE(std::filesystem::exists(path));
-
-	EXPECT_EQ(SHA256(path).Value().size(), size_t(64));
+TEST_F(ChecksumTests, Self)
+{
+	EXPECT_EQ(SHA256(_path).Value().size(), SHA256::HashCharacters);
 }
 
-TEST(ChecksumTests, PathNotExists)
+TEST_F(ChecksumTests, PathNotExists)
 {
 	EXPECT_THROW(SHA256(L"This path does not exist"), std::system_error);
 }
 
-TEST(ChecksumTests, InvalidCompare)
+TEST_F(ChecksumTests, InvalidCompare)
 {
-	std::wstring path = GetCommandLineW() + 1;
-
-	path.pop_back();
-	path.pop_back();
-
-	EXPECT_THROW(SHA256(path) == "Not a valid SHA-256", std::logic_error);
+	EXPECT_THROW(SHA256(_path) == "Not a valid SHA-256", std::logic_error);
 }
