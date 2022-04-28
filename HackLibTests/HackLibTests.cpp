@@ -1,6 +1,6 @@
 #include "MemoryLeakListener.hpp"
 
-int wmain()
+int wmain(int argc, wchar_t** argv)
 {
 	std::cout.setstate(std::ios::failbit);
 
@@ -8,6 +8,6 @@ int wmain()
 	testing::UnitTest::GetInstance()->listeners().Append(new MemoryLeakListener());
 #endif
 
-	testing::InitGoogleTest();
+	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
