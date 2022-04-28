@@ -11,36 +11,15 @@ SHA256::SHA256(const std::filesystem::path& path) :
 
 SHA256::~SHA256()
 {
-	if (_algorithmHandle)
-	{
-		BCryptCloseAlgorithmProvider(_algorithmHandle, 0);
-	}
-
 	if (_hashHandle)
 	{
 		BCryptDestroyHash(_hashHandle);
 	}
-}
-
-size_t SHA256::PropertySize(std::wstring_view property)
-{
-	DWORD object = 0;
-	DWORD bytesWritten = 0;
-
-	NTSTATUS status = BCryptGetProperty(
-		_algorithmHandle,
-		property.data(),
-		reinterpret_cast<PUCHAR>(&object),
-		sizeof(DWORD),
-		&bytesWritten,
-		0);
-
-	if (status != 0 || !_algorithmHandle || !object || bytesWritten != sizeof(DWORD))
+	
+	if (_algorithmHandle)
 	{
-		throw Win32Exception("BCryptGetProperty", status);
+		BCryptCloseAlgorithmProvider(_algorithmHandle, 0);
 	}
-
-	return object;
 }
 
 bool SHA256::operator == (std::string_view expected) const
@@ -76,12 +55,11 @@ std::string SHA256::Value() const
 
 SHA256::SHA256()
 {
-	// Create provider
 	{
 		NTSTATUS status = BCryptOpenAlgorithmProvider(
 			&_algorithmHandle,
 			BCRYPT_SHA256_ALGORITHM,
-			nullptr,
+			MS_PRIMITIVE_PROVIDER,
 			0);
 
 		if (status != 0)
@@ -89,16 +67,12 @@ SHA256::SHA256()
 			throw Win32Exception("BCryptOpenAlgorithmProvider", status);
 		}
 	}
-
-	// Create hash object
 	{
-		_hashObject.resize(PropertySize(BCRYPT_OBJECT_LENGTH));
-
 		NTSTATUS status = BCryptCreateHash(
 			_algorithmHandle,
 			&_hashHandle,
-			_hashObject.data(),
-			static_cast<ULONG>(_hashObject.size()),
+			nullptr,
+			0,
 			nullptr,
 			0,
 			0);
@@ -107,14 +81,6 @@ SHA256::SHA256()
 		{
 			throw Win32Exception("BCryptCreateHash", status);
 		}
-	}
-
-	// Prepare hash data
-	size_t hashLength = PropertySize(BCRYPT_HASH_LENGTH);
-
-	if (hashLength != _hashData.size())
-	{
-		throw RuntimeException(std::format("Hash data has size of {} and BCrypt expects {}", _hashData.size(), hashLength));
 	}
 }
 

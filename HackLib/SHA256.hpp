@@ -28,8 +28,6 @@ private:
 
 	BCRYPT_ALG_HANDLE _algorithmHandle = nullptr;
 	BCRYPT_HASH_HANDLE _hashHandle = nullptr;
-
-	std::vector<uint8_t> _hashObject;
 	std::array<uint8_t, Bytes> _hashData;
 };
 
