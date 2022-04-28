@@ -337,7 +337,7 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 		{
 			DWORD exitCode = _targetProcess.ExitCode();
 
-			Log << "Process" << _pid << "exited with code:" << exitCode;
+			Log << Logger::Color::LightMagenta << "Process" << _pid << "exited with code" << exitCode;
 
 			return exitCode;
 		}
