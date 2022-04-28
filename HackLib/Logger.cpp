@@ -7,6 +7,11 @@ std::mutex LogMutex;
 Logger::Logger(std::ostream& stream, const std::source_location& location) :
 	_stream(stream)
 {
+	if (!_stream)
+	{
+		return;
+	}
+
 	LogMutex.lock();
 
 	_stream << _backgrounds.at(Color::Black);
@@ -37,6 +42,11 @@ Logger::Logger(std::ostream& stream, const std::source_location& location) :
 
 Logger::~Logger()
 {
+	if (!_stream)
+	{
+		return;
+	}
+
 	_stream << _foregrounds.at(Color::Default) << std::endl;
 
 	LogMutex.unlock();

@@ -40,6 +40,11 @@ public:
 	template <typename T>
 	Logger& operator << (T x)
 	{
+		if (!_stream)
+		{
+			return *this;
+		}
+
 		switch (_color)
 		{
 			case Color::Black:

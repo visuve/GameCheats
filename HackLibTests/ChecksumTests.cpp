@@ -11,11 +11,6 @@ struct ChecksumTests : ::testing::Test
 		_path.resize(required);
 	}
 
-	~ChecksumTests()
-	{
-		_path.clear();
-	}
-
 	std::wstring _path;
 };
 
