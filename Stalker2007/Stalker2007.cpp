@@ -63,7 +63,7 @@ int wmain(int argc, wchar_t** argv)
 			process.WriteBytes(ptr, ByteStream("F3 0F 59 05 45 23 01 00"));
 		}
 		
-		PointerMap ptrs = process.AllocateMap("player", "weapon"); // Let's just allocate a whole page
+		PointerMap ptrs = process.AllocateMap("player",	"weapon", "health", "stamina");
 
 		Log << ptrs;
 		
@@ -74,8 +74,15 @@ int wmain(int argc, wchar_t** argv)
 
 			stream << "8B 93 38 34 00 00"; // mov edx,[ebx+00003438]
 			stream << "89 15" << ptrs["weapon"]; // mov [weapon], edx
+
 			stream << "8B 93 34 34 00 00"; // mov edx,[ebx+00003434]
 			stream << "89 15" << ptrs["player"]; // mov [player], edx
+
+			stream << "8B 82 3C 09 00 00"; // mov eax,[edx+0000093C]
+			stream << "A3" << ptrs["health"]; // mov [health], eax
+
+			stream << "83 C0 54"; // add eax, 54
+			stream << "A3" << ptrs["stamina"]; // mov [stamina], eax
 
 			process.InjectX86(L"xrGame.dll", 0x3D136C, 1, stream);
 		}
