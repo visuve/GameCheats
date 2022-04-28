@@ -19,7 +19,15 @@ public:
 		return _data.at(name);
 	}
 
-	friend std::ostream& operator << (std::ostream&, const PointerMap&);
+	inline auto begin() const
+	{
+		return _data.cbegin();
+	}
+
+	inline auto end() const
+	{
+		return _data.cend();
+	}
 
 private:
 	std::map<std::string, Pointer> _data;
@@ -27,9 +35,13 @@ private:
 
 inline std::ostream& operator << (std::ostream& os, const PointerMap& pm)
 {
-	for (const auto& [key, value] : pm._data)
+	const std::string sep1 = ", ";
+	std::string sep2;
+
+	for (const auto& [key, value] : pm)
 	{
-		os << key << '=' << value ;
+		os << sep2 << std::endl << key << '=' << value;
+		sep2 = sep1;
 	}
 
 	return os;

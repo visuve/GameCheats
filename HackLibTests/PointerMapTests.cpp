@@ -5,15 +5,15 @@ TEST(PointerMapTests, Construct)
 	PointerMap ptrMap(Pointer(), { "foo", "bar", "foobar", "barfoo" });
 
 #ifdef _WIN64
-	EXPECT_EQ(ptrMap["foo"].Value(), reinterpret_cast<uint8_t*>(0));
-	EXPECT_EQ(ptrMap["bar"].Value(), reinterpret_cast<uint8_t*>(8));
-	EXPECT_EQ(ptrMap["foobar"].Value(), reinterpret_cast<uint8_t*>(16));
-	EXPECT_EQ(ptrMap["barfoo"].Value(), reinterpret_cast<uint8_t*>(24));
+	EXPECT_EQ(ptrMap["foo"], Pointer(0u));
+	EXPECT_EQ(ptrMap["bar"], Pointer(8u));
+	EXPECT_EQ(ptrMap["foobar"], Pointer(16u));
+	EXPECT_EQ(ptrMap["barfoo"], Pointer(24u));
 #else
-	EXPECT_EQ(ptrMap["foo"].Value(), reinterpret_cast<uint8_t*>(0));
-	EXPECT_EQ(ptrMap["bar"].Value(), reinterpret_cast<uint8_t*>(4));
-	EXPECT_EQ(ptrMap["foobar"].Value(), reinterpret_cast<uint8_t*>(8));
-	EXPECT_EQ(ptrMap["barfoo"].Value(), reinterpret_cast<uint8_t*>(12));
+	EXPECT_EQ(ptrMap["foo"], Pointer(0u));
+	EXPECT_EQ(ptrMap["bar"], Pointer(4u));
+	EXPECT_EQ(ptrMap["foobar"], Pointer(8u));
+	EXPECT_EQ(ptrMap["barfoo"], Pointer(12u));
 #endif
 }
 
