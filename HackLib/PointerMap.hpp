@@ -40,7 +40,7 @@ inline std::ostream& operator << (std::ostream& os, const PointerMap& pm)
 
 	for (const auto& [key, value] : pm)
 	{
-		os << sep2 << std::endl << key << '=' << value;
+		os << sep2 << key << '=' << value;
 		sep2 = sep1;
 	}
 

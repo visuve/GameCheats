@@ -266,6 +266,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 		_targetProcess.FlushInstructionCache(origin, detour.Size());
 	}
 
+	Log << Logger::Color::LightMagenta << "Injected" << JumpOpSize + nops << "bytes to" << origin;
 	return target;
 }
 
@@ -279,7 +280,7 @@ Pointer Process::InjectX64(std::wstring_view module, size_t offset, size_t nops,
 	return InjectX64(Address(module, offset), nops, code);
 }
 #else
-Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
@@ -291,7 +292,7 @@ Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 	{
 		ByteStream codeWithJumpBack(code);
 
-		codeWithJumpBack << JumpOp(target + codeSize, from + JumpOpSize);
+		codeWithJumpBack << JumpOp(target + codeSize, origin + JumpOpSize);
 
 		WriteBytes(target, codeWithJumpBack);
 
@@ -299,14 +300,15 @@ Pointer Process::InjectX86(Pointer from, size_t nops, std::span<uint8_t> code)
 	}
 
 	{
-		ByteStream detour(JumpOp(from, target));
+		ByteStream detour(JumpOp(origin, target));
 		detour.Add(nops, X86::Nop);
 
-		WriteBytes(from, detour);
+		WriteBytes(origin, detour);
 
-		_targetProcess.FlushInstructionCache(from, detour.Size());
+		_targetProcess.FlushInstructionCache(origin, detour.Size());
 	}
 
+	Log << Logger::Color::LightMagenta << "Injected" << JumpOpSize + nops << "bytes to" << origin;
 	return target;
 }
 

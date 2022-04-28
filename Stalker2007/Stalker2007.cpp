@@ -65,7 +65,7 @@ int wmain(int argc, wchar_t** argv)
 		
 		PointerMap ptrs = process.AllocateMap("player",	"weapon", "health", "stamina");
 
-		Log << ptrs;
+		Log << "Created pointers:" << ptrs;
 		
 		// Hmmm IAT @ xrGame.dll+451278
 
@@ -120,9 +120,11 @@ int wmain(int argc, wchar_t** argv)
 
 		if (args.Contains(L"infenergy"))
 		{
-			Pointer ptr = process.Address(L"xrGame.dll", 0x1DD3F8);
+			ByteStream stream;
 
-			process.WriteBytes(ptr, ByteStream("90 90 90 90 90"));
+			stream << "C7 05" << ptrs["health"] << "00 00 80 3F"; // mov [health], (float) 1
+			stream << "C7 05" << ptrs["stamina"] << "00 00 80 3F"; // mov [stamina], (float) 1
+			process.InjectX86(L"xrGame.dll", 0x1DD3F8, 0, stream);
 		}
 
 		exitCode = process.WairForExit();
