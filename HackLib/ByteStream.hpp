@@ -48,7 +48,15 @@ public:
 	uint8_t* Data();
 	size_t Size() const;
 
-	friend std::ostream& operator << (std::ostream&, const ByteStream&);
+	inline auto begin() const
+	{
+		return _bytes.begin();
+	}
+
+	inline auto end() const
+	{
+		return _bytes.end();
+	}
 
 private:
 	std::vector<uint8_t> _bytes;

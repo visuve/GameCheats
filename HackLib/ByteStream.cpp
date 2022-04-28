@@ -118,14 +118,22 @@ size_t ByteStream::Size() const
 
 std::ostream& operator << (std::ostream& os, const ByteStream& bs)
 {
-	const std::string sep1 = " ";
-	std::string sep2 = "";
+	std::ios_base::fmtflags formatFlags = os.flags();
 
-	for (uint8_t byte : bs._bytes)
+	os.setf(std::ios::hex, std::ios::basefield);
+	os.setf(std::ios::uppercase);
+	os.fill('0');
+
+	char sep1[2] = " ";
+	char sep2[2] = "";
+
+	for (uint8_t byte : bs)
 	{
-		os << sep2 << std::format("{:02X}", byte);
-		sep2 = sep1;
+		os << sep2 << std::setw(2) << +byte;
+		sep2[0] = sep1[0];
 	}
-	
+
+	os.flags(formatFlags);
+
 	return os;
 }

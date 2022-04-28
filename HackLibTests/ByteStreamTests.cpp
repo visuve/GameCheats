@@ -161,11 +161,15 @@ TEST(ByteStreamTests, FromGoo)
 TEST(ByteStreamTests, ToString)
 {
 	{
-		uint8_t bytes[] = { 0xA, 0xB, 0xC, 0xFF };
-		ByteStream byteStream(bytes);
-
 		std::stringstream stringStream;
-		stringStream << byteStream;
+		stringStream << ByteStream({ 0xFF });
+		EXPECT_STREQ(stringStream.str().c_str(), "FF");
+		stringStream << ByteStream({ 0x0A });
+		EXPECT_STREQ(stringStream.str().c_str(), "FF0A");
+	}
+	{
+		std::stringstream stringStream;
+		stringStream << ByteStream({ 0xA, 0xB, 0xC, 0xFF });
 
 		EXPECT_STREQ(stringStream.str().c_str(), "0A 0B 0C FF");
 
