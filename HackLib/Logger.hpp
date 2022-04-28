@@ -5,7 +5,28 @@
 class Logger
 {
 public:
-	enum Modifier
+	enum class Color
+	{
+		Black = 0,
+		Red,
+		Green,
+		Yellow,
+		Blue,
+		Magenta,
+		Cyan,
+		LightGray,
+		DarkGray,
+		LightRed,
+		LightGreen,
+		LightYellow,
+		LightBlue,
+		LightMagenta,
+		LightCyan,
+		White,
+		Default
+	};
+
+	enum class Modifier
 	{
 		Space = ' ',
 		Quoted = '"'
@@ -19,9 +40,19 @@ public:
 	template <typename T>
 	Logger& operator << (T x)
 	{
+		switch (_color)
+		{
+			case Color::Black:
+			case Color::Default:
+				break;
+			default:
+				_stream << _foregrounds.at(Color::Default) << _foregrounds.at(_color);
+				break;
+		}
+
 		switch (_modifier)
 		{
-			case Quoted:
+			case Modifier::Quoted:
 				_stream << " \"" << x << '"';
 				break;
 			default:
@@ -30,15 +61,21 @@ public:
 		}
 
 
-		_modifier = Space;
+		_color = Color::Default;
+		_modifier = Modifier::Space;
 		return *this;
 	}
 
 	Logger& operator << (Modifier x);
+	Logger& operator << (Color x);
 
 private:
 	std::ostream& _stream;
-	Modifier _modifier = Space;
+	Modifier _modifier = Modifier::Space;
+	Color _color = Color::Default;
+
+	const static std::map<Color, const std::string> _foregrounds;
+	const static std::map<Color, const std::string> _backgrounds;
 };
 
 #define Log Logger(std::cout, std::source_location::current())

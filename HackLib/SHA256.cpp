@@ -52,7 +52,7 @@ bool SHA256::operator == (std::string_view expected) const
 
 	std::string actual = Value();
 
-	if (StrConvert::IEquals(expected, actual))
+	if (!StrConvert::IEquals(expected, actual))
 	{
 		LogError << "Expected " << expected << ", got " << actual;
 		return false;
@@ -161,7 +161,7 @@ void SHA256::ProcessFile(const std::filesystem::path& path)
 		}
 
 		float complete = float(bytesProcessed) / float(fileSize) * 100.f;
-		Log << std::format("Verifying {:.2f}%", complete);
+		Log << Logger::Color::Yellow << std::format("Verifying {:.2f}%", complete);
 
 		Update(buffer);
 	}
