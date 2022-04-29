@@ -140,13 +140,7 @@ public:
 
 	Pointer AllocateMemory(size_t size);
 
-	template <typename... T>
-	PointerMap AllocateMap(T&& ... names)
-	{
-		constexpr size_t sizeNeeded = sizeof ... (T) * Pointer::Size;
-		const Pointer region = AllocateMemory(sizeNeeded);
-		return PointerMap(region, { std::forward<T>(names)... });
-	}
+	PointerMap AllocateMap(const std::initializer_list<PointerMap::NameTypePair>& pairs);
 
 	DWORD CreateThread(Pointer address, Pointer parameter, bool detached = false);
 

@@ -2,7 +2,13 @@
 
 TEST(PointerMapTests, Construct)
 {
-	PointerMap ptrMap(Pointer(), { "foo", "bar", "foobar", "barfoo" });
+	PointerMap ptrMap(Pointer(0u),
+	{
+		{ "foo", typeid(int) },
+		{ "bar", typeid(int) },
+		{ "foobar", typeid(int) },
+		{ "barfoo", typeid(int) }
+	});
 
 #ifdef _WIN64
 	EXPECT_EQ(ptrMap["foo"], Pointer(0u));
@@ -19,6 +25,13 @@ TEST(PointerMapTests, Construct)
 
 TEST(PointerMapTests, OutOfRange)
 {
-	PointerMap ptrMap(Pointer(), { "foo", "bar", "foobar", "barfoo" });
+	PointerMap ptrMap(Pointer(0u), 
+	{
+		{ "foo", typeid(int) },
+		{ "bar", typeid(int) },
+		{ "foobar", typeid(int) },
+		{ "barfoo", typeid(int) }
+	});
+
 	EXPECT_THROW(ptrMap["barbapapa"], std::out_of_range);
 }

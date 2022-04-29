@@ -36,7 +36,7 @@ int wmain(int argc, wchar_t** argv)
 				return ERROR_REVISION_MISMATCH;
 			}
 
-			std::wcout << path << L" stabbed" ;
+			std::wcout << path << L" stabbed";
 
 			return 0;
 		}
@@ -62,8 +62,14 @@ int wmain(int argc, wchar_t** argv)
 
 			process.WriteBytes(ptr, ByteStream("F3 0F 59 05 45 23 01 00"));
 		}
-		
-		PointerMap ptrs = process.AllocateMap("player",	"weapon", "health", "stamina");
+
+		PointerMap ptrs = process.AllocateMap({
+			{ "player", typeid(Pointer) },
+			{ "weapon", typeid(Pointer) },
+			{ "health", typeid(float*) },
+			{ "stamina", typeid(float*) },
+			{ "armor", typeid(float) }
+		});
 
 		Log << "Created pointers:" << ptrs;
 		

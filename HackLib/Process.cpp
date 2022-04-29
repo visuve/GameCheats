@@ -6,6 +6,7 @@
 #include "System.hpp"
 #include "Win32Thread.hpp"
 #include "Win32Event.hpp"
+#include "TypeHelp.hpp"
 
 Process::Process(DWORD pid) :
 	_pid(pid),
@@ -180,6 +181,26 @@ Pointer Process::AllocateMemory(size_t size)
 	return result.first->Address();
 }
 
+PointerMap Process::AllocateMap(const std::initializer_list<PointerMap::NameTypePair>& pairs)
+{
+	size_t sizeNeeded = 0;
+
+	for (const auto& [name, type] : pairs)
+	{
+		size_t typeSize = SizeOfBasicType(type);
+
+		if (typeSize == 0)
+		{
+			throw ArgumentException(name + " has unknown type");
+		}
+
+		sizeNeeded += typeSize;
+	}
+
+	const Pointer region = AllocateMemory(sizeNeeded);
+	return PointerMap(region, pairs);
+}
+
 DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 {
 	HANDLE bare = _targetProcess.CreateRemoteThread(address, parameter);
@@ -266,7 +287,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 		_targetProcess.FlushInstructionCache(origin, detour.Size());
 	}
 
-	Log << Logger::Color::LightMagenta << "Injected" << JumpOpSize + nops << "bytes to" << origin;
+	Log << Logger::Color::Cyan << "Injected" << JumpOpSize + nops << "bytes to" << origin;
 	return target;
 }
 
@@ -308,7 +329,7 @@ Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 		_targetProcess.FlushInstructionCache(origin, detour.Size());
 	}
 
-	Log << Logger::Color::LightMagenta << "Injected" << JumpOpSize + nops << "bytes to" << origin;
+	Log << Logger::Color::Cyan << "Injected" << JumpOpSize + nops << "bytes to" << origin;
 	return target;
 }
 
