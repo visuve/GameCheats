@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Pointer.hpp"
+
 inline size_t SizeOfBasicType(std::type_index type)
 {
 	if (type == typeid(Pointer)) return Pointer::Size;
@@ -54,9 +56,24 @@ inline std::string_view BasicTypeToString(std::type_index type)
 	return "unknown type";
 }
 
+inline bool IsBasicType(std::type_index type)
+{
+	if (type == typeid(uint8_t)) return true;
+	if (type == typeid(uint16_t)) return true;
+	if (type == typeid(uint32_t)) return true;
+	if (type == typeid(uint64_t)) return true;
+	if (type == typeid(int8_t)) return true;
+	if (type == typeid(int16_t)) return true;
+	if (type == typeid(int32_t)) return true;
+	if (type == typeid(int64_t)) return true;
+	if (type == typeid(float)) return true;
+	if (type == typeid(double)) return true;
+
+	return false;
+}
+
 inline bool IsBasicPointer(std::type_index type)
 {
-	if (type == typeid(Pointer)) return true;
 	if (type == typeid(uint8_t*)) return true;
 	if (type == typeid(uint16_t*)) return true;
 	if (type == typeid(uint32_t*)) return true;
