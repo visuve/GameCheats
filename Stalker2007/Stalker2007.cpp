@@ -13,9 +13,10 @@ int wmain(int argc, wchar_t** argv)
 		{
 			{ L"patch", typeid(std::filesystem::path), L"Remove XR_3DA.exe administrator requirement" },
 			{ L"infammo", typeid(std::nullopt), L"Infinite ammunition" },
+			{ L"infhealth", typeid(std::nullopt), L"Infinite health" },
+			{ L"infstamina", typeid(std::nullopt), L"Infinite stamina" },
+			{ L"infarmor", typeid(std::nullopt), L"Armor is never reduced" },
 			{ L"nowear", typeid(std::nullopt), L"Weapon condition is never reduced" },
-			{ L"lessweaponweight", typeid(std::nullopt), L"Weapons weight far less in the inventory" },
-			{ L"infenergy", typeid(std::nullopt), L"Infinite health, stamina & armor" }
 		});
 
 		if (args.Contains(L"patch"))
@@ -66,6 +67,7 @@ int wmain(int argc, wchar_t** argv)
 		MemoryRegion ptrs = process.AllocateRegion({
 			{ "player", typeid(Pointer) },
 			{ "weapon", typeid(Pointer) },
+			{ "condition", typeid(float*) },
 			{ "health", typeid(float*) },
 			{ "stamina", typeid(float*) },
 			{ "armor", typeid(float*) }
@@ -79,11 +81,15 @@ int wmain(int argc, wchar_t** argv)
 			ByteStream stream;
 
 			stream << "8B 93 38 34 00 00"; // mov edx,[ebx+00003438]
-			stream << "89 15" << ptrs["weapon"]; // mov [weapon], edx
+			stream << "89 15" << ptrs["weapon"]; // mov [player], edx
 
-			stream << "83 FA 00";
-			stream << "74 16";
+			stream << "83 FA 00"; // cmp edx,00
+			stream << "74 22"; // je 22
 			
+			stream << "8B C2"; // mov eax, edx
+			stream << "05 A4 00 00 00"; // add eax, 0xA4
+			stream << "A3" << ptrs["condition"]; // mov [weapon], eax
+
 			// Unroll the fucker
 			stream << "8B 82 88 00 00 00"; // mov eax, [edx+88]
 			stream << "8B 40 08"; // mov eax, [eax+08]
@@ -103,6 +109,7 @@ int wmain(int argc, wchar_t** argv)
 			process.InjectX86(L"xrGame.dll", 0x3D136C, 1, stream);
 		}
 
+		// TODO: this occasionally crashes, needs investigating
 		if (args.Contains(L"infammo"))
 		{
 			ByteStream stream;
@@ -118,29 +125,32 @@ int wmain(int argc, wchar_t** argv)
 			process.InjectX86(L"xrGame.dll", 0x21F1CF, 9, stream);
 		}
 
-		if (args.Contains(L"nowear"))
+		ByteStream stream;
+
+		if (args.Contains(L"infhealth"))
 		{
-			ByteStream stream;
-
-			stream << "39 3D" << ptrs["weapon"]; // cmp dword ptr [weapon],edi
-			stream << "75 04"; // jne 4
-			stream << "DD D9"; // fstp st(0)
-			stream << "D9 E8"; // fld1
-			stream << "90"; // nop
-
-			stream << "D8 87 A8 00 00 00"; // fadd dword ptr [edi+000000A8]
-			stream << "D9 9F A8 00 00 00"; // fstp dword ptr [edi+000000A8]
-
-			process.InjectX86(L"xrGame.dll", 0x21F0D9, 7, stream);
+			stream << "C7 05" << ptrs["health"] << "00 00 80 3F"; // mov [health], (float) 1
 		}
 
-		if (args.Contains(L"infenergy"))
+		if (args.Contains(L"infstamina"))
 		{
-			ByteStream stream;
-
-			stream << "C7 05" << ptrs["health"] << "00 00 80 3F"; // mov [health], (float) 1
 			stream << "C7 05" << ptrs["stamina"] << "00 00 80 3F"; // mov [stamina], (float) 1
+		}
+
+		if (args.Contains(L"infarmor"))
+		{
 			stream << "C7 05" << ptrs["armor"] << "00 00 80 3F"; // mov [armor], (float) 1
+		}
+
+		if (args.Contains(L"nowear"))
+		{
+			stream << "C7 05" << ptrs["condition"] << "00 00 80 3F"; // mov [condition], (float) 1
+		}
+
+		if (stream.Size() > 0)
+		{
+			// TODO: infarmor and nowear are now too effectively godmode 
+			// because the original call-op here is blocked
 			process.InjectX86(L"xrGame.dll", 0x1DD3F8, 0, stream);
 		}
 
