@@ -3,12 +3,12 @@
 #include "Pointer.hpp"
 #include "TypeHelp.hpp"
 
-class PointerMap
+class MemoryRegion
 {
 public:
-	struct TypedPointer
+	struct NamedValue
 	{
-		TypedPointer(Pointer address, std::type_index type) :
+		NamedValue(Pointer address, std::type_index type) :
 			Address(address),
 			Type(type)
 		{
@@ -20,7 +20,7 @@ public:
 
 	using NameTypePair = std::pair<std::string, std::type_index>;
 
-	inline PointerMap(Pointer region, const std::initializer_list<NameTypePair>& pairs)
+	inline MemoryRegion(Pointer region, const std::initializer_list<NameTypePair>& pairs)
 	{
 		for (const auto& [name, type] : pairs)
 		{
@@ -31,7 +31,7 @@ public:
 				throw ArgumentException(name + " has unknown type");
 			}
 
-			_data.emplace(name, TypedPointer(region, type));
+			_data.emplace(name, NamedValue(region, type));
 
 			region += typeSize;
 		}
@@ -53,10 +53,10 @@ public:
 	}
 
 private:
-	std::map<std::string, TypedPointer> _data;
+	std::map<std::string, NamedValue> _data;
 };
 
-inline std::ostream& operator << (std::ostream& os, const PointerMap& pm)
+inline std::ostream& operator << (std::ostream& os, const MemoryRegion& pm)
 {
 	const std::string sep1 = ", ";
 	std::string sep2;

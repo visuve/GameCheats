@@ -181,9 +181,9 @@ Pointer Process::AllocateMemory(size_t size)
 	return result.first->Address();
 }
 
-PointerMap Process::AllocateMap(const std::initializer_list<PointerMap::NameTypePair>& pairs)
+MemoryRegion Process::AllocateRegion(const std::initializer_list<MemoryRegion::NameTypePair>& pairs)
 {
-	size_t sizeNeeded = 0;
+	size_t regionSize = 0;
 
 	for (const auto& [name, type] : pairs)
 	{
@@ -194,11 +194,11 @@ PointerMap Process::AllocateMap(const std::initializer_list<PointerMap::NameType
 			throw ArgumentException(name + " has unknown type");
 		}
 
-		sizeNeeded += typeSize;
+		regionSize += typeSize;
 	}
 
-	const Pointer region = AllocateMemory(sizeNeeded);
-	return PointerMap(region, pairs);
+	const Pointer region = AllocateMemory(regionSize);
+	return MemoryRegion(region, pairs);
 }
 
 DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)

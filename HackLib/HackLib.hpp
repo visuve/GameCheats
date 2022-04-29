@@ -7,7 +7,7 @@
 #include "Logger.hpp"
 #include "OpCodes.hpp"
 #include "Pointer.hpp"
-#include "PointerMap.hpp"
+#include "MemoryRegion.hpp"
 #include "Process.hpp"
 #include "Registry.hpp"
 #include "SHA256.hpp"

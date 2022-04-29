@@ -3,7 +3,7 @@
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "NonCopyable.hpp"
-#include "PointerMap.hpp"
+#include "MemoryRegion.hpp"
 #include "VirtualMemory.hpp"
 #include "Win32Process.hpp"
 #include "Win32Thread.hpp"
@@ -140,7 +140,7 @@ public:
 
 	Pointer AllocateMemory(size_t size);
 
-	PointerMap AllocateMap(const std::initializer_list<PointerMap::NameTypePair>& pairs);
+	MemoryRegion AllocateRegion(const std::initializer_list<MemoryRegion::NameTypePair>& pairs);
 
 	DWORD CreateThread(Pointer address, Pointer parameter, bool detached = false);
 

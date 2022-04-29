@@ -63,7 +63,7 @@ int wmain(int argc, wchar_t** argv)
 			process.WriteBytes(ptr, ByteStream("F3 0F 59 05 45 23 01 00"));
 		}
 
-		PointerMap ptrs = process.AllocateMap({
+		MemoryRegion ptrs = process.AllocateRegion({
 			{ "player", typeid(Pointer) },
 			{ "weapon", typeid(Pointer) },
 			{ "health", typeid(float*) },
