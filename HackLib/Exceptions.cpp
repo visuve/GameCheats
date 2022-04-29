@@ -20,13 +20,17 @@ std::string WindowsErrorCategory::message(DWORD error) const
 	const FARPROC ntStatusToDosErrorAddress =
 		GetProcAddress(ntdll, "RtlNtStatusToDosError");
 
-	auto ntStatusToDosErrorFunction =
+	const auto ntStatusToDosErrorFunction =
 		reinterpret_cast<decltype(&RtlNtStatusToDosError)>(ntStatusToDosErrorAddress);
 
 	if (ntStatusToDosErrorFunction)
 	{
-		// This is not a must, do not return here
-		error = ntStatusToDosErrorFunction(error);
+		ULONG dosError = ntStatusToDosErrorFunction(error);
+
+		if (dosError != ERROR_MR_MID_NOT_FOUND)
+		{
+			error = static_cast<DWORD>(dosError);
+		}
 	}
 
 	constexpr DWORD flags =
