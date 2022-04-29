@@ -109,19 +109,15 @@ int wmain(int argc, wchar_t** argv)
 			process.InjectX86(L"xrGame.dll", 0x3D136C, 1, stream);
 		}
 
-		// TODO: this occasionally crashes, needs investigating
+		// TODO: this occasionally crashes after a gun jam
 		if (args.Contains(L"infammo"))
 		{
 			ByteStream stream;
 
 			stream << "39 3D" << ptrs["weapon"]; // cmp dword ptr [weapon],edi
-			stream << "74 10"; // je 10
+			stream << "74 0E"; // je 10
 			stream << "83 87 C0 05 00 00 C8";
 			stream << "83 87 7C 05 00 00 FF";
-			stream << "EB 06";
-			stream << "FF 87 7C 05 00 00";
-			stream << "90";
-
 			process.InjectX86(L"xrGame.dll", 0x21F1CF, 9, stream);
 		}
 
