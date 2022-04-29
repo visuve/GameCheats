@@ -1,12 +1,13 @@
 #pragma once
 
-inline std::string ExceptionMessage(std::string_view message, const std::source_location& location)
+struct WindowsErrorCategory : public std::error_category
 {
-	return std::format("{0}:{1}: {2}!", 
-		std::filesystem::path(location.file_name()).filename().string(),
-		location.line(), 
-		message);
-}
+	const char* name() const noexcept override;
+	std::string message(DWORD error) const;
+	std::string message(int error) const override;
+};
+
+std::string ExceptionMessage(std::string_view message, const std::source_location& location);
 
 inline auto ArgumentException(
 	std::string_view message, 
@@ -50,12 +51,6 @@ inline auto Win32Exception(
 {
 	return std::system_error(
 		static_cast<int>(error), // just has to be downcasted :-D ...
-		std::system_category(),
-		ExceptionMessage(message, location)); 
-	
-	// ... this fuckery is to prevent compiler warnings
-	// Thanks Micro$soft for having DWORD, HRESULT, LSTATUS, NTSTATUS etc.
-	// Exceptions are different in that regard as in the end they are
-	// derived from the same class i.e. std::exception. Of course throwing
-	// anything is possible, but that's just pure evil.
+		WindowsErrorCategory(),
+		ExceptionMessage(message, location));
 }
