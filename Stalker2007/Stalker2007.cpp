@@ -15,7 +15,7 @@ int wmain(int argc, wchar_t** argv)
 			{ L"infammo", typeid(std::nullopt), L"Infinite ammunition" },
 			{ L"nowear", typeid(std::nullopt), L"Weapon condition is never reduced" },
 			{ L"lessweaponweight", typeid(std::nullopt), L"Weapons weight far less in the inventory" },
-			{ L"infenergy", typeid(std::nullopt), L"Infinite health & stamina" }
+			{ L"infenergy", typeid(std::nullopt), L"Infinite health, stamina & armor" }
 		});
 
 		if (args.Contains(L"patch"))
@@ -68,10 +68,10 @@ int wmain(int argc, wchar_t** argv)
 			{ "weapon", typeid(Pointer) },
 			{ "health", typeid(float*) },
 			{ "stamina", typeid(float*) },
-			{ "armor", typeid(float) }
+			{ "armor", typeid(float*) }
 		});
 
-		Log << "Created pointers:" << ptrs;
+		Log << "Created pointers:\n" << Logger::Color::Blue << ptrs.DeserializeToCheatEngineXml();
 		
 		// Hmmm IAT @ xrGame.dll+451278
 
@@ -80,6 +80,16 @@ int wmain(int argc, wchar_t** argv)
 
 			stream << "8B 93 38 34 00 00"; // mov edx,[ebx+00003438]
 			stream << "89 15" << ptrs["weapon"]; // mov [weapon], edx
+
+			stream << "83 FA 00";
+			stream << "74 16";
+			
+			// Unroll the fucker
+			stream << "8B 82 88 00 00 00"; // mov eax, [edx+88]
+			stream << "8B 40 08"; // mov eax, [eax+08]
+			stream << "8B 40 08"; // mov eax, [eax+08]
+			stream << "05 A4 00 00 00"; // add eax, 0xA4
+			stream << "A3" << ptrs["armor"]; // mov [armor], eax
 
 			stream << "8B 93 34 34 00 00"; // mov edx,[ebx+00003434]
 			stream << "89 15" << ptrs["player"]; // mov [player], edx
@@ -130,6 +140,7 @@ int wmain(int argc, wchar_t** argv)
 
 			stream << "C7 05" << ptrs["health"] << "00 00 80 3F"; // mov [health], (float) 1
 			stream << "C7 05" << ptrs["stamina"] << "00 00 80 3F"; // mov [stamina], (float) 1
+			stream << "C7 05" << ptrs["armor"] << "00 00 80 3F"; // mov [armor], (float) 1
 			process.InjectX86(L"xrGame.dll", 0x1DD3F8, 0, stream);
 		}
 
