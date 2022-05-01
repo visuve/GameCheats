@@ -5,8 +5,9 @@
 
 class Win32Event : public Win32Handle
 {
+	Win32Event(const std::string name);
 public:
-	Win32Event(const std::string& name = System::GenerateGuid());
+	Win32Event();
 	~Win32Event();
 
 	DWORD Wait(std::chrono::milliseconds timeout = std::chrono::milliseconds(INFINITE)) const;
