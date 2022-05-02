@@ -1,14 +1,14 @@
 #include "HackLib.hpp"
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	try
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"totalammo", typeid(std::nullopt), L"Set 999 total ammo for current weapon" },
-			{ L"magammo", typeid(std::nullopt), L"Set 999 magazine ammo for current weapon" },
-			{ L"infammo", typeid(std::nullopt), L"Ammo is never reduced" },
+			{ "totalammo", typeid(std::nullopt), "Set 999 total ammo for current weapon" },
+			{ "magammo", typeid(std::nullopt), "Set 999 magazine ammo for current weapon" },
+			{ "infammo", typeid(std::nullopt), "Ammo is never reduced" },
 		});
 
 		DWORD pid = System::WaitForExe(L"hde.exe");
@@ -25,7 +25,7 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepUp();
 
-		if (args.Contains(L"totalammo"))
+		if (args.Contains("totalammo"))
 		{
 			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
@@ -34,7 +34,7 @@ int wmain(int argc, wchar_t** argv)
 			}
 		}
 
-		if (args.Contains(L"magammo"))
+		if (args.Contains("magammo"))
 		{
 			for (uint32_t x : { 0x164, 0x160, 0x15C, 0x158 })
 			{
@@ -43,7 +43,7 @@ int wmain(int argc, wchar_t** argv)
 			}
 		}
 
-		if (args.Contains(L"infammo"))
+		if (args.Contains("infammo"))
 		{
 			// Fill total ammo reducing function with NOPs
 			process.Fill(0x00059D90, 0x00059DB4, X86::Nop);
@@ -60,7 +60,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage() ;
+		std::cerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

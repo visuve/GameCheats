@@ -3,7 +3,7 @@
 constexpr char UnpatchedChecksum[] = "b789f5b63cbf403cd986710e94838e5cb0b631ba31696c382a4575dee242971f";
 constexpr char PatchedChecksum[] = "52d325e3fbf0f468062090b9d594457e3fe0eb80827d49a157e745fa7f3da3ea";
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	DWORD exitCode = 0;
 
@@ -11,17 +11,17 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"patch", typeid(std::filesystem::path), L"Remove XR_3DA.exe administrator requirement" },
-			{ L"infammo", typeid(std::nullopt), L"Infinite ammunition" },
-			{ L"infhealth", typeid(std::nullopt), L"Infinite health" },
-			{ L"infstamina", typeid(std::nullopt), L"Infinite stamina" },
-			{ L"infarmor", typeid(std::nullopt), L"Armor is never reduced" },
-			{ L"nowear", typeid(std::nullopt), L"Weapon condition is never reduced" },
+			{ "patch", typeid(std::filesystem::path), "Remove XR_3DA.exe administrator requirement" },
+			{ "infammo", typeid(std::nullopt), "Infinite ammunition" },
+			{ "infhealth", typeid(std::nullopt), "Infinite health" },
+			{ "infstamina", typeid(std::nullopt), "Infinite stamina" },
+			{ "infarmor", typeid(std::nullopt), "Armor is never reduced" },
+			{ "nowear", typeid(std::nullopt), "Weapon condition is never reduced" },
 		});
 
-		if (args.Contains(L"patch"))
+		if (args.Contains("patch"))
 		{
-			std::filesystem::path path = args.Value<std::filesystem::path>(L"patch");
+			std::filesystem::path path = args.Value<std::filesystem::path>("patch");
 
 			if (SHA256(path) != UnpatchedChecksum)
 			{
@@ -56,7 +56,7 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepUp();
 
-		if (args.Contains(L"lessweaponweight"))
+		if (args.Contains("lessweaponweight"))
 		{
 			// original: movss xmm0,[esi+000000A4] - F3 0F 10 86 A4 00 00 00
 			Pointer ptr = process.Address(L"xrGame.dll", 0x21DFBF);
@@ -110,7 +110,7 @@ int wmain(int argc, wchar_t** argv)
 		}
 
 		// TODO: this occasionally crashes after a gun jam
-		if (args.Contains(L"infammo"))
+		if (args.Contains("infammo"))
 		{
 			ByteStream stream;
 
@@ -123,22 +123,22 @@ int wmain(int argc, wchar_t** argv)
 
 		ByteStream stream;
 
-		if (args.Contains(L"infhealth"))
+		if (args.Contains("infhealth"))
 		{
 			stream << "C7 05" << ptrs["health"] << "00 00 80 3F"; // mov [health], (float) 1
 		}
 
-		if (args.Contains(L"infstamina"))
+		if (args.Contains("infstamina"))
 		{
 			stream << "C7 05" << ptrs["stamina"] << "00 00 80 3F"; // mov [stamina], (float) 1
 		}
 
-		if (args.Contains(L"infarmor"))
+		if (args.Contains("infarmor"))
 		{
 			stream << "C7 05" << ptrs["armor"] << "00 00 80 3F"; // mov [armor], (float) 1
 		}
 
-		if (args.Contains(L"nowear"))
+		if (args.Contains("nowear"))
 		{
 			stream << "C7 05" << ptrs["condition"] << "00 00 80 3F"; // mov [condition], (float) 1
 		}
@@ -156,7 +156,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage();
+		std::cerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

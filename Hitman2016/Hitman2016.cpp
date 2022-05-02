@@ -1,6 +1,6 @@
 #include "HackLib.hpp"
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	DWORD exitCode = 0;
 
@@ -8,8 +8,8 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infammo", typeid(std::nullopt), L"Increasing ammunition" },
-			{ L"dummyai", typeid(std::nullopt), L"AI cannot shoot"  }
+			{ "infammo", typeid(std::nullopt), "Increasing ammunition" },
+			{ "dummyai", typeid(std::nullopt), "AI cannot shoot"  }
 		});
 
 		DWORD pid = System::WaitForWindow(L"Hitman");
@@ -26,12 +26,12 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepUp();
 
-		if (args.Contains(L"infammo"))
+		if (args.Contains("infammo"))
 		{
 			process.ChangeByte(0x103047, 0xCA, 0xC2);
 		}
 
-		if (args.Contains(L"dummyai"))
+		if (args.Contains("dummyai"))
 		{
 			// New code
 			ByteStream code;
@@ -61,7 +61,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage();
+		std::cerr << e.Usage();
 		System::BeepBurst();
 		return ERROR_BAD_ARGUMENTS;
 	}

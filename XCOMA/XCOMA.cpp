@@ -80,23 +80,23 @@ std::fstream FindName(std::filesystem::path path, const std::string& name)
 	return file;
 }
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	try
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infmoney", typeid(std::nullopt), L"Infinite money (DOSBox only). Exclusive to other parameters.\n"
-				L"\t\t\tWarning, very hacky! Make sure you do not have other DOSBox instances running!" },
-			{ L"path", typeid(std::filesystem::path), L"Path to your save game file" },
-			{ L"patchsoldier", typeid(std::nullopt), L"Patch a soldier" },
-			{ L"patchbiochemist", typeid(std::nullopt), L"Patch a biochemist" },
-			{ L"patchphysicist", typeid(std::nullopt), L"Patch a physicist" },
-			{ L"patchengineer", typeid(std::nullopt), L"Patch an engineer" },
-			{ L"name", typeid(std::wstring), L"The name of the soldier/engineer/scientist" },
+			{ "infmoney", typeid(std::nullopt), "Infinite money (DOSBox only). Exclusive to other parameters.\n"
+				"\t\t\tWarning, very hacky! Make sure you do not have other DOSBox instances running!" },
+			{ "path", typeid(std::filesystem::path), "Path to your save game file" },
+			{ "patchsoldier", typeid(std::nullopt), "Patch a soldier" },
+			{ "patchbiochemist", typeid(std::nullopt), "Patch a biochemist" },
+			{ "patchphysicist", typeid(std::nullopt), "Patch a physicist" },
+			{ "patchengineer", typeid(std::nullopt), "Patch an engineer" },
+			{ "name", typeid(std::string), "The name of the soldier/engineer/scientist" },
 		});
 
-		if (args.Contains(L"infmoney"))
+		if (args.Contains("infmoney"))
 		{
 			DWORD pid = System::WaitForExe(L"dosbox.exe");
 
@@ -121,26 +121,26 @@ int wmain(int argc, wchar_t** argv)
 			return process.WairForExit();
 		}
 
-		if (!args.Contains(L"name") || !args.Contains(L"path"))
+		if (!args.Contains("name") || !args.Contains("path"))
 		{
 			throw CmdArgs::Exception("All patches require a path and a name to be given", args.Usage());
 		}
 
 		std::streamoff offset;
 
-		if (args.Contains(L"patchsoldier"))
+		if (args.Contains("patchsoldier"))
 		{
 			offset = 58;
 		}
-		else if (args.Contains(L"patchbiochemist"))
+		else if (args.Contains("patchbiochemist"))
 		{
 			offset = 73;
 		}
-		else if (args.Contains(L"patchphysicist"))
+		else if (args.Contains("patchphysicist"))
 		{
 			offset = 74;
 		}
-		if (args.Contains(L"patchengineer"))
+		if (args.Contains("patchengineer"))
 		{
 			offset = 75;
 		}
@@ -149,10 +149,10 @@ int wmain(int argc, wchar_t** argv)
 			throw CmdArgs::Exception("Cannot know what do you want to patch", args.Usage());
 		}
 
-		const std::filesystem::path path = args.Value<std::filesystem::path>(L"path");
-		const std::string name = StrConvert::ToUtf8(args.Value<std::wstring>(L"name"));
+		const std::filesystem::path path = args.Value<std::filesystem::path>("path");
+		const std::string name = args.Value<std::string>("name");
 
-		if (args.Contains(L"patchsoldier"))
+		if (args.Contains("patchsoldier"))
 		{
 			std::fstream file = FindName(path, name);
 
@@ -216,7 +216,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage();
+		std::cerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

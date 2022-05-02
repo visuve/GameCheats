@@ -1,14 +1,14 @@
 #include "HackLib.hpp"
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	try
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"reloadadds", typeid(std::nullopt), L"Reloading adds to total ammo" },
-			{ L"infammo", typeid(std::nullopt), L"Ammunition is never reduced" },
-			{ L"infbullettime", typeid(std::nullopt), L"Infinite \"bullet time\"" },
+			{ "reloadadds", typeid(std::nullopt), "Reloading adds to total ammo" },
+			{ "infammo", typeid(std::nullopt), "Ammunition is never reduced" },
+			{ "infbullettime", typeid(std::nullopt), "Infinite \"bullet time\"" },
 		});
 
 		DWORD pid = System::WaitForExe(L"maxpayne.exe");
@@ -25,20 +25,20 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepUp();
 
-		if (args.Contains(L"reloadadds") || args.Contains(L"infammo"))
+		if (args.Contains("reloadadds") || args.Contains("infammo"))
 		{
 			// Reload adds ammo instead of consumes
 			// Also makes painkillers & throwables unlimited
 			process.ChangeByte(0x34829D, X86::SubGvEv, X86::AddGvEv);
 		}
 		
-		if (args.Contains(L"infammo"))
+		if (args.Contains("infammo"))
 		{
 			// The ammo never decreases
 			process.Fill(0x357F50, 0x357F5C, X86::Nop);
 		}
 
-		if (args.Contains(L"infbullettime"))
+		if (args.Contains("infbullettime"))
 		{
 			process.Fill(0x4CED0, 0x4CEDC, X86::Nop);
 		}
@@ -48,7 +48,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage() ;
+		std::cerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

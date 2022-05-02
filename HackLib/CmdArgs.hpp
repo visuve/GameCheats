@@ -9,36 +9,36 @@ public:
 	class Exception : public std::exception
 	{
 	public:
-		Exception(const std::string& what, const std::wstring& usage);
-		std::wstring_view Usage() const;
+		Exception(const std::string& what, const std::string& usage);
+		std::string_view Usage() const;
 		const char* what() const throw ();
 
 	private:
-		const std::wstring _usage;
+		const std::string _usage;
 		const std::string _what;
 	};
 
-	using Argument = std::tuple<std::wstring, std::type_index, std::wstring>;
+	using Argument = std::tuple<std::string, std::type_index, std::string>;
 
-	CmdArgs(const std::vector<std::wstring>& given, std::initializer_list<Argument> expected);
-	CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expected);
+	CmdArgs(const std::vector<std::string>& given, std::initializer_list<Argument> expected);
+	CmdArgs(int argc, char** argv, std::initializer_list<Argument> expected);
 	NonCopyable(CmdArgs);
 
-	bool Contains(std::wstring_view x) const;
+	bool Contains(std::string_view x) const;
 
 	template<typename T>
-	T Value(std::wstring_view key) const
+	T Value(std::string_view key) const
 	{
 		return std::any_cast<T>(ValueByKey(key));
 	}
 
-	std::wstring Usage() const;
+	std::string Usage() const;
 
 private:
-	std::type_index TypeByKey(std::wstring_view key) const;
-	std::any ValueByKey(std::wstring_view key) const;
+	std::type_index TypeByKey(std::string_view key) const;
+	std::any ValueByKey(std::string_view key) const;
 
-	std::wstring _usage;
+	std::string _usage;
 	const std::vector<Argument> _expected;
-	const std::vector<std::wstring> _arguments;
+	const std::vector<std::string> _arguments;
 };

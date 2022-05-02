@@ -166,22 +166,22 @@ namespace R6BO
 	}
 }
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	try
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"persistent", typeid(std::nullopt), L"Hack the registry & some mission files to allow more terrorists" },
-			{ L"persistent", typeid(std::nullopt), L"Apply various in memory hacks, e.g. increasing ammo" },
+			{ "persistent", typeid(std::nullopt), "Hack the registry & some mission files to allow more terrorists" },
+			{ "persistent", typeid(std::nullopt), "Apply various in memory hacks, e.g. increasing ammo" },
 		});
 
-		if (args.Contains(L"persistent"))
+		if (args.Contains("persistent"))
 		{
 			R6BO::ApplyPersistentHacks();
 		}
 
-		if (args.Contains(L"inmemory"))
+		if (args.Contains("inmemory"))
 		{
 			R6BO::HackRunningProcess();
 		}
@@ -189,7 +189,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage() ;
+		std::cerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

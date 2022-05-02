@@ -5,7 +5,7 @@
 	However, the god mode does not prevent armor from wearing and inf ammo does not affect
 	the ammo in clips.
 */
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	DWORD exitCode = 0;
 
@@ -13,10 +13,10 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infammo", typeid(std::nullopt), L"Never decreasing ammunition" },
-			{ L"infarmor", typeid(std::nullopt), L"Never decreasing armor" },
-			{ L"infhealth", typeid(std::nullopt), L"Never decreasing health" },
-			{ L"drawdistance", typeid(std::nullopt), L"10x the maximum drawing distance" }
+			{ "infammo", typeid(std::nullopt), "Never decreasing ammunition" },
+			{ "infarmor", typeid(std::nullopt), "Never decreasing armor" },
+			{ "infhealth", typeid(std::nullopt), "Never decreasing health" },
+			{ "drawdistance", typeid(std::nullopt), "10x the maximum drawing distance" }
 		});
 
 		DWORD pid = System::WaitForWindow(L"Direct3D");
@@ -33,7 +33,7 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepUp();
 
-		if (args.Contains(L"infammo"))
+		if (args.Contains("infammo"))
 		{
 			// Pistols
 			process.ChangeByte(process.Address(L"HitmanDlc.dlc", 0xEF52E), X86::DecEax, X86::Nop);
@@ -46,19 +46,19 @@ int wmain(int argc, wchar_t** argv)
 			process.WriteBytes(process.Address(L"HitmanDlc.dlc", 0xEF4D2), nops);
 		}
 
-		if (args.Contains(L"infarmor"))
+		if (args.Contains("infarmor"))
 		{
 			uint8_t nops[] = { X86::Nop, X86::Nop, X86::Nop, X86::Nop, X86::Nop, X86::Nop };
 			process.WriteBytes(process.Address(L"HitmanDlc.dlc", 0x11F846), nops);
 		}
 
-		if (args.Contains(L"infhealth"))
+		if (args.Contains("infhealth"))
 		{
 			uint8_t nops[] = { X86::Nop, X86::Nop, X86::Nop, X86::Nop, X86::Nop, X86::Nop };
 			process.WriteBytes(process.Address(L"HitmanDlc.dlc", 0x11F889), nops);
 		}
 
-		if (args.Contains(L"drawdistance"))
+		if (args.Contains("drawdistance"))
 		{
 			Pointer value = process.AllocateMemory(sizeof(double));
 			process.Write(value, double(50000.00));
@@ -79,7 +79,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage() ;
+		std::cerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

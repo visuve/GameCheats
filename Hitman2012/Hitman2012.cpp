@@ -1,14 +1,14 @@
 #include "HackLib.hpp"
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	try
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infstealth", typeid(std::nullopt), L"Infinite stealth" },
-			{ L"infhealth", typeid(std::nullopt), L"Infinite health" },
-			{ L"infammo", typeid(std::nullopt), L"Infinite ammo" },
+			{ "infstealth", typeid(std::nullopt), "Infinite stealth" },
+			{ "infhealth", typeid(std::nullopt), "Infinite health" },
+			{ "infammo", typeid(std::nullopt), "Infinite ammo" },
 		});
 
 		DWORD pid = System::WaitForExe(L"HMA.exe");
@@ -25,17 +25,17 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepUp();
 
-		if (args.Contains(L"infstealth"))
+		if (args.Contains("infstealth"))
 		{
 			process.Fill(0x60A926, 0x60A929, X86::Nop);
 		}
 
-		if (args.Contains(L"infhealth"))
+		if (args.Contains("infhealth"))
 		{
 			process.Fill(0x4082E1, 0x4082E3, X86::Nop);
 		}
 
-		if (args.Contains(L"infammo"))
+		if (args.Contains("infammo"))
 		{
 			process.ChangeByte(0x5ECEAD, X86::DecEax, X86::IncEax);
 		}
@@ -45,7 +45,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage() ;
+		std::cerr << e.Usage() ;
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

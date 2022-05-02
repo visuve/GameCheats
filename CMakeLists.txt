@@ -11,11 +11,9 @@ set(LIBRARY_OUTPUT_PATH "..")
 
 if(MSVC)
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	add_compile_options(/MP /W4 /WX)
+	add_compile_options(/MP /W4 /WX /utf-8)
 	add_compile_definitions(NOMINMAX VC_EXTRALEAN)
 endif()
-
-
 
 add_subdirectory("HackLib")
 include_directories("HackLib")

@@ -50,7 +50,7 @@ std::ostream& operator << (std::ostream& os, const Player& p)
 	return os;
 }
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	DWORD exitCode = 0;
 
@@ -58,7 +58,7 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infammo", typeid(std::nullopt), L"255 ammo always" }
+			{ "infammo", typeid(std::nullopt), "255 ammo always" }
 		});
 
 		DWORD pid = System::WaitForExe(L"Quake_x64_steam.exe");
@@ -75,7 +75,7 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepDown();
 
-		if (args.Contains(L"infammo"))
+		if (args.Contains("infammo"))
 		{
 			ByteStream stream;
 
@@ -112,7 +112,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage();
+		std::cerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

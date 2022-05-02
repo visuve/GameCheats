@@ -1,6 +1,6 @@
 #include "HackLib.hpp"
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	DWORD exitCode = 0;
 
@@ -10,10 +10,10 @@ int wmain(int argc, wchar_t** argv)
 
 		const CmdArgs args(argc, argv,
 		{
-			{ L"calculator", typeid(std::nullopt), L"Just an example" }
+			{ "calculator", typeid(std::nullopt), "Just an example" }
 		});
 
-		if (args.Contains(L"calculator"))
+		if (args.Contains("calculator"))
 		{
 			DWORD pid = System::WaitForWindow(L"Calculator");
 
@@ -36,7 +36,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage();
+		std::cerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

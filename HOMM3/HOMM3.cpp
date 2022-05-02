@@ -36,13 +36,13 @@ std::ostream& operator << (std::ostream& os, const Resources& r)
 	return os;
 }
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	try
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"addresources", typeid(std::nullopt), L"Adds 48879 to each resource" },
+			{ "addresources", typeid(std::nullopt), "Adds 48879 to each resource" },
 		});
 
 		DWORD pid = System::WaitForExe(L"HOMM3 2.0.exe");
@@ -59,7 +59,7 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepUp();
 
-		if (args.Contains(L"addresources"))
+		if (args.Contains("addresources"))
 		{
 			Pointer resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
 
@@ -81,7 +81,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage();
+		std::cerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)

@@ -1,6 +1,6 @@
 #include "HackLib.hpp"
 
-int wmain(int argc, wchar_t** argv)
+int main(int argc, char** argv)
 {
 	DWORD exitCode = 0;
 
@@ -8,8 +8,8 @@ int wmain(int argc, wchar_t** argv)
 	{
 		const CmdArgs args(argc, argv,
 		{
-			{ L"infammo", typeid(std::nullopt), L"Never decreasing ammunition" },
-			{ L"infhealth", typeid(std::nullopt), L"Never decreasing health" }
+			{ "infammo", typeid(std::nullopt), "Never decreasing ammunition" },
+			{ "infhealth", typeid(std::nullopt), "Never decreasing health" }
 		});
 
 		DWORD pid = System::WaitForWindow(L"Hitman Contracts");
@@ -26,7 +26,7 @@ int wmain(int argc, wchar_t** argv)
 		process.WaitForIdle();
 		System::BeepUp();
 
-		if (args.Contains(L"infammo"))
+		if (args.Contains("infammo"))
 		{
 			ByteStream code;
 
@@ -47,7 +47,7 @@ int wmain(int argc, wchar_t** argv)
 			process.InjectX86(0x77CD1, 8, code);
 		}
 
-		if (args.Contains(L"dummyai"))
+		if (args.Contains("dummyai"))
 		{
 			ByteStream code;
 
@@ -61,7 +61,7 @@ int wmain(int argc, wchar_t** argv)
 			process.InjectX86(0x77C20, 4, code);
 		}
 
-		if (args.Contains(L"infhealth"))
+		if (args.Contains("infhealth"))
 		{
 			process.Fill(0x12EBBD, 0x12EBC1, X86::Nop);
 		}
@@ -72,7 +72,7 @@ int wmain(int argc, wchar_t** argv)
 	catch (const CmdArgs::Exception& e)
 	{
 		LogError << e.what() << "\n";
-		std::wcerr << e.Usage();
+		std::cerr << e.Usage();
 		return ERROR_BAD_ARGUMENTS;
 	}
 	catch (const std::system_error& e)
