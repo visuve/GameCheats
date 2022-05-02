@@ -46,14 +46,17 @@ public:
 			return *this;
 		}
 
-		switch (_color)
+		if (_isConsoleOutput)
 		{
-			case Color::Black:
-			case Color::Default:
-				break;
-			default:
-				_stream << Foreground(Color::Default) << Foreground(_color);
-				break;
+			switch (_color)
+			{
+				case Color::Black:
+				case Color::Default:
+					break;
+				default:
+					_stream << Foreground(Color::Default) << Foreground(_color);
+					break;
+			}
 		}
 
 		switch (_modifier)
@@ -80,6 +83,7 @@ private:
 	std::ostream& _stream;
 	Modifier _modifier = Modifier::Space;
 	Color _color = Color::Default;
+	const bool _isConsoleOutput;
 
 	static constexpr std::string_view Foreground(Color c)
 	{
@@ -132,6 +136,21 @@ private:
 		throw ArgumentException("Unknown background color");
 	}
 };
+
+#ifdef _DEBUG
+#define LogDebug Logger(std::clog, std::source_location::current())
+#else
+struct PseudoLogger
+{
+	template <typename T>
+	PseudoLogger& operator << (T)
+	{
+		return *this;
+	}
+};
+
+#define LogDebug PseudoLogger()
+#endif
 
 #define Log Logger(std::cout, std::source_location::current())
 #define LogError Logger(std::cerr, std::source_location::current())

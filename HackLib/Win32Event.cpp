@@ -1,5 +1,6 @@
 #include "Exceptions.hpp"
 #include "Logger.hpp"
+#include "System.hpp"
 #include "Win32Event.hpp"
 
 static BOOL WINAPI ConsoleHandler(_In_ DWORD);
@@ -11,18 +12,14 @@ public:
 	{
 		SetConsoleCtrlHandler(ConsoleHandler, true);
 
-#ifdef _DEBUG
-		Log << "Hello, Welcome from HackLib!";
-#endif
+		LogDebug << "Hello, Welcome from HackLib!";
 	}
 
 	~EventList()
 	{
 		_ASSERT(_eventNames.empty());
 
-#ifdef _DEBUG
-		Log << "Bye!";
-#endif
+		LogDebug << "Bye!";
 	}
 
 	void Add(const std::string& name)
@@ -51,7 +48,7 @@ EventList events;
 
 static BOOL WINAPI ConsoleHandler(_In_ DWORD signal)
 {
-	DWORD exitCode = ERROR_CANCELLED;
+	int exitCode = ERROR_CANCELLED;
 
 	switch (signal)
 	{
@@ -67,7 +64,7 @@ static BOOL WINAPI ConsoleHandler(_In_ DWORD signal)
 		case CTRL_LOGOFF_EVENT:
 			Log << "Signaled logoff event";
 			// There is no sane exit code for logoff
-			exitCode = static_cast<DWORD>(SCARD_E_SYSTEM_CANCELLED);
+			exitCode = static_cast<int>(SCARD_E_SYSTEM_CANCELLED);
 			break;
 		case CTRL_SHUTDOWN_EVENT:
 			Log << "Signaled shutdown event";

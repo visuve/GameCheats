@@ -1,7 +1,5 @@
 #pragma once
 
-#include "NonCopyable.hpp"
-
 namespace System
 {
 	DWORD PidByName(std::wstring_view moduleName);

@@ -3,7 +3,8 @@
 std::mutex Logger::_mutex;
 
 Logger::Logger(std::ostream& stream, const std::source_location& location) :
-	_stream(stream)
+	_stream(stream),
+	_isConsoleOutput(&stream == &std::cout || &stream == &std::cerr || &stream == &std::clog)
 {
 	if (!_stream)
 	{
@@ -12,16 +13,17 @@ Logger::Logger(std::ostream& stream, const std::source_location& location) :
 
 	_mutex.lock();
 
-	_stream << Background(Color::Black);
-
 	if (&_stream == &std::cout)
 	{
-		_stream << Foreground(Color::LightGreen);
+		_stream << Background(Color::Black) << Foreground(Color::LightGreen);
 	}
-
-	if (&_stream == &std::cerr)
+	else if (&_stream == &std::cerr)
 	{
-		_stream << Foreground(Color::Red);
+		_stream << Background(Color::Black) <<  Foreground(Color::Red);
+	}
+	else if (&_stream == &std::clog)
+	{
+		_stream << Background(Color::Black) << Foreground(Color::DarkGray);
 	}
 
 	const std::chrono::zoned_time currentTime(
@@ -45,7 +47,10 @@ Logger::~Logger()
 		return;
 	}
 
-	_stream << Foreground(Color::Default) << std::endl;
+	if (_isConsoleOutput)
+	{
+		_stream << Foreground(Color::Default) << std::endl;
+	}
 
 	_mutex.unlock();
 }
