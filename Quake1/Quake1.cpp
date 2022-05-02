@@ -12,8 +12,8 @@ enum Items : uint32_t
 	LightningGun = 64
 };
 
-constexpr uint32_t AllItems = 
-	Axe | Shotgun | SuperShotgun | NailGun | SuperNailGun | GrenadeLauncher | RocketLauncher | LightningGun;
+constexpr uint32_t AllItems =
+Axe | Shotgun | SuperShotgun | NailGun | SuperNailGun | GrenadeLauncher | RocketLauncher | LightningGun;
 
 struct Player
 {
@@ -50,83 +50,58 @@ std::ostream& operator << (std::ostream& os, const Player& p)
 	return os;
 }
 
-int main(int argc, char** argv)
+int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	DWORD exitCode = 0;
-
-	try
+	const CmdArgs args(givenArguments,
 	{
-		const CmdArgs args(argc, argv,
-		{
-			{ "infammo", typeid(std::nullopt), "255 ammo always" }
-		});
+		{ "infammo", typeid(std::nullopt), "255 ammo always" }
+	});
 
-		DWORD pid = System::WaitForExe(L"Quake_x64_steam.exe");
+	DWORD pid = System::WaitForExe(L"Quake_x64_steam.exe");
 
-		Process process(pid);
+	Process process(pid);
 
-		if (!process.Verify("39d0a522918f078425bda90d43292e9bb83866d442059deb5be75ae8f4f8109a"))
-		{
-			LogError << "Expected Quake 1 Remake v1.0.5036 (Steam)";
-			System::BeepBurst();
-			return ERROR_REVISION_MISMATCH;
-		}
-
-		process.WaitForIdle();
-		System::BeepDown();
-
-		if (args.Contains("infammo"))
-		{
-			ByteStream stream;
-
-			// Orig
-			stream << "48 63 14 B3"; // movsxd rdx,dword ptr [rbx+rsi*4]
-			stream << "48 A1" << process.Address(0x18DB3D0); // mov rax,[1418DB3D0]
-			stream << "8B 0C BB"; // mov ecx,[rbx+rdi*4]
-
-			// If rdx hits the spot, lets set 255 to ecx
-			stream << "48 81 FA AC 05 00 00"; // cmp rdx, 000005AC
-			stream << "74 26"; // je
-			stream << "48 81 FA B0 05 00 00"; // cmp rdx, 000005B0
-			stream << "74 1D"; // je
-			stream << "48 81 FA B4 05 00 00"; // cmp rdx, 000005B4
-			stream << "74 14"; // je
-			stream << "48 81 FA B8 05 00 00"; // cmp rdx, 000005B8
-			stream << "74 0B"; // je
-			stream << "48 81 FA BC 05 00 00"; // cmp rdx, 000005BC
-			stream << "74 02"; // je
-			stream << "EB 05"; // jmp 5
-			stream << "B9 00 00 7F 43"; // mov ecx, 437F0000 (float 255)
-			stream << "90"; // nop
-
-			// Orig
-			stream << "89 0C 02"; // mov [rdx+rax],ecx <- the fucker from the original code
-
-			process.InjectX64(0x1CBE71, 3, stream);
-
-			exitCode = process.WairForExit();
-		}
-
-		System::BeepDown();
-	}
-	catch (const CmdArgs::Exception& e)
+	if (!process.Verify("39d0a522918f078425bda90d43292e9bb83866d442059deb5be75ae8f4f8109a"))
 	{
-		LogError << e.what() << "\n";
-		std::cerr << e.Usage();
-		return ERROR_BAD_ARGUMENTS;
-	}
-	catch (const std::system_error& e)
-	{
-		LogError << e.what();
+		LogError << "Expected Quake 1 Remake v1.0.5036 (Steam)";
 		System::BeepBurst();
-		return e.code().value();
-	}
-	catch (const std::exception& e)
-	{
-		LogError << e.what();
-		System::BeepBurst();
-		return ERROR_PROCESS_ABORTED;
+		return ERROR_REVISION_MISMATCH;
 	}
 
-	return exitCode;
+	process.WaitForIdle();
+	System::BeepUp();
+
+	if (args.Contains("infammo"))
+	{
+		ByteStream stream;
+
+		// Orig
+		stream << "48 63 14 B3"; // movsxd rdx,dword ptr [rbx+rsi*4]
+		stream << "48 A1" << process.Address(0x18DB3D0); // mov rax,[1418DB3D0]
+		stream << "8B 0C BB"; // mov ecx,[rbx+rdi*4]
+
+		// If rdx hits the spot, lets set 255 to ecx
+		stream << "48 81 FA AC 05 00 00"; // cmp rdx, 000005AC
+		stream << "74 26"; // je
+		stream << "48 81 FA B0 05 00 00"; // cmp rdx, 000005B0
+		stream << "74 1D"; // je
+		stream << "48 81 FA B4 05 00 00"; // cmp rdx, 000005B4
+		stream << "74 14"; // je
+		stream << "48 81 FA B8 05 00 00"; // cmp rdx, 000005B8
+		stream << "74 0B"; // je
+		stream << "48 81 FA BC 05 00 00"; // cmp rdx, 000005BC
+		stream << "74 02"; // je
+		stream << "EB 05"; // jmp 5
+		stream << "B9 00 00 7F 43"; // mov ecx, 437F0000 (float 255)
+		stream << "90"; // nop
+
+		// Orig
+		stream << "89 0C 02"; // mov [rdx+rax],ecx <- the fucker from the original code
+
+		process.InjectX64(0x1CBE71, 3, stream);
+
+		return process.WairForExit();
+	}
+
+	return 0;
 }

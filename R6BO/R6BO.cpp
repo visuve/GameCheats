@@ -166,41 +166,22 @@ namespace R6BO
 	}
 }
 
-int main(int argc, char** argv)
+int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	try
+	const CmdArgs args(givenArguments,
 	{
-		const CmdArgs args(argc, argv,
-		{
-			{ "persistent", typeid(std::nullopt), "Hack the registry & some mission files to allow more terrorists" },
-			{ "persistent", typeid(std::nullopt), "Apply various in memory hacks, e.g. increasing ammo" },
-		});
+		{ "persistent", typeid(std::nullopt), "Hack the registry & some mission files to allow more terrorists" },
+		{ "persistent", typeid(std::nullopt), "Apply various in memory hacks, e.g. increasing ammo" },
+	});
 
-		if (args.Contains("persistent"))
-		{
-			R6BO::ApplyPersistentHacks();
-		}
+	if (args.Contains("persistent"))
+	{
+		R6BO::ApplyPersistentHacks();
+	}
 
-		if (args.Contains("inmemory"))
-		{
-			R6BO::HackRunningProcess();
-		}
-	}
-	catch (const CmdArgs::Exception& e)
+	if (args.Contains("inmemory"))
 	{
-		LogError << e.what() << "\n";
-		std::cerr << e.Usage() ;
-		return ERROR_BAD_ARGUMENTS;
-	}
-	catch (const std::system_error& e)
-	{
-		LogError << e.what();
-		return e.code().value();
-	}
-	catch (const std::exception& e)
-	{
-		LogError << e.what() ;
-		return ERROR_PROCESS_ABORTED;
+		R6BO::HackRunningProcess();
 	}
 
 	return 0;

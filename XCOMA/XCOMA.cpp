@@ -1,7 +1,7 @@
 #include "HackLib.hpp"
 
 struct Soldier
-{ 
+{
 	uint8_t Speed = 0;
 	uint8_t HealthA = 0;
 	uint8_t HealthB = 0;
@@ -31,14 +31,14 @@ struct Soldier
 
 std::ostream& operator << (std::ostream& os, const Soldier& s)
 {
-	os << "Speed:       " << +s.Speed ;
-	os << "Health:      " << +s.HealthA << '/' << +s.HealthB ;
-	os << "Stamina:     " << +(s.Stamina / 2) ;
-	os << "Reactions:   " << +s.Reactions ;
-	os << "Bravery:     " << uint16_t(s.Bravery) * 10u ;
-	os << "Strength:    " << +s.Strength ;
-	os << "Psi-energy:  " << +s.PsiEnergy ;
-	os << "Psi-attack:  " << +s.PsiAttack ;
+	os << "Speed:       " << +s.Speed;
+	os << "Health:      " << +s.HealthA << '/' << +s.HealthB;
+	os << "Stamina:     " << +(s.Stamina / 2);
+	os << "Reactions:   " << +s.Reactions;
+	os << "Bravery:     " << uint16_t(s.Bravery) * 10u;
+	os << "Strength:    " << +s.Strength;
+	os << "Psi-energy:  " << +s.PsiEnergy;
+	os << "Psi-attack:  " << +s.PsiAttack;
 	os << "Psi-defense: " << +s.PsiDefence;
 	return os;
 }
@@ -80,110 +80,78 @@ std::fstream FindName(std::filesystem::path path, const std::string& name)
 	return file;
 }
 
-int main(int argc, char** argv)
+int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	try
+	const CmdArgs args(givenArguments,
 	{
-		const CmdArgs args(argc, argv,
+		{ "infmoney", typeid(std::nullopt), "Infinite money (DOSBox only). Exclusive to other parameters.\n"
+			"\t\t\tWarning, very hacky! Make sure you do not have other DOSBox instances running!" },
+		{ "path", typeid(std::filesystem::path), "Path to your save game file" },
+		{ "patchsoldier", typeid(std::nullopt), "Patch a soldier" },
+		{ "patchbiochemist", typeid(std::nullopt), "Patch a biochemist" },
+		{ "patchphysicist", typeid(std::nullopt), "Patch a physicist" },
+		{ "patchengineer", typeid(std::nullopt), "Patch an engineer" },
+		{ "name", typeid(std::string), "The name of the soldier/engineer/scientist" },
+	});
+
+	if (args.Contains("infmoney"))
+	{
+		DWORD pid = System::WaitForExe(L"dosbox.exe");
+
+		Process process(pid);
+
+		if (!process.Verify("c846e94041bef52cc0700a4c8f64449d72880bcb5a85e195030147c3ee8bd319"))
 		{
-			{ "infmoney", typeid(std::nullopt), "Infinite money (DOSBox only). Exclusive to other parameters.\n"
-				"\t\t\tWarning, very hacky! Make sure you do not have other DOSBox instances running!" },
-			{ "path", typeid(std::filesystem::path), "Path to your save game file" },
-			{ "patchsoldier", typeid(std::nullopt), "Patch a soldier" },
-			{ "patchbiochemist", typeid(std::nullopt), "Patch a biochemist" },
-			{ "patchphysicist", typeid(std::nullopt), "Patch a physicist" },
-			{ "patchengineer", typeid(std::nullopt), "Patch an engineer" },
-			{ "name", typeid(std::string), "The name of the soldier/engineer/scientist" },
-		});
-
-		if (args.Contains("infmoney"))
-		{
-			DWORD pid = System::WaitForExe(L"dosbox.exe");
-
-			Process process(pid);
-
-			if (!process.Verify("c846e94041bef52cc0700a4c8f64449d72880bcb5a85e195030147c3ee8bd319"))
-			{
-				LogError << "Expected XCOM Apocalypse running in DOSBox v0.7.2";
-				System::BeepBurst();
-				return ERROR_REVISION_MISMATCH;
-			}
-
-			ByteStream bytes;
-
-			bytes << "81 FF CC D4 83 10"; // cmp edi,1083D4CC
-			bytes << "75 05"; // jne 5
-			bytes << "BB 15 CD 5B 07"; // mov ebx,075BCD15
-			bytes << "F7 C7 03 00 00 00"; // test edi,00000003
-
-			process.InjectX86(0xB5B93, 1, bytes);
-
-			return process.WairForExit();
+			LogError << "Expected XCOM Apocalypse running in DOSBox v0.7.2";
+			System::BeepBurst();
+			return ERROR_REVISION_MISMATCH;
 		}
 
-		if (!args.Contains("name") || !args.Contains("path"))
-		{
-			throw CmdArgs::Exception("All patches require a path and a name to be given", args.Usage());
-		}
+		ByteStream bytes;
 
-		std::streamoff offset;
+		bytes << "81 FF CC D4 83 10"; // cmp edi,1083D4CC
+		bytes << "75 05"; // jne 5
+		bytes << "BB 15 CD 5B 07"; // mov ebx,075BCD15
+		bytes << "F7 C7 03 00 00 00"; // test edi,00000003
 
-		if (args.Contains("patchsoldier"))
-		{
-			offset = 58;
-		}
-		else if (args.Contains("patchbiochemist"))
-		{
-			offset = 73;
-		}
-		else if (args.Contains("patchphysicist"))
-		{
-			offset = 74;
-		}
-		if (args.Contains("patchengineer"))
-		{
-			offset = 75;
-		}
-		else
-		{
-			throw CmdArgs::Exception("Cannot know what do you want to patch", args.Usage());
-		}
+		process.InjectX86(0xB5B93, 1, bytes);
 
-		const std::filesystem::path path = args.Value<std::filesystem::path>("path");
-		const std::string name = args.Value<std::string>("name");
+		return process.WairForExit();
+	}
 
-		if (args.Contains("patchsoldier"))
-		{
-			std::fstream file = FindName(path, name);
+	if (!args.Contains("name") || !args.Contains("path"))
+	{
+		throw CmdArgs::Exception("All patches require a path and a name to be given", args.Usage());
+	}
 
-			if (!file)
-			{
-				throw LogicException("???");
-			}
-			
-			file.seekg(offset, std::ios::cur);
+	std::streamoff offset;
 
-			Soldier soldier;
-			file.read(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
+	if (args.Contains("patchsoldier"))
+	{
+		offset = 58;
+	}
+	else if (args.Contains("patchbiochemist"))
+	{
+		offset = 73;
+	}
+	else if (args.Contains("patchphysicist"))
+	{
+		offset = 74;
+	}
+	if (args.Contains("patchengineer"))
+	{
+		offset = 75;
+	}
+	else
+	{
+		throw CmdArgs::Exception("Cannot know what do you want to patch", args.Usage());
+	}
 
-			Log << name << " had:";
-			std::cout << soldier << std::endl;
+	const std::filesystem::path path = args.Value<std::filesystem::path>("path");
+	const std::string name = args.Value<std::string>("name");
 
-			soldier.MaxOut();
-
-			offset = 0;
-			offset -= sizeof(Soldier);
-
-			file.seekp(offset, std::ios::cur);
-			file.write(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
-			file.flush();
-
-			Log << name << " now has:";
-			std::cout << soldier << std::endl;
-
-			Log << "\n... KTHXBYE.";
-		}
-
+	if (args.Contains("patchsoldier"))
+	{
 		std::fstream file = FindName(path, name);
 
 		if (!file)
@@ -193,44 +161,54 @@ int main(int argc, char** argv)
 
 		file.seekg(offset, std::ios::cur);
 
-		uint8_t value = 0;
-		file >> value;
-		Log << name << " had skill of: " << +value;
+		Soldier soldier;
+		file.read(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
 
-		value = 0xFF;
+		Log << name << " had:";
+		std::cout << soldier << std::endl;
+
+		soldier.MaxOut();
 
 		offset = 0;
-		offset -= sizeof(uint8_t);
+		offset -= sizeof(Soldier);
 
 		file.seekp(offset, std::ios::cur);
-
-		file << value;
-
+		file.write(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
 		file.flush();
 
-		Log << name << " now has skill of: " << +value;
+		Log << name << " now has:";
+		std::cout << soldier << std::endl;
 
-		Log << "\n... KTHXBYE." ;
+		Log << "\n... KTHXBYE.";
+	}
 
-	}
-	catch (const CmdArgs::Exception& e)
+	std::fstream file = FindName(path, name);
+
+	if (!file)
 	{
-		LogError << e.what() << "\n";
-		std::cerr << e.Usage();
-		return ERROR_BAD_ARGUMENTS;
+		throw LogicException("???");
 	}
-	catch (const std::system_error& e)
-	{
-		LogError << e.what();
-		System::BeepBurst();
-		return e.code().value();
-	}
-	catch (const std::exception& e)
-	{
-		LogError << e.what();
-		System::BeepBurst();
-		return ERROR_PROCESS_ABORTED;
-	}
+
+	file.seekg(offset, std::ios::cur);
+
+	uint8_t value = 0;
+	file >> value;
+	Log << name << " had skill of: " << +value;
+
+	value = 0xFF;
+
+	offset = 0;
+	offset -= sizeof(uint8_t);
+
+	file.seekp(offset, std::ios::cur);
+
+	file << value;
+
+	file.flush();
+
+	Log << name << " now has skill of: " << +value;
+
+	Log << "\n... KTHXBYE.";
 
 	return 0;
 }

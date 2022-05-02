@@ -1,55 +1,30 @@
 #include "HackLib.hpp"
 
-int main(int argc, char** argv)
+int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	DWORD exitCode = 0;
+	int exitCode = 0;
 
-	try
+	const CmdArgs args(givenArguments,
 	{
-		// Use this as a template, or start hacking away!
+		{ "calculator", typeid(std::nullopt), "Just an example" }
+	});
 
-		const CmdArgs args(argc, argv,
+	if (args.Contains("calculator"))
+	{
+		DWORD pid = System::WaitForWindow(L"Calculator");
+
+		Process process(pid);
+
+		if (!process.Verify("E7760F103569E1D70D011C8137CD8BCAB586980615AB013479F72C3F67E28534"))
 		{
-			{ "calculator", typeid(std::nullopt), "Just an example" }
-		});
-
-		if (args.Contains("calculator"))
-		{
-			DWORD pid = System::WaitForWindow(L"Calculator");
-
-			Process process(pid);
-
-			if (!process.Verify("E7760F103569E1D70D011C8137CD8BCAB586980615AB013479F72C3F67E28534"))
-			{
-				LogError << "You have a different calculator than was expected";
-				System::BeepBurst();
-				return ERROR_REVISION_MISMATCH;
-			}
-
-			process.WaitForIdle();
-			System::BeepUp();
-
-			exitCode = process.WairForExit();
-			System::BeepDown();
+			LogError << "You have a different calculator than was expected";
+			System::BeepBurst();
+			return ERROR_REVISION_MISMATCH;
 		}
-	}
-	catch (const CmdArgs::Exception& e)
-	{
-		LogError << e.what() << "\n";
-		std::cerr << e.Usage();
-		return ERROR_BAD_ARGUMENTS;
-	}
-	catch (const std::system_error& e)
-	{
-		LogError << e.what();
-		System::BeepBurst();
-		return e.code().value();
-	}
-	catch (const std::exception& e)
-	{
-		LogError << e.what();
-		System::BeepBurst();
-		return ERROR_PROCESS_ABORTED;
+
+		process.WaitForIdle();
+		System::BeepUp();
+		exitCode = process.WairForExit();
 	}
 
 	return exitCode;

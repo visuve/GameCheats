@@ -1,78 +1,53 @@
 #include "HackLib.hpp"
 
-int main(int argc, char** argv)
+int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	DWORD exitCode = 0;
-
-	try
+	const CmdArgs args(givenArguments,
 	{
-		const CmdArgs args(argc, argv,
-		{
-			{ "infammo", typeid(std::nullopt), "Never decreasing ammunition" },
-			{ "infhealth", typeid(std::nullopt), "Never decreasing health" }
-		});
+		{ "infammo", typeid(std::nullopt), "Never decreasing ammunition" },
+		{ "infhealth", typeid(std::nullopt), "Never decreasing health" }
+	});
 
-		DWORD pid = System::WaitForWindow(L"Hitman Blood Money");
+	DWORD pid = System::WaitForWindow(L"Hitman Blood Money");
 
-		Process process(pid);
+	Process process(pid);
 
-		if (!process.Verify("b45bf59665f98b6547152218f33a0fe006836290f004960a49c37918f22d2713"))
-		{
-			LogError << "Expected Hitman Blood Money v1.2 (Steam)" ;
-			System::BeepBurst();
-			return ERROR_REVISION_MISMATCH;
-		}
-
-		process.WaitForIdle();
-		System::BeepUp();
-
-		if (args.Contains("infhealth"))
-		{
-			process.Fill(0x1FB973, 0x1FB977, X86::Nop);
-		}
-
-		if (args.Contains("infammo"))
-		{
-			ByteStream code;
-
-			// Stolen
-			code << "8B 8E 94 00 00 00"; // mov ecx,[esi+00000094]
-			code << "8B 86 A8 00 00 00"; // mov eax,[esi+000000A8]
-
-			// New
-			code << "81 FC FC F5 19 00"; // cmp esp, 0019F5FC
-			code << "74 0B"; // je 11
-			code << "81 FC 3C F7 19 00"; // cmp esp, 0019F73C
-			code << "74 03"; // je 3
-			code << "49"; // dec ecx
-			code << "EB 01"; // jmp 1
-			code << "41"; // inc ecx
-			code << "90"; // nop
-
-			process.InjectX86(0x1140DB, 8, code);
-			exitCode = process.WairForExit();
-		}
-
-		System::BeepDown();
-	}
-	catch (const CmdArgs::Exception& e)
+	if (!process.Verify("b45bf59665f98b6547152218f33a0fe006836290f004960a49c37918f22d2713"))
 	{
-		LogError << e.what() << "\n";
-		std::cerr << e.Usage() ;
-		return ERROR_BAD_ARGUMENTS;
-	}
-	catch (const std::system_error& e)
-	{
-		LogError << e.what();
+		LogError << "Expected Hitman Blood Money v1.2 (Steam)";
 		System::BeepBurst();
-		return e.code().value();
-	}
-	catch (const std::exception& e)
-	{
-		LogError << e.what();
-		System::BeepBurst();
-		return ERROR_PROCESS_ABORTED;
+		return ERROR_REVISION_MISMATCH;
 	}
 
-	return exitCode;
+	process.WaitForIdle();
+	System::BeepUp();
+
+	if (args.Contains("infhealth"))
+	{
+		process.Fill(0x1FB973, 0x1FB977, X86::Nop);
+	}
+
+	if (args.Contains("infammo"))
+	{
+		ByteStream code;
+
+		// Stolen
+		code << "8B 8E 94 00 00 00"; // mov ecx,[esi+00000094]
+		code << "8B 86 A8 00 00 00"; // mov eax,[esi+000000A8]
+
+		// New
+		code << "81 FC FC F5 19 00"; // cmp esp, 0019F5FC
+		code << "74 0B"; // je 11
+		code << "81 FC 3C F7 19 00"; // cmp esp, 0019F73C
+		code << "74 03"; // je 3
+		code << "49"; // dec ecx
+		code << "EB 01"; // jmp 1
+		code << "41"; // inc ecx
+		code << "90"; // nop
+
+		process.InjectX86(0x1140DB, 8, code);
+		return process.WairForExit();
+	}
+
+	return 0;
 }

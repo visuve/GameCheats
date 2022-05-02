@@ -6,7 +6,7 @@ struct Resources
 	uint32_t Mercury = 0;
 	uint32_t Ore = 0;
 	uint32_t Sulfur = 0;
-	uint32_t Crystal = 0; 
+	uint32_t Crystal = 0;
 	uint32_t Gems = 0;
 	uint32_t Gold = 0;
 
@@ -36,65 +36,42 @@ std::ostream& operator << (std::ostream& os, const Resources& r)
 	return os;
 }
 
-int main(int argc, char** argv)
+int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	try
+	const CmdArgs args(givenArguments,
 	{
-		const CmdArgs args(argc, argv,
-		{
-			{ "addresources", typeid(std::nullopt), "Adds 48879 to each resource" },
-		});
+		{ "addresources", typeid(std::nullopt), "Adds 48879 to each resource" },
+	});
 
-		DWORD pid = System::WaitForExe(L"HOMM3 2.0.exe");
+	DWORD pid = System::WaitForExe(L"HOMM3 2.0.exe");
 
-		Process process(pid);
+	Process process(pid);
 
-		if (!process.Verify("608da95c6dae5de21b2135701365e18d3de173d3f0fd9753812afe6a5b13fa05"))
-		{
-			LogError << "Expected Heroes of Might & Magic III - HD Edition (Steam)";
-			System::BeepBurst();
-			return ERROR_REVISION_MISMATCH;
-		}
-
-		process.WaitForIdle();
-		System::BeepUp();
-
-		if (args.Contains("addresources"))
-		{
-			Pointer resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
-
-			Resources resources = process.Read<Resources>(resourcePointer);
-
-			Log << "Before:";
-			Log << resources;
-
-			resources += 0xBEEF;
-
-			Log << "\nAfter:";
-			Log << resources;
-
-			process.Write(resourcePointer, resources);
-		}
-
-		System::BeepDown();
-	}
-	catch (const CmdArgs::Exception& e)
+	if (!process.Verify("608da95c6dae5de21b2135701365e18d3de173d3f0fd9753812afe6a5b13fa05"))
 	{
-		LogError << e.what() << "\n";
-		std::cerr << e.Usage();
-		return ERROR_BAD_ARGUMENTS;
-	}
-	catch (const std::system_error& e)
-	{
-		LogError << e.what();
+		LogError << "Expected Heroes of Might & Magic III - HD Edition (Steam)";
 		System::BeepBurst();
-		return e.code().value();
+		return ERROR_REVISION_MISMATCH;
 	}
-	catch (const std::exception& e)
+
+	process.WaitForIdle();
+	System::BeepUp();
+
+	if (args.Contains("addresources"))
 	{
-		LogError << e.what();
-		System::BeepBurst();
-		return ERROR_PROCESS_ABORTED;
+		Pointer resourcePointer = process.ResolvePointer(0x00281E78u, 0x94u);
+
+		Resources resources = process.Read<Resources>(resourcePointer);
+
+		Log << "Before:";
+		Log << resources;
+
+		resources += 0xBEEF;
+
+		Log << "\nAfter:";
+		Log << resources;
+
+		process.Write(resourcePointer, resources);
 	}
 
 	return 0;
