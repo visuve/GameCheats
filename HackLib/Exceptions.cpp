@@ -9,6 +9,8 @@ const char* WindowsErrorCategory::name() const noexcept
 
 std::string WindowsErrorCategory::message(DWORD error) const
 {
+	_ASSERT(error != ERROR_SUCCESS);
+
 	const HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
 
 	if (!ntdll)
@@ -27,7 +29,7 @@ std::string WindowsErrorCategory::message(DWORD error) const
 	{
 		ULONG dosError = ntStatusToDosErrorFunction(error);
 
-		if (dosError != ERROR_MR_MID_NOT_FOUND)
+		if (dosError != ERROR_SUCCESS && dosError != ERROR_MR_MID_NOT_FOUND)
 		{
 			error = static_cast<DWORD>(dosError);
 		}
