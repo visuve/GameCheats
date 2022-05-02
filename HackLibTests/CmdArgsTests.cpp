@@ -2,15 +2,7 @@
 
 TEST(CmdArgsTests, ContainsSimple)
 {
-	constexpr int argc = 2;
-
-	const wchar_t* argv[argc] =
-	{
-		L"foo",
-		L"bar"
-	};
-
-	const CmdArgs args(argc, const_cast<wchar_t**>(argv),
+	const CmdArgs args({ L"foo", L"bar" },
 	{
 		{ L"foo", typeid(std::nullopt), L"Foos, not bars" },
 		{ L"bar", typeid(std::nullopt), L"Bars, not foos" }
@@ -23,15 +15,7 @@ TEST(CmdArgsTests, ContainsSimple)
 
 TEST(CmdArgsTests, Missing)
 {
-	constexpr int argc = 2;
-
-	const wchar_t* argv[argc] =
-	{
-		L"foobar",
-		L"barfoo"
-	};
-
-	EXPECT_THROW(CmdArgs(argc, const_cast<wchar_t**>(argv),
+	EXPECT_THROW(CmdArgs({ L"foobar", L"barfoo" },
 	{
 		{ L"foo", typeid(std::nullopt), L"Foos, not bars. Definetely not foobars" },
 		{ L"bar", typeid(std::nullopt), L"Bars, not foos. Definetely not barfoos" }
@@ -40,15 +24,7 @@ TEST(CmdArgsTests, Missing)
 
 TEST(CmdArgsTests, ContainsValuedArgument)
 {
-	constexpr int argc = 2;
-
-	const wchar_t* argv[argc] =
-	{
-		L"foo=123",
-		L"bar=456"
-	};
-
-	const CmdArgs args(argc, const_cast<wchar_t**>(argv),
+	const CmdArgs args({ L"foo=123", L"bar=456" },
 	{
 		{ L"foo", typeid(int), L"Foos, not bars" },
 		{ L"bar", typeid(int), L"Bars, not foos" }
@@ -61,19 +37,17 @@ TEST(CmdArgsTests, ContainsValuedArgument)
 
 TEST(CmdArgsTests, ParseArgument)
 {
-	constexpr int argc = 6;
-
-	wchar_t* argv[argc] =
+	const std::vector<std::wstring> given =
 	{
-		_wcsdup(L"alpha"),
-		_wcsdup(L"bravo=nonexistent/path"),
-		_wcsdup(L"charlie=3.14159265359"),
-		_wcsdup(L"delta=3.14159265359"),
-		_wcsdup(L"echo=3.14159265359"),
-		_wcsdup(L"foxtrot=foobar")
+		L"alpha",
+		L"bravo=nonexistent/path",
+		L"charlie=3.14159265359",
+		L"delta=3.14159265359",
+		L"echo=3.14159265359",
+		L"foxtrot=foobar"
 	};
 
-	const CmdArgs args(argc, argv,
+	const CmdArgs args(given,
 	{
 		{ L"alpha", typeid(std::nullopt), L"Null option" },
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },
@@ -100,28 +74,21 @@ TEST(CmdArgsTests, ParseArgument)
 
 	auto string = args.Value<std::wstring>(L"foxtrot");
 	EXPECT_STREQ(string.c_str(), L"foobar");
-
-	for (int i = 0; i < argc; ++i)
-	{
-		delete argv[i];
-	}
 }
 
 TEST(CmdArgsTests, InvalidType)
 {
-	constexpr int argc = 6;
-
-	wchar_t* argv[argc] =
+	const std::vector<std::wstring> given =
 	{
-		_wcsdup(L"alpha"),
-		_wcsdup(L"bravo=nonexistent/path"),
-		_wcsdup(L"charlie=3.14159265359"),
-		_wcsdup(L"delta=3.14159265359"),
-		_wcsdup(L"echo=3.14159265359"),
-		_wcsdup(L"foxtrot=foobar")
+		L"alpha",
+		L"bravo=nonexistent/path",
+		L"charlie=3.14159265359",
+		L"delta=3.14159265359",
+		L"echo=3.14159265359",
+		L"foxtrot=foobar"
 	};
 
-	const CmdArgs args(argc, argv,
+	const CmdArgs args(given,
 	{
 		{ L"alpha", typeid(std::nullopt), L"Null option" },
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },
@@ -137,28 +104,21 @@ TEST(CmdArgsTests, InvalidType)
 	EXPECT_THROW(args.Value<int>(L"delta"), std::bad_any_cast);
 	EXPECT_THROW(args.Value<bool>(L"echo"), std::bad_any_cast);
 	EXPECT_THROW(args.Value<std::filesystem::path>(L"foxtrot"), std::bad_any_cast);
-
-	for (int i = 0; i < argc; ++i)
-	{
-		delete argv[i];
-	}
 }
 
 TEST(CmdArgsTests, InvalidFormat)
 {
-	constexpr int argc = 6;
-
-	wchar_t* argv[argc] =
+	const std::vector<std::wstring> given =
 	{
-		_wcsdup(L"alpha-"),
-		_wcsdup(L"bravo==nonexistent/path"),
-		_wcsdup(L"charlie:3.14159265359"),
-		_wcsdup(L"delta#3.14159265359"),
-		_wcsdup(L"echo@3.14159265359"),
-		_wcsdup(L"foxtrot foobar")
+		L"alpha-",
+		L"bravo==nonexistent/path",
+		L"charlie:3.14159265359",
+		L"delta#3.14159265359",
+		L"echo@3.14159265359",
+		L"foxtrot foobar"
 	};
 
-	const CmdArgs args(argc, argv,
+	const CmdArgs args(given,
 	{
 		{ L"alpha", typeid(std::nullopt), L"Null option" },
 		{ L"bravo", typeid(std::filesystem::path), L"A path" },
@@ -178,9 +138,4 @@ TEST(CmdArgsTests, InvalidFormat)
 	EXPECT_THROW(args.Value<float>(L"delta"), CmdArgs::Exception);
 	EXPECT_THROW(args.Value<int>(L"echo"), CmdArgs::Exception);
 	EXPECT_THROW(args.Value<std::wstring>(L"foxtrot"), CmdArgs::Exception);
-
-	for (int i = 0; i < argc; ++i)
-	{
-		delete argv[i];
-	}
 }

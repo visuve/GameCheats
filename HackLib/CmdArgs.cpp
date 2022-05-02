@@ -57,8 +57,8 @@ const char* CmdArgs::Exception::what() const throw ()
 	return _what.c_str();
 }
 
-CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expected) :
-	_arguments(argv, argv + argc),
+CmdArgs::CmdArgs(const std::vector<std::wstring>& given, std::initializer_list<Argument> expected) :
+	_arguments(given),
 	_expected(expected)
 {
 	std::wstringstream usage;
@@ -82,6 +82,11 @@ CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expec
 	}
 
 	throw CmdArgs::Exception("Missing arguments", _usage);
+}
+
+CmdArgs::CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expected) :
+	CmdArgs({ argv, argv + argc }, expected)
+{
 }
 
 bool CmdArgs::Contains(std::wstring_view x) const

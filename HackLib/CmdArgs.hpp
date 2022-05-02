@@ -20,6 +20,7 @@ public:
 
 	using Argument = std::tuple<std::wstring, std::type_index, std::wstring>;
 
+	CmdArgs(const std::vector<std::wstring>& given, std::initializer_list<Argument> expected);
 	CmdArgs(int argc, wchar_t** argv, std::initializer_list<Argument> expected);
 	NonCopyable(CmdArgs);
 
