@@ -11,40 +11,42 @@ std::string WindowsErrorCategory::message(DWORD error) const
 {
 	_ASSERT(error != ERROR_SUCCESS);
 
-	const HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
-
-	if (!ntdll)
-	{
-		// We are totally screwed at this point
-		return "unknown error";
-	}
-
-	const FARPROC ntStatusToDosErrorAddress =
-		GetProcAddress(ntdll, "RtlNtStatusToDosError");
-
-	const auto ntStatusToDosErrorFunction =
-		reinterpret_cast<decltype(&RtlNtStatusToDosError)>(ntStatusToDosErrorAddress);
-
-	if (ntStatusToDosErrorFunction)
-	{
-		ULONG dosError = ntStatusToDosErrorFunction(error);
-
-		if (dosError != ERROR_SUCCESS && dosError != ERROR_MR_MID_NOT_FOUND)
-		{
-			error = static_cast<DWORD>(dosError);
-		}
-	}
-
-	constexpr DWORD flags =
-		FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_FROM_HMODULE |
-		FORMAT_MESSAGE_IGNORE_INSERTS;
-
+	HMODULE module = nullptr;
 	std::array<char, 0x400> buffer = {};
+	DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+
+	if (error > 0xFFFF)
+	{
+		module = GetModuleHandleW(L"ntdll.dll");
+
+		if (!module)
+		{
+			// We are totally screwed at this point
+			return "unknown error";
+		}
+
+		const FARPROC ntStatusToDosErrorAddress =
+			GetProcAddress(module, "RtlNtStatusToDosError");
+
+		const auto ntStatusToDosErrorFunction =
+			reinterpret_cast<decltype(&RtlNtStatusToDosError)>(ntStatusToDosErrorAddress);
+
+		if (ntStatusToDosErrorFunction)
+		{
+			ULONG dosError = ntStatusToDosErrorFunction(error);
+
+			if (dosError != ERROR_SUCCESS && dosError != ERROR_MR_MID_NOT_FOUND)
+			{
+				error = static_cast<DWORD>(dosError);
+			}
+		}
+
+		flags |= FORMAT_MESSAGE_FROM_HMODULE;
+	}
 
 	DWORD size = FormatMessageA(
 		flags,
-		ntdll,
+		module,
 		error,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		buffer.data(),

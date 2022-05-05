@@ -50,7 +50,11 @@ inline auto Win32Exception(
 	const std::source_location& location = std::source_location::current())
 {
 	return std::system_error(
-		static_cast<int>(error), // just has to be downcasted :-D ...
+		static_cast<int>(error), // ... just has to be downcasted :-D
 		WindowsErrorCategory(),
-		ExceptionMessage(message, location));
+		std::format("{}:{}: {} failed! Error code 0x{:08X}",
+			std::filesystem::path(location.file_name()).filename().string(),
+			location.line(),
+			message,
+			error));
 }
