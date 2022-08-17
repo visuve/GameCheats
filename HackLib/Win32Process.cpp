@@ -18,7 +18,7 @@ std::filesystem::path Win32Process::Path() const
 
 	if (!QueryFullProcessImageNameW(_handle, 0, buffer.data(), &size))
 	{
-		throw Win32Exception("GetModuleFileNameEx");
+		throw Win32Exception("QueryFullProcessImageNameW");
 	}
 
 	_ASSERT(buffer.size() >= size);

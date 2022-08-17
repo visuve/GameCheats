@@ -89,11 +89,11 @@ CmdArgs::CmdArgs(int argc, char** argv, std::initializer_list<Argument> expected
 {
 }
 
-bool CmdArgs::Contains(std::string_view x) const
+bool CmdArgs::Contains(std::string_view key) const
 {
 	const auto equals = [&](const std::string& argument)
 	{
-		return argument == x || argument.starts_with(std::format("{0}=", x));
+		return argument == key || argument.starts_with(std::format("{0}=", key));
 	};
 
 	return std::any_of(_arguments.cbegin(), _arguments.cend(), equals);
@@ -127,9 +127,7 @@ std::any CmdArgs::ValueByKey(std::string_view key) const
 
 	if (type == typeid(std::nullopt))
 	{
-		auto result = std::find(_arguments.cbegin(), _arguments.cend(), key);
-
-		if (result == _arguments.cend())
+		if (!Contains(key))
 		{
 			throw CmdArgs::Exception("Missing value requested", _usage);
 		}

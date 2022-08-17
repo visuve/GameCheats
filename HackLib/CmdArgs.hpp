@@ -24,12 +24,18 @@ public:
 	CmdArgs(int argc, char** argv, std::initializer_list<Argument> expected);
 	NonCopyable(CmdArgs);
 
-	bool Contains(std::string_view x) const;
+	bool Contains(std::string_view key) const;
 
 	template<typename T>
 	T Value(std::string_view key) const
 	{
 		return std::any_cast<T>(ValueByKey(key));
+	}
+
+	template<typename T>
+	T Value(std::string_view key, const T& defaultValue) const
+	{
+		return Contains(key) ? Value<T>(key) : defaultValue;
 	}
 
 	std::string Usage() const;

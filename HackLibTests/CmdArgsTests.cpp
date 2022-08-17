@@ -35,6 +35,21 @@ TEST(CmdArgsTests, ContainsValuedArgument)
 	EXPECT_FALSE(args.Contains("foobar"));
 }
 
+TEST(CmdArgsTests, Default)
+{
+	const CmdArgs args({ "foo=123", "bar=456" },
+	{
+		{ "foo", typeid(int), "Foos, not bars" },
+		{ "bar", typeid(int), "Bars, not foos" }
+	});
+
+	EXPECT_EQ(args.Value<int>("foo"), 123);
+	EXPECT_EQ(args.Value<int>("foo", 789), 123);
+	EXPECT_EQ(args.Value<int>("bar"), 456);
+	EXPECT_EQ(args.Value<int>("bar", 789), 456);
+	EXPECT_EQ(args.Value<int>("foobar", 789), 789);
+}
+
 TEST(CmdArgsTests, ParseArgument)
 {
 	const std::vector<std::string> given =
