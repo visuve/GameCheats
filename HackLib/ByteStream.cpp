@@ -124,13 +124,12 @@ std::ostream& operator << (std::ostream& os, const ByteStream& bs)
 	os.setf(std::ios::uppercase);
 	os.fill('0');
 
-	char sep1[2] = " ";
-	char sep2[2] = "";
+	char separator[2] = "";
 
 	for (uint8_t byte : bs)
 	{
-		os << sep2 << std::setw(2) << +byte;
-		sep2[0] = sep1[0];
+		os << separator << std::setw(2) << +byte;
+		separator[0] = ' ';
 	}
 
 	os.flags(formatFlags);

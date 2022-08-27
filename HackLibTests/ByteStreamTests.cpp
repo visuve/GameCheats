@@ -158,7 +158,7 @@ TEST(ByteStreamTests, FromGoo)
 	EXPECT_THROW(stream << "FF\tFF", std::invalid_argument);
 }
 
-TEST(ByteStreamTests, ToString)
+TEST(ByteStreamTests, ToStream)
 {
 	{
 		std::stringstream stringStream;

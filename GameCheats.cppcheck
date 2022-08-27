@@ -34,5 +34,6 @@
 	<suppressions>
 		<suppression>noExplicitConstructor</suppression>
 		<suppression>unusedFunction</suppression>
+		<suppression>useStlAlgorithm</suppression>
 	</suppressions>
 </project>

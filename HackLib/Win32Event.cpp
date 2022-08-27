@@ -97,7 +97,7 @@ static BOOL WINAPI ConsoleHandler(_In_ DWORD signal)
 	return true;
 }
 
-Win32Event::Win32Event(const std::string name) :
+Win32Event::Win32Event(const std::string& name) :
 	Win32Handle(CreateEventA(nullptr, true, false, name.data())),
 	_name(name)
 {

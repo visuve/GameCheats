@@ -5,7 +5,7 @@
 
 class Win32Event : public Win32Handle
 {
-	Win32Event(const std::string name);
+	Win32Event(const std::string& name);
 public:
 	Win32Event();
 	~Win32Event();
