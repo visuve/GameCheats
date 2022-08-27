@@ -15,5 +15,5 @@ jobs:
 
     - name: Static analysis
       run: |
-        cppcheck --project=GameCheats.cppcheck --platform=win32W --error-exitcode=11
-        cppcheck --project=GameCheats.cppcheck --platform=win64 --error-exitcode=11
+        cppcheck --project=GameCheats.cppcheck --platform=win32W --error-exitcode=11 --enable=warning,style
+        cppcheck --project=GameCheats.cppcheck --platform=win64 --error-exitcode=11 --enable=warning,style
