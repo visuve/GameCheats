@@ -203,7 +203,7 @@ MemoryRegion Process::AllocateRegion(const std::initializer_list<MemoryRegion::N
 	return MemoryRegion(region, pairs);
 }
 
-DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
+DWORD Process::SpawnThread(Pointer address, Pointer parameter, bool detached)
 {
 	HANDLE bare = _targetProcess.CreateRemoteThread(address, parameter);
 
@@ -231,14 +231,14 @@ DWORD Process::InjectLibrary(const std::filesystem::path& path)
 	const std::wstring str = path.wstring();
 	const size_t bytes = str.size() * sizeof(wchar_t);
 
-	Pointer namePtr = AllocateMemory(bytes + sizeof(wchar_t)); // +1 to include null terminator
+	Pointer namePtr = AllocateMemory(bytes + 1); // +1 to include null terminator
 	Write(namePtr, str.data(), bytes);
 
 	// LoadLibrary has the same relative address in all processes, hence we can use our "own" address.
 
 	Pointer fnPtr(reinterpret_cast<void*>(&LoadLibraryW));
 
-	DWORD result = CreateThread(fnPtr, namePtr);
+	DWORD result = SpawnThread(fnPtr, namePtr, false);
 
 	FreeMemory(namePtr);
 

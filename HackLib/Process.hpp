@@ -149,7 +149,7 @@ public:
 
 	MemoryRegion AllocateRegion(const std::initializer_list<MemoryRegion::NameTypePair>& pairs);
 
-	DWORD CreateThread(Pointer address, Pointer parameter, bool detached = false);
+	DWORD SpawnThread(Pointer address, Pointer parameter, bool detached);
 
 	DWORD InjectLibrary(const std::filesystem::path& path);
 
