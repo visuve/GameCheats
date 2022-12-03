@@ -3,9 +3,10 @@
 /*
 	NOTE: you can allow inbuilt cheats in Doom 3 by adding
 		+set com_allowconsole 1
-	in the application launch options.
+	in the application launch options. Be wary, 
+	that allowing console will disable achievements in Steam!
 
-	However, my cheats below are not inbuilt in Doom 3
+	Also note that the cheats below are not inbuilt in Doom 3.
 */
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)

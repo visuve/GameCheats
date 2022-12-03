@@ -104,6 +104,14 @@ public:
 		Write(pointer, filler.data(), bytes);
 	}
 
+	template<typename T>
+	void Fill(Pointer from, T value, size_t count) const
+	{
+		const size_t bytes = count * sizeof(T);
+		std::vector<T> filler(count, value);
+		Write(from, filler.data(), bytes);
+	}
+
 	inline void ChangeByte(Pointer address, uint8_t from, uint8_t to)
 	{
 		const uint8_t current = Read<uint8_t>(address);
