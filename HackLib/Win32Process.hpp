@@ -28,6 +28,8 @@ public:
 
 	size_t WriteProcessMemory(Pointer pointer, const void* value, size_t size) const;
 
+	DWORD VirtualProtectEx(Pointer pointer, size_t size, DWORD newAccess) const;
+
 	HANDLE CreateRemoteThread(Pointer address, Pointer parameter) const;
 
 	void FlushInstructionCache(Pointer address, size_t size) const;

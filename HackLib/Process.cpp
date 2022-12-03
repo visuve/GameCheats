@@ -1,3 +1,4 @@
+#include "Process.hpp"
 #include "ByteStream.hpp"
 #include "OpCodes.hpp"
 #include "Process.hpp"
@@ -52,7 +53,7 @@ bool Process::Verify(std::string_view expectedSHA256) const
 	return SHA256(path) == expectedSHA256;
 }
 
-MODULEENTRY32W Process::FindModule(std::wstring_view name) const
+MODULEENTRY32W Process::FindModuleEntry(std::wstring_view name) const
 {
 	return System::ModuleEntryByName(_pid, name);
 }
@@ -90,7 +91,7 @@ IMAGE_NT_HEADERS Process::NtHeader() const
 	return ntHeaders;
 }
 
-IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
+IMAGE_IMPORT_DESCRIPTOR Process::FindImportDescriptor(std::string_view moduleName) const
 {
 	IMAGE_NT_HEADERS ntHeader = NtHeader();
 
@@ -127,7 +128,7 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImport(std::string_view moduleName) const
 	throw RangeException("Import not found");
 }
 
-Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const
+Pointer Process::FindImportEntry(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const
 {
 	Pointer thunkPtr = Address(iid.OriginalFirstThunk);
 	std::string buffer(MAX_PATH, '\0');
@@ -160,9 +161,10 @@ Pointer Process::FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view func
 	throw RangeException("Function not found");
 }
 
-Pointer Process::FindFunction(std::string_view moduleName, std::string_view functionName) const
+Pointer Process::FindImportAddress(std::string_view moduleName, std::string_view functionName) const
 {
-	return FindFunction(FindImport(moduleName), functionName);
+	IMAGE_IMPORT_DESCRIPTOR iid = FindImportDescriptor(moduleName);
+	return _baseAddress + FindImportEntry(iid, functionName);
 }
 
 Pointer Process::AllocateMemory(size_t size)
@@ -230,7 +232,6 @@ DWORD Process::InjectLibrary(std::string_view name)
 	Write(namePtr, name.data(), name.size());
 
 	// LoadLibrary has the same relative address in all processes, hence we can use our "own" address.
-	// The FindFunction does not appear to yield same results.
 
 	Pointer fnPtr(reinterpret_cast<void*>(&LoadLibraryA));
 
@@ -239,6 +240,19 @@ DWORD Process::InjectLibrary(std::string_view name)
 	FreeMemory(namePtr);
 
 	return result;
+}
+
+void Process::ReplaceImportAddress(std::string_view moduleName, std::string_view functionName, Pointer to)
+{
+	Pointer address = FindImportAddress(moduleName, functionName);
+
+	DWORD oldAccess = _targetProcess.VirtualProtectEx(address, Pointer::Size, PAGE_EXECUTE_READWRITE);
+	_ASSERT_EXPR(oldAccess == PAGE_READONLY, L"Who leaves IAT other than read only!?");
+
+	WriteBytes(address, to);
+
+	[[maybe_unused]] DWORD gainedAccess = _targetProcess.VirtualProtectEx(address, Pointer::Size, oldAccess);
+	_ASSERT_EXPR(gainedAccess == PAGE_EXECUTE_READWRITE, L"We did not previously gain enough access!?");
 }
 
 void Process::FreeMemory(Pointer pointer)

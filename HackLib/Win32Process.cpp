@@ -1,3 +1,4 @@
+#include "Win32Process.hpp"
 #include "System.hpp"
 #include "Win32Process.hpp"
 
@@ -60,6 +61,18 @@ size_t Win32Process::WriteProcessMemory(Pointer pointer, const void* value, size
 	}
 
 	return bytesWritten;
+}
+
+DWORD Win32Process::VirtualProtectEx(Pointer pointer, size_t size, DWORD newAccess) const
+{
+	DWORD oldAccess = 0;
+
+	if (!::VirtualProtectEx(_handle, pointer, size, newAccess, &oldAccess))
+	{
+		throw Win32Exception("VirtualProtectEx");
+	}
+
+	return oldAccess;
 }
 
 HANDLE Win32Process::CreateRemoteThread(Pointer address, Pointer parameter) const

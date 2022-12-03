@@ -13,7 +13,7 @@ TEST(ProcessTests, ModuleNotFound)
 	DWORD pid = GetCurrentProcessId();
 	Process currentProcess(pid);
 
-	EXPECT_THROW(currentProcess.FindFunction(
+	EXPECT_THROW(currentProcess.FindImportAddress(
 		"This module does not exists",
 		"Neither does this function"), std::range_error);
 }
@@ -23,7 +23,7 @@ TEST(ProcessTests, FunctionNotFound)
 	DWORD pid = GetCurrentProcessId();
 	Process currentProcess(pid);
 
-	EXPECT_THROW(currentProcess.FindFunction(
+	EXPECT_THROW(currentProcess.FindImportAddress(
 		"KERNEL32.dll",
 		"Neither does this function"), std::range_error);
 }
@@ -35,7 +35,7 @@ TEST(ProcessTests, FunctionFound)
 
 	// It's just called above. It has to be found
 	Pointer fnptr = 
-		currentProcess.FindFunction("KERNEL32.dll", "GetCurrentProcessId");
+		currentProcess.FindImportAddress("KERNEL32.dll", "GetCurrentProcessId");
 
 	EXPECT_NE(fnptr, Pointer());
 }

@@ -22,7 +22,7 @@ public:
 
 	inline Pointer Address(std::wstring_view module, size_t offset) const
 	{
-		return FindModule(module).modBaseAddr + offset;
+		return FindModuleEntry(module).modBaseAddr + offset;
 	}
 
 	Pointer ResolvePointer(size_t base, auto ... offsets) const
@@ -137,14 +137,13 @@ public:
 
 	bool Verify(std::string_view expectedSHA256) const;
 
-	MODULEENTRY32W FindModule(std::wstring_view name) const;
+	MODULEENTRY32W FindModuleEntry(std::wstring_view name) const;
 
 	IMAGE_NT_HEADERS NtHeader() const;
 
-	IMAGE_IMPORT_DESCRIPTOR FindImport(std::string_view moduleName) const;
-
-	Pointer FindFunction(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const;
-	Pointer FindFunction(std::string_view moduleName, std::string_view functionName) const;
+	IMAGE_IMPORT_DESCRIPTOR FindImportDescriptor(std::string_view moduleName) const;
+	Pointer FindImportEntry(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const;
+	Pointer FindImportAddress(std::string_view moduleName, std::string_view functionName) const;
 
 	Pointer AllocateMemory(size_t size);
 
@@ -153,6 +152,8 @@ public:
 	DWORD CreateThread(Pointer address, Pointer parameter, bool detached = false);
 
 	DWORD InjectLibrary(std::string_view name);
+
+	void ReplaceImportAddress(std::string_view moduleName, std::string_view functionName, Pointer to);
 
 	// NOTE: all memory is freed in ~Process(),
 	// hence this is needed in rare cases only
