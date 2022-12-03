@@ -226,14 +226,17 @@ DWORD Process::CreateThread(Pointer address, Pointer parameter, bool detached)
 	return thread.ExitCode();
 }
 
-DWORD Process::InjectLibrary(std::string_view name)
+DWORD Process::InjectLibrary(const std::filesystem::path& path)
 {
-	Pointer namePtr = AllocateMemory(name.size() + 1); // +1 to include null terminator
-	Write(namePtr, name.data(), name.size());
+	const std::wstring str = path.wstring();
+	const size_t bytes = str.size() * sizeof(wchar_t);
+
+	Pointer namePtr = AllocateMemory(bytes + sizeof(wchar_t)); // +1 to include null terminator
+	Write(namePtr, str.data(), bytes);
 
 	// LoadLibrary has the same relative address in all processes, hence we can use our "own" address.
 
-	Pointer fnPtr(reinterpret_cast<void*>(&LoadLibraryA));
+	Pointer fnPtr(reinterpret_cast<void*>(&LoadLibraryW));
 
 	DWORD result = CreateThread(fnPtr, namePtr);
 

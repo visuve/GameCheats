@@ -151,7 +151,7 @@ public:
 
 	DWORD CreateThread(Pointer address, Pointer parameter, bool detached = false);
 
-	DWORD InjectLibrary(std::string_view name);
+	DWORD InjectLibrary(const std::filesystem::path& path);
 
 	void ReplaceImportAddress(std::string_view moduleName, std::string_view functionName, Pointer to);
 
