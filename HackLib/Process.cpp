@@ -176,7 +176,6 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 	Pointer moduleNameArea = AllocateMemory(moduleNameBytes);
 	Pointer functionNameArea = AllocateMemory(functionNameBytes);
 	Pointer codeArea = AllocateMemory(0x400); // 1k, should be enough
-	Pointer returnValueArea = AllocateMemory(Pointer::Size);
 
 	Write(moduleNameArea, moduleName.data(), moduleNameBytes);
 	Write(functionNameArea, functionName.data(), functionNameBytes);
@@ -195,14 +194,11 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 	threadFunction << "68" << functionNameArea; // push functionNamePtr
 	threadFunction << "50"; // push eax
 	threadFunction << "E8" << getProcAddress - codeArea - 0x1A; // call GetProcAddress
-	threadFunction << "A3" << returnValueArea; // mov [returnPtr], eax
 	threadFunction << "C3"; // ret
 
 	WriteBytes(codeArea, threadFunction);
 
-	SpawnThread(codeArea, Pointer(), false);
-
-	return Read<size_t>(returnValueArea);
+	return SpawnThread(codeArea, Pointer(), false);
 }
 
 Pointer Process::AllocateMemory(size_t size)
