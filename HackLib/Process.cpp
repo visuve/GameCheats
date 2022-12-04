@@ -167,6 +167,44 @@ Pointer Process::FindImportAddress(std::string_view moduleName, std::string_view
 	return _baseAddress + FindImportEntry(iid, functionName);
 }
 
+// NOTE: I have not tested this in x64
+Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_view functionName)
+{
+	const size_t moduleNameBytes = moduleName.size() * sizeof(char) + sizeof(char);
+	const size_t functionNameBytes = functionName.size() * sizeof(char) + sizeof(char);
+
+	Pointer moduleNameArea = AllocateMemory(moduleNameBytes);
+	Pointer functionNameArea = AllocateMemory(functionNameBytes);
+	Pointer codeArea = AllocateMemory(0x400); // 1k, should be enough
+	Pointer returnValueArea = AllocateMemory(Pointer::Size);
+
+	Write(moduleNameArea, moduleName.data(), moduleNameBytes);
+	Write(functionNameArea, functionName.data(), functionNameBytes);
+
+	// kernel32 functions have same address in all processess, hence we can use our own
+	Pointer getModuleHandleA = reinterpret_cast<void*>(&GetModuleHandleA);
+	Pointer getProcAddress = reinterpret_cast<void*>(&GetProcAddress);
+
+	ByteStream threadFunction;
+
+	threadFunction << "68" << moduleNameArea; // push moduleNamePtr
+	threadFunction << "E8" << getModuleHandleA - codeArea - 0xA; // call GetModuleHandleA
+	threadFunction << "85 C0"; // test eax, eax
+	threadFunction << "75 01"; // jne step forward...
+	threadFunction << "C3"; // ret	
+	threadFunction << "68" << functionNameArea; // push functionNamePtr
+	threadFunction << "50"; // push eax
+	threadFunction << "E8" << getProcAddress - codeArea - 0x1A; // call GetProcAddress
+	threadFunction << "A3" << returnValueArea; // mov [returnPtr], eax
+	threadFunction << "C3"; // ret
+
+	WriteBytes(codeArea, threadFunction);
+
+	SpawnThread(codeArea, Pointer(), false);
+
+	return Read<size_t>(returnValueArea);
+}
+
 Pointer Process::AllocateMemory(size_t size)
 {
 	auto result = _regions.emplace(_targetProcess, size);

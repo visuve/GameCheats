@@ -144,6 +144,7 @@ public:
 	IMAGE_IMPORT_DESCRIPTOR FindImportDescriptor(std::string_view moduleName) const;
 	Pointer FindImportEntry(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const;
 	Pointer FindImportAddress(std::string_view moduleName, std::string_view functionName) const;
+	Pointer FindFunctionAddress(std::string_view moduleName, std::string_view functionName);
 
 	Pointer AllocateMemory(size_t size);
 

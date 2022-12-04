@@ -79,14 +79,14 @@ HANDLE Win32Process::CreateRemoteThread(Pointer address, Pointer parameter) cons
 {
 	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value());
 
-	HANDLE handle = ::CreateRemoteThread(_handle, nullptr, 0, startAddress, parameter, 0, 0);
+	HANDLE thread = ::CreateRemoteThread(_handle, nullptr, 0, startAddress, parameter, 0, nullptr);
 
-	if (!handle)
+	if (!thread)
 	{
 		throw Win32Exception("CreateRemoteThread");
 	}
 
-	return handle;
+	return thread;
 }
 
 void Win32Process::FlushInstructionCache(Pointer address, size_t size) const
