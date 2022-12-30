@@ -60,19 +60,26 @@ public:
 		return Read<T>(Address(offset));
 	}
 
-	void Write(Pointer pointer, const auto* value, size_t size) const
+	std::vector<uint8_t> ReadBytes(Pointer pointer, size_t amount) const
+	{
+		std::vector<uint8_t> bytes(amount);
+		Read(pointer, bytes.data(), amount);
+		return bytes;
+	}
+
+	inline void Write(Pointer pointer, const auto* value, size_t size) const
 	{
 		size_t bytesWritten = _targetProcess.WriteProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
 		Log << "Wrote" << bytesWritten << "bytes at" << pointer ;
 	}
 
-	void Write(Pointer pointer, const auto& value) const
+	inline void Write(Pointer pointer, const auto& value) const
 	{
 		Write(pointer, &value, sizeof(value));
 	}
 	
-	void Write(size_t offset, const auto& value) const
+	inline void Write(size_t offset, const auto& value) const
 	{
 		Write(Address(offset), value);
 	}
@@ -131,6 +138,38 @@ public:
 	inline void ChangeByte(size_t offset, uint8_t from, uint8_t to)
 	{
 		ChangeByte(Address(offset), from, to);
+	}
+
+	inline void ChangeBytes(
+		Pointer pointer,
+		std::span<uint8_t> from,
+		std::span<uint8_t> to) const
+	{
+		_ASSERT_EXPR(from.size() == to.size(), L"Expected and replacement differ in size!");
+
+		std::vector<uint8_t> actual = ReadBytes(pointer, from.size_bytes());
+
+		if (std::equal(to.begin(), to.end(), actual.begin(), actual.end()))
+		{
+			Log << "Bytes already equal to replacement @" << pointer;
+			return;
+		}
+
+		if (!std::equal(from.begin(), from.end(), actual.begin(), actual.end()))
+		{
+			throw LogicException(
+				std::format("Error @ {}. Expected different data", pointer));
+		}
+
+		WriteBytes(pointer, to);
+	}
+
+	inline void ChangeBytes(
+		size_t offset,
+		std::span<uint8_t> from,
+		std::span<uint8_t> to) const
+	{
+		ChangeBytes(Address(offset), from, to);
 	}
 
 	void WaitForIdle();
