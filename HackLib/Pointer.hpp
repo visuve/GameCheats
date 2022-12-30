@@ -7,45 +7,45 @@ class Pointer
 public:
 	constexpr static size_t Size = sizeof(void*);
 
-	inline Pointer() = default;
+	constexpr Pointer() = default;
 
 	template <typename T>
-	inline Pointer(T value) requires std::unsigned_integral<T>&& std::convertible_to<T, size_t>
+	constexpr Pointer(T value) requires std::unsigned_integral<T>&& std::convertible_to<T, size_t>
 	{
 		_internal.Value = value;
 	}
 
 	template <typename T>
-	inline Pointer(const T* value) requires std::is_unsigned<T>::value || std::is_void<T>::value
+	constexpr Pointer(const T* value) requires std::is_unsigned<T>::value || std::is_void<T>::value
 	{
 		_internal.Value = reinterpret_cast<size_t>(value);
 	}
 
-	inline Pointer(const Pointer& other) :
+	constexpr Pointer(const Pointer& other) :
 		_internal(other._internal)
 	{
 	}
 
-	inline Pointer(Pointer&& other) :
+	constexpr Pointer(Pointer&& other) noexcept:
 		_internal(std::move(other._internal))
 	{
 	}
 
 	inline virtual ~Pointer() = default;
 
-	inline Pointer& operator = (const Pointer& p)
+	constexpr Pointer& operator = (const Pointer& p)
 	{
 		_internal.Value = p._internal.Value;
 		return *this;
 	}
 
-	inline Pointer& operator += (const Pointer& p)
+	constexpr Pointer& operator += (const Pointer& p)
 	{
 		_internal.Value += p._internal.Value;
 		return *this;
 	}
 
-	inline Pointer& operator -= (const Pointer& p) 
+	constexpr Pointer& operator -= (const Pointer& p)
 	{
 		_internal.Value -= p._internal.Value;
 		return *this;
@@ -61,13 +61,13 @@ public:
 		return _internal.Value - p._internal.Value;
 	}
 
-	inline Pointer& operator += (size_t offset)
+	constexpr Pointer& operator += (size_t offset)
 	{
 		_internal.Value += offset;
 		return *this;
 	}
 
-	inline Pointer& operator -= (size_t offset)
+	constexpr Pointer& operator -= (size_t offset)
 	{
 		_internal.Value -= offset;
 		return *this;
@@ -83,13 +83,13 @@ public:
 		return _internal.Value - offset;
 	}
 
-	inline Pointer& operator ++ ()
+	constexpr Pointer& operator ++ ()
 	{
 		_internal.Value += Size;
 		return *this;
 	}
 
-	inline Pointer& operator -- ()
+	constexpr Pointer& operator -- ()
 	{
 		_internal.Value -= Size;
 		return *this;
@@ -109,32 +109,32 @@ public:
 		return tmp;
 	}
 
-	inline bool operator == (const Pointer& other) const
+	constexpr bool operator == (const Pointer& other) const
 	{
 		return _internal.Value == other._internal.Value;
 	}
 
-	inline bool operator != (const Pointer& other) const
+	constexpr bool operator != (const Pointer& other) const
 	{
 		return _internal.Value != other._internal.Value;
 	}
 
-	inline bool operator < (const Pointer& other) const
+	constexpr bool operator < (const Pointer& other) const
 	{
 		return _internal.Value < other._internal.Value;
 	}
 
-	inline bool operator > (const Pointer& other) const
+	constexpr bool operator > (const Pointer& other) const
 	{
 		return _internal.Value > other._internal.Value;
 	}
 
-	inline bool operator < (size_t offset) const
+	constexpr bool operator < (size_t offset) const
 	{
 		return _internal.Value < offset;
 	}
 
-	inline bool operator > (size_t offset) const
+	constexpr bool operator > (size_t offset) const
 	{
 		return _internal.Value > offset;
 	}
@@ -159,7 +159,7 @@ public:
 		return _internal.Bytes[n];
 	}
 
-	inline const uint8_t operator[](size_t n) const
+	constexpr const uint8_t operator[](size_t n) const
 	{
 		if (n >= Size)
 		{
@@ -169,22 +169,22 @@ public:
 		return _internal.Bytes[n];
 	}
 
-	inline uint8_t* begin()
+	constexpr uint8_t* begin()
 	{
 		return &_internal.Bytes[0];
 	}
 
-	inline uint8_t* end()
+	constexpr uint8_t* end()
 	{
 		return &_internal.Bytes[Size];
 	}
 
-	inline const uint8_t* cbegin() const
+	constexpr const uint8_t* cbegin() const
 	{
 		return &_internal.Bytes[0];
 	}
 
-	inline const uint8_t* cend() const
+	constexpr const uint8_t* cend() const
 	{
 		return &_internal.Bytes[Size];
 	}

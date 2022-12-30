@@ -181,8 +181,8 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 	Write(functionNameArea, functionName.data(), functionNameBytes);
 
 	// kernel32 functions have same address in all processess, hence we can use our own
-	Pointer getModuleHandleA = reinterpret_cast<void*>(&GetModuleHandleA);
-	Pointer getProcAddress = reinterpret_cast<void*>(&GetProcAddress);
+	Pointer getModuleHandleA(reinterpret_cast<void*>(&GetModuleHandleA));
+	Pointer getProcAddress(reinterpret_cast<void*>(&GetProcAddress));
 
 	ByteStream threadFunction;
 
