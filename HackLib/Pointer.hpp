@@ -33,7 +33,13 @@ public:
 
 	inline virtual ~Pointer() = default;
 
-	constexpr Pointer& operator = (const Pointer& p)
+	inline Pointer& operator = (const Pointer& p)
+	{
+		_internal.Value = p._internal.Value;
+		return *this;
+	}
+
+	inline Pointer& operator = (Pointer&& p)
 	{
 		_internal.Value = p._internal.Value;
 		return *this;
