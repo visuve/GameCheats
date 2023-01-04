@@ -113,7 +113,8 @@ MODULEENTRY32W System::ModuleEntryByPid(DWORD pid)
 	}
 
 	const Snapshot snapshot(TH32CS_SNAPMODULE, pid);
-	
+
+	[[maybe_unused]]
 	uint32_t processed = 0;
 
 	const auto filter = [&](const MODULEENTRY32W& moduleEntry)
@@ -130,7 +131,6 @@ MODULEENTRY32W System::ModuleEntryByPid(DWORD pid)
 	}
 
 	_ASSERT_EXPR(processed == 1, "The module ID is expected to be the 1st");
-	(void)processed;
 
 	return result.value();
 }
