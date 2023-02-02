@@ -194,6 +194,24 @@ namespace X86
 		XchgEaxEsi = 0x96,
 		XchgEaxEdi = 0x97,
 
+		MovAlIb = 0xB0,
+		MovClIb = 0xB1,
+		MovDlIb = 0xB2,
+		ModBlIb = 0xB3,
+		MovAhIb = 0xB4,
+		MovChIb = 0xB5,
+		MovDhIb = 0xB6,
+		MovBhIb = 0xB7,
+
+		MovEaxIv = 0xB8,
+		MovEcxIv = 0xB9,
+		MovEdxIv = 0xBA,
+		MovEbxIv = 0xBB,
+		MovEspIv = 0xBC,
+		MovEbpIv = 0xBD,
+		MovEsiIv = 0xBE,
+		MovEdiIv = 0xBF,
+
 		JmpJz = 0xE9,
 		JmpAp = 0xEA,
 		JmpJb = 0xEB
