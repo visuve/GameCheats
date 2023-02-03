@@ -393,6 +393,54 @@ Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops,
 }
 #endif
 
+std::vector<uint8_t> Process::ReadFunction(void(*function)(void), size_t size)
+{
+	Pointer address(reinterpret_cast<uint8_t*>(function));
+	Win32Process process(PROCESS_VM_READ, GetCurrentProcessId());
+
+	size_t bytesRead = 0;
+	std::vector<uint8_t> result(size);
+
+	if (size > 0)
+	{
+		bytesRead = process.ReadProcessMemory(address, result.data(), result.size());
+
+		if (result.size() != bytesRead)
+		{
+			result.resize(bytesRead);
+		}
+
+		return result;
+	}
+
+
+	LogWarning << "function size not set!";
+
+	size_t pageSize = System::PageSize();
+	std::vector<uint8_t> buffer(pageSize);
+
+	do
+	{
+		bytesRead = process.ReadProcessMemory(address, buffer.data(), pageSize);
+
+		// NOTE: this is hacky AF... The trap might not be present
+		constexpr uint8_t Trap[] = { X86::Int3, X86::Int3, X86::Int3 };
+
+		auto trap = std::search(buffer.begin(), buffer.end(), std::begin(Trap), std::end(Trap));
+
+		if (trap != buffer.end())
+		{
+			std::copy(buffer.begin(), trap, std::back_inserter(result));
+			break;
+		}
+
+		std::copy(buffer.begin(), buffer.end(), std::back_inserter(result));
+		address += bytesRead;
+
+	} while (bytesRead);
+
+	return result;
+}
 
 DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 {
