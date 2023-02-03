@@ -214,6 +214,8 @@ namespace X86
 
 		JmpJz = 0xE9,
 		JmpAp = 0xEA,
-		JmpJb = 0xEB
+		JmpJb = 0xEB,
+
+		Int3 = 0xCC
 	};
 }

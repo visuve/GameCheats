@@ -4,6 +4,8 @@
 #include "Logger.hpp"
 #include "NonCopyable.hpp"
 #include "MemoryRegion.hpp"
+#include "OpCodes.hpp"
+#include "System.hpp"
 #include "VirtualMemory.hpp"
 #include "Win32Process.hpp"
 #include "Win32Thread.hpp"
@@ -253,6 +255,56 @@ public:
 		return { 0xFF, 0x15, to[0],	to[1], to[2], to[3] };
 	}
 #endif
+
+	template <typename T>
+	static std::vector<uint8_t> ReadFunction(T function, size_t count = 0)
+	{
+		Pointer address(reinterpret_cast<uint8_t*>(function));
+		Win32Process process(PROCESS_VM_READ, GetCurrentProcessId());
+
+		size_t bytesRead = 0;
+		std::vector<uint8_t> result(count);
+
+		if (count > 0)
+		{
+			bytesRead = process.ReadProcessMemory(address, result.data(), result.size());
+
+			if (result.size() != bytesRead)
+			{
+				result.resize(bytesRead);
+			}
+
+			return result;
+		}
+
+
+		LogWarning << "function size not set!";
+
+		size_t pageSize = System::PageSize();
+		std::vector<uint8_t> buffer(pageSize);
+
+		do
+		{
+			bytesRead = process.ReadProcessMemory(address, buffer.data(), pageSize);
+
+			// NOTE: this is hacky AF... The trap might not be present
+			constexpr uint8_t Trap[] = { X86::Int3, X86::Int3, X86::Int3 };
+
+			auto trap = std::search(buffer.begin(), buffer.end(), std::begin(Trap), std::end(Trap));
+
+			if (trap != buffer.end())
+			{
+				std::copy(buffer.begin(), trap, std::back_inserter(result));
+				break;
+			}
+
+			std::copy(buffer.begin(), buffer.end(), std::back_inserter(result));
+			address += bytesRead;
+
+		} while (bytesRead);
+
+		return result;
+	}
 
 	DWORD WairForExit(std::chrono::milliseconds = std::chrono::milliseconds(INFINITE));
 

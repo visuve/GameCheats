@@ -1,5 +1,7 @@
 #include "HackLib.hpp"
 
+extern "C" void ExampleAsmFunction();
+
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	int exitCode = 0;
@@ -8,6 +10,9 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	{
 		{ "calculator", typeid(std::nullopt), "Just an example" }
 	});
+
+	auto functionData = Process::ReadFunction(ExampleAsmFunction);
+	Log << ByteStream(functionData);
 
 	if (args.Contains("calculator"))
 	{

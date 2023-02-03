@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project("GameCheats" LANGUAGES CXX)
+project("GameCheats" LANGUAGES CXX ASM_MASM)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,7 +11,10 @@ set(LIBRARY_OUTPUT_PATH "..")
 
 if(MSVC)
 	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	add_compile_options(/MP /W4 /WX /utf-8)
+	add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/MP>)
+	add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/W4>)
+	add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/WX>)
+	add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/utf-8>)
 	add_compile_definitions(NOMINMAX VC_EXTRALEAN)
 endif()
 

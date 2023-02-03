@@ -153,4 +153,5 @@ struct PseudoLogger
 #endif
 
 #define Log Logger(std::cout, std::source_location::current())
+#define LogWarning Logger(std::cout, std::source_location::current()) << Logger::Color::Yellow << "Warning:"
 #define LogError Logger(std::cerr, std::source_location::current())
