@@ -22,7 +22,7 @@ public:
 
 	inline ~VirtualMemory()
 	{
-		if (_parentProcess.IsValid())
+		if (_address && _parentProcess.IsValid())
 		{
 			[[maybe_unused]]
 			bool result = VirtualFreeEx(_parentProcess.Value(), _address, 0, MEM_RELEASE);
