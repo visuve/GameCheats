@@ -90,7 +90,7 @@ static BOOL WINAPI ConsoleHandler(_In_ DWORD signal)
 		{
 			[[maybe_unused]]
 			bool result = SetEvent(event);
-			_ASSERT_EXPR(result, "Could not set event");
+			_ASSERT_EXPR(result, L"Could not set event");
 		}
 	}
 

@@ -216,6 +216,8 @@ namespace X86
 		JmpAp = 0xEA,
 		JmpJb = 0xEB,
 
+		RetN = 0xC3,
+
 		Int3 = 0xCC
 	};
 }

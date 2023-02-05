@@ -164,7 +164,6 @@ Pointer Process::FindImportAddress(std::string_view moduleName, std::string_view
 	return _baseAddress + FindImportEntry(iid, functionName);
 }
 
-// NOTE: I have not tested this in x64
 Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_view functionName)
 {
 	const size_t moduleNameBytes = moduleName.size() * sizeof(char) + sizeof(char);
@@ -173,6 +172,7 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 	Pointer moduleNameArea = AllocateMemory(moduleNameBytes);
 	Pointer functionNameArea = AllocateMemory(functionNameBytes);
 	Pointer codeArea = AllocateMemory(0x400); // 1k, should be enough
+	Pointer resultArea = AllocateMemory(Pointer::Size);
 
 	Write(moduleNameArea, moduleName.data(), moduleNameBytes);
 	Write(functionNameArea, functionName.data(), functionNameBytes);
@@ -183,19 +183,73 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 
 	ByteStream threadFunction;
 
+#ifdef _WIN64
+	threadFunction << "48 83 EC 28"; // sub rsp, 28
+
+	threadFunction << "48 B9" << moduleNameArea; // mov rcx, moduleNamePtr
+	threadFunction << "48 B8" << getModuleHandleA; // mov rax, getModuleHandleA
+	threadFunction << "FF D0"; // call rax
+
+	threadFunction << "48 85 C0"; // test rax, rax
+	threadFunction << "75 07"; // jne 7 bytes forward
+	threadFunction << "B8 01 00 00 00"; // mov eax, 1
+	threadFunction << "EB 32"; // jmp to end...
+
+	threadFunction << "48 BA" << functionNameArea; // mov rdx, functionNameArea
+	threadFunction << "48 8B C8"; // mov rcx, rax
+
+	threadFunction << "48 B8" << getProcAddress; // mov rax, getProcAddress
+	threadFunction << "FF D0"; // call rax
+
+	threadFunction << "48 A3" << resultArea; // mov [resultArea], rax
+
+	threadFunction << "48 85 C0"; // test rax, rax
+	threadFunction << "75 07"; // jne 7 bytes forward
+	threadFunction << "B8 02 00 00 00"; // mov eax, 2
+	threadFunction << "EB 05"; // jmp to end...
+	threadFunction << "B8 00 00 00 00"; // mov eax, 0
+
+	threadFunction << "48 83 C4 28"; // add rsp, 28
+	threadFunction << "C3"; // ret
+#else
 	threadFunction << "68" << moduleNameArea; // push moduleNamePtr
 	threadFunction << "E8" << getModuleHandleA - codeArea - 0xA; // call GetModuleHandleA
+
 	threadFunction << "85 C0"; // test eax, eax
-	threadFunction << "75 01"; // jne step forward...
-	threadFunction << "C3"; // ret	
+	threadFunction << "75 07"; // jne 7 bytes forward
+	threadFunction << "B8 01 00 00 00"; // mov eax, 1
+	threadFunction << "EB 20"; // jmp to end...
+
 	threadFunction << "68" << functionNameArea; // push functionNamePtr
 	threadFunction << "50"; // push eax
-	threadFunction << "E8" << getProcAddress - codeArea - 0x1A; // call GetProcAddress
+	threadFunction << "E8" << getProcAddress - codeArea - 0x20; // call GetProcAddress
+	threadFunction << "A3" << resultArea; // mov [resultArea], eax
+
+	threadFunction << "85 C0"; // test eax, eax
+	threadFunction << "75 07"; // jne 5 bytes forward
+	threadFunction << "B8 02 00 00 00"; // mov eax, 2
+	threadFunction << "EB 05"; // jmp to end...
+
+	threadFunction << "B8 00 00 00 00"; // mov eax, 0
+
 	threadFunction << "C3"; // ret
+#endif
 
 	WriteBytes(codeArea, threadFunction);
 
-	return SpawnThread(codeArea, Pointer(), false);
+	DWORD threadResult = SpawnThread(codeArea, Pointer(), false);
+
+	switch (threadResult)
+	{
+		case 0:
+			return Read<size_t>(resultArea);
+		case 1:
+			throw RuntimeException("Remote GetModuleHandleA failed");
+		case 2:
+			throw RuntimeException("Remote GetProcAddress failed");
+	}
+
+	throw RuntimeException("Unknown error in remote thread");
 }
 
 Pointer Process::AllocateMemory(size_t size)
@@ -209,7 +263,7 @@ Pointer Process::AllocateMemory(size_t size)
 
 	MEMORY_BASIC_INFORMATION info = result.first->Query();
 
-	Log << "Allocated" << info.RegionSize << "bytes at" << result.first->Address() ;
+	Log << "Allocated" << info.RegionSize << "bytes at" << result.first->Address();
 
 	return result.first->Address();
 }
