@@ -130,7 +130,7 @@ MODULEENTRY32W System::ModuleEntryByPid(DWORD pid)
 		throw RangeException("Module not found");
 	}
 
-	_ASSERT_EXPR(processed == 1, "The module ID is expected to be the 1st");
+	_ASSERT_EXPR(processed == 1, L"The module ID is expected to be the 1st");
 
 	return result.value();
 }
@@ -236,9 +236,16 @@ DWORD System::WaitForWindow(std::wstring_view name)
 
 size_t System::PageSize()
 {
-	SYSTEM_INFO systemInfo = {};
-	GetSystemInfo(&systemInfo);
-	return systemInfo.dwPageSize;
+	static size_t pageSize = 0;
+
+	if (pageSize == 0)
+	{
+		SYSTEM_INFO systemInfo = {};
+		GetSystemInfo(&systemInfo);
+		pageSize = systemInfo.dwPageSize;
+	}
+
+	return pageSize;
 }
 
 std::string System::GenerateGuid()
