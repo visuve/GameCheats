@@ -27,39 +27,47 @@ public:
 		return FindModuleEntry(module).modBaseAddr + offset;
 	}
 
-	Pointer ResolvePointer(size_t base, auto ... offsets) const
+	Pointer ResolvePointer(Pointer pointer, auto ... offsets) const
 	{
-		Pointer pointer = Address(base);
-
 		for (size_t offset : { offsets... })
 		{
-			pointer = Read<Pointer>(pointer) + offset;
+			pointer = Read<size_t>(pointer);
+			
+			if (!pointer)
+			{
+				throw RangeException("The resolved pointer is null!");
+			}
+
+			pointer += offset;
 		}
 
-		_ASSERT_EXPR(pointer, L"The pointer is null!");
-
 		return pointer;
+	}
+
+	Pointer ResolvePointer(size_t base, auto ... offsets) const
+	{
+		return ResolvePointer(Address(base), offsets...);
 	}
 
 	void Read(Pointer pointer, auto* value, size_t size) const
 	{
 		size_t bytesRead = _targetProcess.ReadProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
-		Log << "Read" << bytesRead << "bytes from" << pointer ;
+		Log << "Read" << bytesRead << "bytes from" << pointer;
 	}
 
-	template<std::semiregular T>
+	template<std::semiregular T, size_t N = sizeof(T)>
 	T Read(Pointer pointer) const
 	{
 		T value = {};
-		Read(pointer, &value, sizeof(T));
+		Read(pointer, &value, N);
 		return value;
 	}
 
-	template<std::semiregular T>
+	template<std::semiregular T, size_t N = sizeof(T)>
 	T Read(size_t offset) const
 	{
-		return Read<T>(Address(offset));
+		return Read<T, N>(Address(offset));
 	}
 
 	std::vector<uint8_t> ReadBytes(Pointer pointer, size_t amount) const
@@ -195,6 +203,7 @@ public:
 
 	DWORD InjectLibrary(const std::filesystem::path& path);
 
+	void ReplaceImportAddress(Pointer from, Pointer to);
 	void ReplaceImportAddress(std::string_view moduleName, std::string_view functionName, Pointer to);
 
 	// NOTE: all memory is freed in ~Process(),

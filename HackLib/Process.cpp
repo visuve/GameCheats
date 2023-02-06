@@ -330,17 +330,21 @@ DWORD Process::InjectLibrary(const std::filesystem::path& path)
 	return result;
 }
 
-void Process::ReplaceImportAddress(std::string_view moduleName, std::string_view functionName, Pointer to)
+void Process::ReplaceImportAddress(Pointer from, Pointer to)
 {
-	Pointer address = FindImportAddress(moduleName, functionName);
-
-	DWORD oldAccess = _targetProcess.VirtualProtectEx(address, Pointer::Size, PAGE_EXECUTE_READWRITE);
+	DWORD oldAccess = _targetProcess.VirtualProtectEx(from, Pointer::Size, PAGE_EXECUTE_READWRITE);
 	_ASSERT_EXPR(oldAccess == PAGE_READONLY, L"Who leaves IAT other than read only!?");
 
-	WriteBytes(address, to);
+	WriteBytes(from, to);
 
-	[[maybe_unused]] DWORD gainedAccess = _targetProcess.VirtualProtectEx(address, Pointer::Size, oldAccess);
+	[[maybe_unused]] DWORD gainedAccess = _targetProcess.VirtualProtectEx(from, Pointer::Size, oldAccess);
 	_ASSERT_EXPR(gainedAccess == PAGE_EXECUTE_READWRITE, L"We did not previously gain enough access!?");
+}
+
+void Process::ReplaceImportAddress(std::string_view moduleName, std::string_view functionName, Pointer to)
+{
+	Pointer from = FindImportAddress(moduleName, functionName);
+	return ReplaceImportAddress(from, to);
 }
 
 void Process::FreeMemory(Pointer pointer)
