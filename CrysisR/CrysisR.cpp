@@ -21,7 +21,7 @@ void Cheat(const CmdArgs& args, std::string_view key, const Process& process, si
 
 	process.Write<T>(ptr, wanted);
 
-	Log << actual << "->" << wanted;
+	Log << key << actual << "->" << wanted;
 }
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
@@ -31,6 +31,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	const CmdArgs args(givenArguments,
 	{
 		{ "i_unlimitedammo", typeid(int32_t), "Unlimited ammo" },
+		{ "g_suitRecoilEnergyCost", typeid(float), "Recoil energy cost" },
 		{ "g_suitSpeedEnergyConsumption", typeid(float), "Speed energy consumption" },
 		{ "g_playerSuitEnergyRechargeTime", typeid(float), "Energy recharge time" },
 		{ "g_playerSuitEnergyRechargeTimeArmor", typeid(float), "Energy recharge time armor" },
@@ -58,6 +59,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	const std::tuple<std::string_view, size_t, std::type_index> cheats[] =
 	{
 		{ "i_unlimitedammo", 0x1CC, typeid(int32_t) },
+		{ "g_suitRecoilEnergyCost", 0x25C, typeid(float) },
 		{ "g_suitSpeedEnergyConsumption", 0x298, typeid(float) },
 		{ "g_playerSuitEnergyRechargeTime", 0x2D4, typeid(float) },
 		{ "g_playerSuitEnergyRechargeTimeArmor", 0x2D8, typeid(float) },
