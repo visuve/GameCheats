@@ -18,7 +18,12 @@ public:
 		const std::string _what;
 	};
 
-	using Argument = std::tuple<std::string, std::type_index, std::string>;
+	struct Argument
+	{
+		std::string Key;
+		std::type_index Type;
+		std::string Description;
+	};
 
 	CmdArgs(const std::vector<std::string>& given, std::initializer_list<Argument> expected);
 	CmdArgs(int argc, char** argv, std::initializer_list<Argument> expected);

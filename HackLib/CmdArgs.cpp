@@ -5,38 +5,36 @@ std::ostream& operator << (std::ostream& stream, const CmdArgs::Argument& argume
 {
 	stream << std::left << std::setw(20);
 
-	std::type_index type = std::get<1>(argument);
-
-	if (type == typeid(std::nullopt))
+	if (argument.Type == typeid(std::nullopt))
 	{
-		stream << std::get<0>(argument);
+		stream << argument.Key;
 	}
-	else if (type == typeid(std::filesystem::path))
+	else if (argument.Type == typeid(std::filesystem::path))
 	{
-		stream << std::get<0>(argument) + "=<file>";
+		stream << argument.Key + "=<file>";
 	}
-	else if (type == typeid(double))
+	else if (argument.Type == typeid(double))
 	{
-		stream << std::get<0>(argument) + "=<double>";
+		stream << argument.Key + "=<double>";
 	}
-	else if (type == typeid(float))
+	else if (argument.Type == typeid(float))
 	{
-		stream << std::get<0>(argument) + "=<float>";
+		stream << argument.Key + "=<float>";
 	}
-	else if (type == typeid(int))
+	else if (argument.Type == typeid(int))
 	{
-		stream << std::get<0>(argument) + "=<integer>";
+		stream << argument.Key + "=<integer>";
 	}
-	else if (type == typeid(std::string))
+	else if (argument.Type == typeid(std::string))
 	{
-		stream << std::get<0>(argument) + "=<word>";
+		stream << argument.Key + "=<word>";
 	}
 	else
 	{
 		throw ArgumentException("Not supported type");
 	}
 
-	return stream << std::get<2>(argument);
+	return stream << argument.Description;
 }
 
 CmdArgs::Exception::Exception(
@@ -75,7 +73,7 @@ CmdArgs::CmdArgs(const std::vector<std::string>& given, std::initializer_list<Ar
 
 	for (const Argument& argument : _expected)
 	{
-		if (Contains(std::get<0>(argument)))
+		if (Contains(argument.Key))
 		{
 			return;
 		}
@@ -108,7 +106,7 @@ std::type_index CmdArgs::TypeByKey(std::string_view key) const
 {
 	const auto keyEquals = [&](const Argument& argument)->bool
 	{
-		return std::get<0>(argument) == key;
+		return argument.Key == key;
 	};
 
 	auto expectedArgument = std::find_if(_expected.cbegin(), _expected.cend(), keyEquals);
@@ -118,7 +116,7 @@ std::type_index CmdArgs::TypeByKey(std::string_view key) const
 		throw CmdArgs::Exception("Unknown key requested", _usage);
 	}
 
-	return std::get<1>(*expectedArgument);
+	return expectedArgument->Type;
 }
 
 std::any CmdArgs::ValueByKey(std::string_view key) const
