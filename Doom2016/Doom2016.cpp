@@ -12,7 +12,8 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 	const CmdArgs args(givenArguments,
 	{
-		{ "infammo", typeid(std::nullopt), "Infinite ammo" }
+		{ "infammo", typeid(std::nullopt), "Infinite ammo" },
+		{ "instantcool", typeid(std::nullopt), "Instant weapon cooldown" }
 	});
 
 	DWORD pid = System::WaitForExe(L"DOOMx64vk.exe");
@@ -32,6 +33,11 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	if (args.Contains("infammo"))
 	{
 		process.ChangeByte(0xC981E1, X86::AddEvGv, X86::SubEvGv);
+	}
+
+	if (args.Contains("instantcool"))
+	{
+		process.ChangeByte(0xCAB583, X86::AddEvGv, X86::SubEvGv);
 	}
 
 	return exitCode;
