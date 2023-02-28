@@ -53,7 +53,7 @@ public:
 	{
 		size_t bytesRead = _targetProcess.ReadProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
-		Log << "Read" << bytesRead << "bytes from" << pointer;
+		LogDebug << "Read" << bytesRead << "bytes from" << pointer;
 	}
 
 	template<std::semiregular T, size_t N = sizeof(T)>
@@ -81,7 +81,7 @@ public:
 	{
 		size_t bytesWritten = _targetProcess.WriteProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
-		Log << "Wrote" << bytesWritten << "bytes at" << pointer ;
+		LogDebug << "Wrote" << bytesWritten << "bytes at" << pointer;
 	}
 
 	inline void Write(Pointer pointer, const auto& value) const
@@ -129,20 +129,20 @@ public:
 		Write(from, filler.data(), bytes);
 	}
 
-	inline void ChangeByte(Pointer address, uint8_t from, uint8_t to)
+	inline void ChangeByte(Pointer pointer, uint8_t from, uint8_t to)
 	{
-		const uint8_t current = Read<uint8_t>(address);
+		const uint8_t current = Read<uint8_t>(pointer);
 
 		if (current != from)
 		{
 			throw LogicException(
 				std::format("Error @ {}. Expected {:02x}, got {:02x}",
-				address,
+				pointer,
 				from,
 				current));
 		}
 
-		Write<uint8_t>(address, to);
+		Write<uint8_t>(pointer, to);
 	}
 
 	inline void ChangeByte(size_t offset, uint8_t from, uint8_t to)
@@ -199,7 +199,7 @@ public:
 
 	MemoryRegion AllocateRegion(const std::initializer_list<MemoryRegion::NameTypePair>& pairs);
 
-	DWORD SpawnThread(Pointer address, Pointer parameter, bool detached);
+	DWORD SpawnThread(Pointer startAddress, Pointer parameter, bool detached);
 
 	DWORD InjectLibrary(const std::filesystem::path& path);
 

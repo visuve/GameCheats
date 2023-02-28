@@ -30,7 +30,7 @@ public:
 
 	DWORD VirtualProtectEx(Pointer pointer, size_t size, DWORD newAccess) const;
 
-	HANDLE CreateRemoteThread(Pointer address, Pointer parameter) const;
+	HANDLE CreateRemoteThread(Pointer startAddress, Pointer parameter) const;
 
 	void FlushInstructionCache(Pointer address, size_t size) const;
 

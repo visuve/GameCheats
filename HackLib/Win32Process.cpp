@@ -75,11 +75,11 @@ DWORD Win32Process::VirtualProtectEx(Pointer pointer, size_t size, DWORD newAcce
 	return oldAccess;
 }
 
-HANDLE Win32Process::CreateRemoteThread(Pointer address, Pointer parameter) const
+HANDLE Win32Process::CreateRemoteThread(Pointer startAddress, Pointer parameter) const
 {
-	auto startAddress = reinterpret_cast<LPTHREAD_START_ROUTINE>(address.Value());
+	auto sa = reinterpret_cast<LPTHREAD_START_ROUTINE>(startAddress.Value());
 
-	HANDLE thread = ::CreateRemoteThread(_handle, nullptr, 0, startAddress, parameter, 0, nullptr);
+	HANDLE thread = ::CreateRemoteThread(_handle, nullptr, 0, sa, parameter, 0, nullptr);
 
 	if (!thread)
 	{

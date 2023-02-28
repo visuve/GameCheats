@@ -177,7 +177,7 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 	Write(moduleNameArea, moduleName.data(), moduleNameBytes);
 	Write(functionNameArea, functionName.data(), functionNameBytes);
 
-	// kernel32 functions have same address in all processess, hence we can use our own
+	// kernel32 functions have same address in all processess, hence we can use our own address
 	Pointer getModuleHandleA(reinterpret_cast<void*>(&GetModuleHandleA));
 	Pointer getProcAddress(reinterpret_cast<void*>(&GetProcAddress));
 
@@ -288,9 +288,9 @@ MemoryRegion Process::AllocateRegion(const std::initializer_list<MemoryRegion::N
 	return MemoryRegion(region, pairs);
 }
 
-DWORD Process::SpawnThread(Pointer address, Pointer parameter, bool detached)
+DWORD Process::SpawnThread(Pointer startAddress, Pointer parameter, bool detached)
 {
-	HANDLE bare = _targetProcess.CreateRemoteThread(address, parameter);
+	HANDLE bare = _targetProcess.CreateRemoteThread(startAddress, parameter);
 
 	if (detached)
 	{
@@ -372,29 +372,29 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 
 	_ASSERT(nops < codeSize);
 
-	Pointer target = AllocateMemory(bytesRequired);
+	Pointer trampoline = AllocateMemory(bytesRequired);
 
 	{
-		ByteStream codeWithJumpBack(code);
+		ByteStream payload(code);
 
-		codeWithJumpBack << JumpAbsolute(origin + JumpOpSize);
+		payload << JumpAbsolute(origin + JumpOpSize);
 
-		WriteBytes(target, codeWithJumpBack);
+		WriteBytes(trampoline, payload);
 
-		_targetProcess.FlushInstructionCache(target, bytesRequired);
+		_targetProcess.FlushInstructionCache(trampoline, payload.Size());
 	}
 
 	{
-		ByteStream detour(JumpAbsolute(target));
-		detour.Add(nops, X86::Nop);
+		ByteStream relay(JumpAbsolute(trampoline));
+		relay.Add(nops, X86::Nop);
 
-		WriteBytes(origin, detour);
+		WriteBytes(origin, relay);
 
-		_targetProcess.FlushInstructionCache(origin, detour.Size());
+		_targetProcess.FlushInstructionCache(origin, relay.Size());
 	}
 
 	Log << Logger::Color::Cyan << "Injected" << JumpOpSize + nops << "bytes to" << origin;
-	return target;
+	return trampoline;
 }
 
 Pointer Process::InjectX64(size_t offset, size_t nops, std::span<uint8_t> code)
@@ -414,29 +414,29 @@ Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 
 	_ASSERT(nops < codeSize);
 
-	Pointer target = AllocateMemory(bytesRequired);
+	Pointer trampoline = AllocateMemory(bytesRequired);
 
 	{
-		ByteStream codeWithJumpBack(code);
+		ByteStream payload(code);
 
-		codeWithJumpBack << JumpOp(target + codeSize, origin + JumpOpSize);
+		payload << JumpOp(trampoline + codeSize, origin + JumpOpSize);
 
-		WriteBytes(target, codeWithJumpBack);
+		WriteBytes(trampoline, payload);
 
-		_targetProcess.FlushInstructionCache(target, codeWithJumpBack.Size());
+		_targetProcess.FlushInstructionCache(trampoline, payload.Size());
 	}
 
 	{
-		ByteStream detour(JumpOp(origin, target));
-		detour.Add(nops, X86::Nop);
+		ByteStream relay(JumpOp(origin, trampoline));
+		relay.Add(nops, X86::Nop);
 
-		WriteBytes(origin, detour);
+		WriteBytes(origin, relay);
 
-		_targetProcess.FlushInstructionCache(origin, detour.Size());
+		_targetProcess.FlushInstructionCache(origin, relay.Size());
 	}
 
 	Log << Logger::Color::Cyan << "Injected" << JumpOpSize + nops << "bytes to" << origin;
-	return target;
+	return trampoline;
 }
 
 
