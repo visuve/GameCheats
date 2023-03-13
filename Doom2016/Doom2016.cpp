@@ -15,7 +15,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		{ "infammo", typeid(std::nullopt), "Infinite ammo" },
 		{ "instantcool", typeid(std::nullopt), "Instant weapon cooldown" },
 		{ "instantcharge", typeid(std::nullopt), "Instant weapon charge" },
-		{ "freeupgrade", typeid(std::nullopt), "Free weapon & gear upgrades" },
+		{ "freeupgrades", typeid(std::nullopt), "Free weapon & gear upgrades" },
 	});
 
 	DWORD pid = System::WaitForExe(L"DOOMx64vk.exe");

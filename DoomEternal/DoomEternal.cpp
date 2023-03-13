@@ -12,7 +12,8 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 	const CmdArgs args(givenArguments,
 	{
-		{ "infammo", typeid(std::nullopt), "Infinite ammo" }
+		{ "infammo", typeid(std::nullopt), "Infinite ammo" },
+		{ "freeupgrades", typeid(std::nullopt), "Free weapon & gear upgrades" },
 	});
 
 	DWORD pid = System::WaitForExe(L"DOOMEternalx64vk.exe");
@@ -31,9 +32,20 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 	if (args.Contains("infammo"))
 	{
+		process.ChangeBytes(0x1D24A03,
+			ByteStream("89 7B 40"), // mov [rbx+40], edi
+			ByteStream("FF C7 90")); // inc edi; nop
+
 		process.ChangeBytes(0x1D24A31,
 			ByteStream("89 7B 40"), // mov [rbx+40], edi
-			ByteStream("FF 43 40")); // inc [rbx+40]
+			ByteStream("90 90 90")); // mov [rbx+40], edi
+	}
+
+	if (args.Contains("freeupgrades"))
+	{
+		process.ChangeBytes(0x1A4899F,
+			ByteStream("44 01 84 B1 84 CD 04 00"), // add [rcx+rsi*4+0004CD84],r8d
+			ByteStream("FF 84 B1 84 CD 04 00 90")); // inc [rcx+rsi*4+0004CD84]; nop
 	}
 
 	return exitCode;
