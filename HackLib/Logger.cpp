@@ -26,18 +26,7 @@ Logger::Logger(std::ostream& stream, const std::source_location& location) :
 		_stream << Background(Color::Black) << Foreground(Color::DarkGray);
 	}
 
-	const std::chrono::zoned_time currentTime(
-		std::chrono::current_zone(), 
-		std::chrono::system_clock::now());
-
-	const std::string fileName = std::filesystem::path(
-		location.file_name()).filename().string();
-
-	_stream << std::format(
-		"[{:%T}][{}:{}]",
-		currentTime,
-		fileName,
-		location.line());
+	_stream << Prefix(location);
 }
 
 Logger::~Logger()
@@ -66,3 +55,46 @@ Logger& Logger::operator << (Color x)
 	_color = x;
 	return *this;
 }
+
+std::string Logger::Prefix(const std::source_location& location)
+{
+	const std::chrono::zoned_time currentTime(
+	std::chrono::current_zone(),
+	std::chrono::system_clock::now());
+
+	const std::string fileName = std::filesystem::path(
+		location.file_name()).filename().string();
+
+	return std::format("[{:%T}][{}:{}]", currentTime, fileName, location.line());
+}
+
+#ifdef _DEBUG
+ScopeLogger::ScopeLogger(const std::source_location& location) :
+	_sourceLocation(location)
+{
+	if (std::clog)
+	{
+		std::clog << Logger::Background(Logger::Color::Black)
+			<< Logger::Foreground(Logger::Color::Magenta)
+			<< Logger::Prefix(_sourceLocation) 
+			<< " Enter" << std::endl;
+	}
+
+	_start = std::chrono::high_resolution_clock::now();
+}
+
+ScopeLogger::~ScopeLogger()
+{
+	if (std::clog)
+	{
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(stop - _start);
+
+		std::clog << Logger::Background(Logger::Color::Black)
+			<< Logger::Foreground(Logger::Color::Magenta)
+			<< Logger::Prefix(_sourceLocation)
+			<< " Exit (~" << diff << ')'
+			<< std::endl;
+	}
+}
+#endif

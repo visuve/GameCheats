@@ -78,12 +78,7 @@ public:
 	Logger& operator << (Modifier x);
 	Logger& operator << (Color x);
 
-private:
-	static std::mutex _mutex;
-	std::ostream& _stream;
-	Modifier _modifier = Modifier::Space;
-	Color _color = Color::Default;
-	const bool _isConsoleOutput;
+	static std::string Prefix(const std::source_location& location);
 
 	static constexpr std::string_view Foreground(Color c)
 	{
@@ -135,10 +130,32 @@ private:
 
 		throw ArgumentException("Unknown background color");
 	}
+
+private:
+	static std::mutex _mutex;
+	std::ostream& _stream;
+	Modifier _modifier = Modifier::Space;
+	Color _color = Color::Default;
+	const bool _isConsoleOutput;
 };
 
 #ifdef _DEBUG
+class ScopeLogger
+{
+public:
+	ScopeLogger(const std::source_location& location);
+	~ScopeLogger();
+
+private:
+	std::source_location _sourceLocation;
+	std::chrono::high_resolution_clock::time_point _start;
+};
+
+#define JoinNoExpand(A, B) A ## B
+#define JoinExpand(A, B) JoinNoExpand(A, B)
+
 #define LogDebug Logger(std::clog, std::source_location::current())
+#define LogScope ScopeLogger JoinExpand(logger, __LINE__)(std::source_location::current())
 #else
 struct PseudoLogger
 {
@@ -148,8 +165,8 @@ struct PseudoLogger
 		return *this;
 	}
 };
-
 #define LogDebug PseudoLogger()
+#define LogScope PseudoLogger()
 #endif
 
 #define Log Logger(std::cout, std::source_location::current())
