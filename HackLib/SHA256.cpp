@@ -6,7 +6,8 @@
 SHA256::SHA256(const std::filesystem::path& path) :
 	SHA256()
 {
-	ProcessFile(path);
+	Win32File file(path);
+	ProcessFile(file);
 }
 
 SHA256::~SHA256()
@@ -84,24 +85,18 @@ SHA256::SHA256()
 	}
 }
 
-void SHA256::ProcessFile(const std::filesystem::path& path)
+void SHA256::ProcessFile(const Win32File& file)
 {
 	auto before = std::chrono::high_resolution_clock::now();
 
 	std::vector<uint8_t> buffer(0x100000);
 
-	std::ifstream file;
-	file.exceptions(std::ifstream::badbit);
-	file.open(path, std::ios::binary);
+	size_t fileSize = file.Size();
+	size_t bytesLeft = fileSize;
 
-	uintmax_t fileSize = std::filesystem::file_size(path);
-	uintmax_t bytesProcessed = 0;
-
-	while (file)
+	while (bytesLeft)
 	{
-		file.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
-
-		const size_t bytesRead = static_cast<size_t>(file.gcount());
+		const size_t bytesRead = file.Read(buffer.data(), buffer.size());
 
 		if (bytesRead > buffer.size())
 		{
@@ -111,9 +106,9 @@ void SHA256::ProcessFile(const std::filesystem::path& path)
 					buffer.size()));
 		}
 
-		bytesProcessed += bytesRead;
+		bytesLeft -= bytesRead;
 
-		if (bytesProcessed > fileSize)
+		if (bytesLeft > fileSize)
 		{
 			throw RuntimeException(
 				std::format("Read {0} bytes when the file size was {1}",
@@ -126,7 +121,7 @@ void SHA256::ProcessFile(const std::filesystem::path& path)
 			buffer.resize(bytesRead);
 		}
 
-		float complete = float(bytesProcessed) / float(fileSize) * 100.f;
+		float complete = float(fileSize - bytesLeft) / float(fileSize) * 100.f;
 		Log << Logger::Color::Yellow << std::format("Verifying {:.2f}%", complete);
 
 		Update(buffer);

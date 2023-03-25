@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NonCopyable.hpp"
+#include "Win32File.hpp"
 
 class SHA256
 {
@@ -20,9 +21,7 @@ public:
 
 private:
 	SHA256();
-
-	size_t PropertySize(std::wstring_view property);
-	void ProcessFile(const std::filesystem::path& path);
+	void ProcessFile(const Win32File& file);
 	void Update(std::span<uint8_t> data);
 	void Finish();
 
