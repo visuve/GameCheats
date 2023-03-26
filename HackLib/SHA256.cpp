@@ -10,6 +10,12 @@ SHA256::SHA256(const std::filesystem::path& path) :
 	ProcessFile(file);
 }
 
+SHA256::SHA256(const Win32File& file) :
+	SHA256()
+{
+	ProcessFile(file);
+}
+
 SHA256::~SHA256()
 {
 	if (_hashHandle)
