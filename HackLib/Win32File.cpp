@@ -30,7 +30,7 @@ size_t Win32File::Size() const
 		throw Win32Exception("GetFileSizeEx");
 	}
 
-	return size.QuadPart;
+	return static_cast<size_t>(size.QuadPart);
 }
 
 size_t Win32File::Read(void* buffer, size_t size) const
@@ -70,5 +70,5 @@ size_t Win32File::CurrentPosition() const
 		throw Win32Exception("SetFilePointerEx");
 	}
 
-	return position.QuadPart;
+	return static_cast<size_t>(position.QuadPart);
 }
