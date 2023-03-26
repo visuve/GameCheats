@@ -8,6 +8,7 @@
 #include "OpCodes.hpp"
 #include "Pointer.hpp"
 #include "MemoryRegion.hpp"
+#include "PE.hpp"
 #include "Process.hpp"
 #include "Registry.hpp"
 #include "SHA256.hpp"

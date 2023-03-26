@@ -21,7 +21,7 @@ public:
 	size_t ReadAt(void* buffer, size_t size, size_t offset) const;
 
 	template<std::semiregular T, size_t N = sizeof(T)>
-	T ReadAt(size_t offset = 0) const
+	T ReadAt(size_t offset) const
 	{
 		T result = {};
 
