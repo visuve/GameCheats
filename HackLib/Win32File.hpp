@@ -18,35 +18,19 @@ public:
 
 	size_t Size() const;
 	size_t Read(void* buffer, size_t size) const;
-};
+	size_t ReadAt(void* buffer, size_t size, size_t offset) const;
 
-class Win32FileMapping : public Win32Handle
-{
-public:
-	Win32FileMapping(const Win32File& file);
-	virtual ~Win32FileMapping();
-
-	NonCopyable(Win32FileMapping);
-
-	inline HANDLE Value() const
+	template<std::semiregular T, size_t N = sizeof(T)>
+	T ReadAt(size_t offset = 0) const
 	{
-		return _handle;
-	}
-};
+		T result = {};
 
-class Win32FileView
-{
-public:
-	explicit Win32FileView(const Win32FileMapping& mapping);
-	~Win32FileView();
+		[[maybe_unused]]
+		size_t bytesRead = ReadAt(&result, N, offset);
 
-	NonCopyable(Win32FileView);
-
-	inline void* Data() const
-	{
-		return _view;
+		_ASSERT(bytesRead == N);
+		return result;
 	}
 
-private:
-	void* _view = nullptr;
+	size_t CurrentPosition() const;
 };

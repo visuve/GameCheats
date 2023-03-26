@@ -45,32 +45,30 @@ size_t Win32File::Read(void* buffer, size_t size) const
 	return bytesRead;
 }
 
-Win32FileMapping::Win32FileMapping(const Win32File& file) :
-	Win32Handle(CreateFileMappingW(file.Value(), nullptr, PAGE_READONLY, 0, 0, nullptr))
+size_t Win32File::ReadAt(void* buffer, size_t size, size_t offset) const
 {
-	if (!_handle)
+	DWORD bytesRead = 0;
+
+	OVERLAPPED o = {};
+	o.Pointer = reinterpret_cast<void*>(offset);
+
+	if (!ReadFile(_handle, buffer, static_cast<DWORD>(size), &bytesRead, &o))
 	{
-		throw Win32Exception("CreateFileMappingW");
+		throw Win32Exception("ReadFile");
 	}
+
+	return bytesRead;
 }
 
-Win32FileMapping::~Win32FileMapping()
+size_t Win32File::CurrentPosition() const
 {
-}
+	LARGE_INTEGER distanceToMove = {};
+	LARGE_INTEGER position = {};
 
-Win32FileView::Win32FileView(const Win32FileMapping& mapping) :
-	_view(MapViewOfFile(mapping.Value(), FILE_MAP_READ, 0, 0, 0))
-{
-	if (!_view)
+	if (!SetFilePointerEx(_handle, distanceToMove, &position, FILE_CURRENT))
 	{
-		throw Win32Exception("MapViewOfFile");
+		throw Win32Exception("SetFilePointerEx");
 	}
-}
 
-Win32FileView::~Win32FileView()
-{
-	if (_view)
-	{
-		UnmapViewOfFile(_view);
-	}
+	return position.QuadPart;
 }
