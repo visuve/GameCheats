@@ -17,7 +17,21 @@ public:
 	}
 
 	size_t Size() const;
+
 	size_t Read(void* buffer, size_t size) const;
+
+	template<std::semiregular T, size_t N = sizeof(T)>
+	T Read() const
+	{
+		T result = {};
+
+		[[maybe_unused]]
+		size_t bytesRead = Read(&result, N);
+
+		_ASSERT(bytesRead == N);
+		return result;
+	}
+
 	size_t ReadAt(void* buffer, size_t size, size_t offset) const;
 
 	template<std::semiregular T, size_t N = sizeof(T)>
@@ -33,4 +47,5 @@ public:
 	}
 
 	size_t CurrentPosition() const;
+	void SetPosition(size_t) const;
 };

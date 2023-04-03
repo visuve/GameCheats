@@ -97,6 +97,9 @@ void SHA256::ProcessFile(const Win32File& file)
 
 	std::vector<uint8_t> buffer(0x100000);
 
+	size_t originalPosition = file.CurrentPosition();
+	file.SetPosition(0);
+
 	size_t fileSize = file.Size();
 	size_t bytesLeft = fileSize;
 
@@ -138,6 +141,8 @@ void SHA256::ProcessFile(const Win32File& file)
 	auto after = std::chrono::high_resolution_clock::now();
 
 	Log << "Verifying took" << std::chrono::duration_cast<std::chrono::milliseconds>(after - before);
+
+	file.SetPosition(originalPosition);
 }
 
 void SHA256::Update(std::span<uint8_t> data)

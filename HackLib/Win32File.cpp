@@ -63,12 +63,27 @@ size_t Win32File::ReadAt(void* buffer, size_t size, size_t offset) const
 size_t Win32File::CurrentPosition() const
 {
 	LARGE_INTEGER distanceToMove = {};
-	LARGE_INTEGER position = {};
+	LARGE_INTEGER result = {};
 
-	if (!SetFilePointerEx(_handle, distanceToMove, &position, FILE_CURRENT))
+	if (!SetFilePointerEx(_handle, distanceToMove, &result, FILE_CURRENT))
 	{
 		throw Win32Exception("SetFilePointerEx");
 	}
 
-	return static_cast<size_t>(position.QuadPart);
+	return static_cast<size_t>(result.QuadPart);
+}
+
+void Win32File::SetPosition(size_t position) const
+{
+	LARGE_INTEGER distanceToMove = {};
+	distanceToMove.QuadPart = static_cast<int64_t>(position);
+
+	LARGE_INTEGER result = {};
+
+	if (!SetFilePointerEx(_handle, distanceToMove, &result, FILE_BEGIN))
+	{
+		throw Win32Exception("SetFilePointerEx");
+	}
+
+	_ASSERT(static_cast<size_t>(result.QuadPart) == position);
 }
