@@ -41,10 +41,44 @@ namespace MZ // https://wiki.osdev.org/MZ
 
 namespace COFF // https://wiki.osdev.org/COFF
 {
+	enum ArchitectureType : uint16_t
+	{
+		Unknown = 0,
+		I386 = 0x014Cu,
+		R3000 = 0x0162u,
+		R4000 = 0x0166u,
+		R10000 = 0x0168u,
+		WCEMIPSV2 = 0x0169u,
+		ALPHA = 0x0184u,
+		SH3 = 0x01A2u,
+		SH3DSP = 0x01A3u,
+		SH3E = 0x01A4u,
+		SH4 = 0x01A6u,
+		SH5 = 0x01A8u,
+		ARM = 0x01C0u,
+		THUMB = 0x01C2u,
+		ARMNT = 0x01C4u,
+		AM33 = 0x01D3u,
+		POWERPC = 0x01F0u,
+		POWERPCFP = 0x01F1,
+		IA64 = 0x0200u,
+		MIPS16 = 0x0266u,
+		ALPHA64 = 0x0284u,
+		MIPSFPU = 0x0366u,
+		MIPSFPU16 = 0x0466u,
+		TRICORE = 0x0520u,
+		CEF = 0x0CEFu,
+		EBC = 0x0EBCu,
+		AMD64 = 0x8664u,
+		M32R = 0x9041u,
+		ARM64 = 0xAA64u,
+		CEE = 0xC0EEu
+	};
+
 	struct Header
 	{
 		uint32_t Signature = 0u;
-		uint16_t Machine = 0u;
+		ArchitectureType Architecture = Unknown;
 		uint16_t NumberOfSections = 0u;
 		uint32_t TimeDateStamp = 0u;
 		uint32_t PointerToSymbolTable = 0u;
@@ -53,9 +87,6 @@ namespace COFF // https://wiki.osdev.org/COFF
 		uint16_t Characteristics = 0u;
 
 		static constexpr uint32_t ExpectedSignature = 0x00004550u;
-
-		static constexpr uint16_t MachineI386 = 0x014Cu;
-		static constexpr uint16_t MachineAMD64 = 0x8664u;
 
 		static constexpr uint16_t ExecutableFlag = 0x0002u;
 		static constexpr uint16_t LibraryFlag = 0x2000u;
@@ -184,6 +215,8 @@ public:
 	SHA256 Checksum() const;
 
 protected:
+	COFF::SectionHeader FindSectionHeader(const COFF::DataDirectory&) const;
+
 	MZ::Header _mzHeader;
 	MZ::HeaderExtension _mzExtension;
 
@@ -194,6 +227,7 @@ protected:
 	std::vector<COFF::SectionHeader> _sectionHeaders;
 
 	void* _optionalHeaderExtension = nullptr;
+	size_t _addressSize = 0;
 
 private:
 	template <typename T>
