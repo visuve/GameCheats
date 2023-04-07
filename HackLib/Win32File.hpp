@@ -16,7 +16,10 @@ public:
 		return _handle;
 	}
 
-	size_t Size() const;
+	inline size_t Size() const
+	{
+		return _size;
+	}
 
 	size_t Read(void* buffer, size_t size) const;
 
@@ -46,6 +49,12 @@ public:
 		return result;
 	}
 
+	std::string ReadUntil(char byte) const;
+	std::string ReadAtUntil(size_t offset, char byte) const;
+
 	size_t CurrentPosition() const;
 	void SetPosition(size_t) const;
+
+private:
+	size_t _size = 0;
 };

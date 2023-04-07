@@ -15,14 +15,7 @@ Win32File::Win32File(const std::filesystem::path& path) :
 	{
 		throw Win32Exception("CreateFileW");
 	}
-}
 
-Win32File::~Win32File()
-{
-}
-
-size_t Win32File::Size() const
-{
 	LARGE_INTEGER size = { 0 };
 
 	if (!GetFileSizeEx(_handle, &size))
@@ -30,7 +23,16 @@ size_t Win32File::Size() const
 		throw Win32Exception("GetFileSizeEx");
 	}
 
-	return static_cast<size_t>(size.QuadPart);
+	if (size.QuadPart > std::numeric_limits<size_t>::max())
+	{
+		throw OutOfRangeException("Too large file to handle");
+	}
+
+	_size = static_cast<size_t>(size.QuadPart);
+}
+
+Win32File::~Win32File()
+{
 }
 
 size_t Win32File::Read(void* buffer, size_t size) const
@@ -49,15 +51,44 @@ size_t Win32File::ReadAt(void* buffer, size_t size, size_t offset) const
 {
 	DWORD bytesRead = 0;
 
-	OVERLAPPED o = {};
-	o.Pointer = reinterpret_cast<void*>(offset);
+	OVERLAPPED ovl = {};
+	ovl.Pointer = reinterpret_cast<void*>(offset);
 
-	if (!ReadFile(_handle, buffer, static_cast<DWORD>(size), &bytesRead, &o))
+	if (!ReadFile(_handle, buffer, static_cast<DWORD>(size), &bytesRead, &ovl))
 	{
 		throw Win32Exception("ReadFile");
 	}
 
 	return bytesRead;
+}
+
+std::string Win32File::ReadUntil(char byte) const
+{
+	std::string result;
+
+	std::string buffer(0xFF, '\0');
+
+	while (Read(buffer.data(), buffer.size()))
+	{
+		size_t nullPosition = buffer.find(byte);
+
+		if (nullPosition == std::string::npos)
+		{
+			result.append(buffer);
+			continue;
+		}
+		
+		result.append(buffer, 0, nullPosition);
+		break;
+	}
+
+	return result;
+}
+
+std::string Win32File::ReadAtUntil(size_t offset, char byte) const
+{
+	SetPosition(offset);
+	return ReadUntil(byte);
 }
 
 size_t Win32File::CurrentPosition() const
