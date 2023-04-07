@@ -334,6 +334,7 @@ Executable::Executable(const std::filesystem::path& path) :
 std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions() const
 {
 	std::vector<std::pair<std::string, std::string>> result;
+	size_t originalPosition = CurrentPosition();
 
 	auto dd = _dataDirectories[COFF::DataDirectoryType::ImportTable];
 	COFF::SectionHeader importSection = FindSectionHeader(dd);
@@ -358,10 +359,9 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 
 		size_t libraryNameOffset = VirtualAdressToFileOffset(importSection, iid.Name);
 
-		char libraryNameBuffer[MAX_PATH] = {};
-		ReadAt(libraryNameBuffer, MAX_PATH, libraryNameOffset);
+		std::string libraryName = ReadAtUntil(libraryNameOffset, '\0');
 
-		LogDebug << "Found:" << libraryNameBuffer;
+		LogDebug << "Found:" << libraryName;
 
 		for (size_t thunkOffset = VirtualAdressToFileOffset(importSection,
 			iid.OriginalFirstThunk == 0 ? iid.FirstThunk : iid.OriginalFirstThunk);
@@ -382,18 +382,17 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 				break;
 			}
 
-			char functionNameBuffer[MAX_PATH] = {};
-
 			uint64_t functionNameOffset = VirtualAdressToFileOffset(importSection, thunk) + 2;
 
-			ReadAt(functionNameBuffer, MAX_PATH, static_cast<size_t>(functionNameOffset));
+			std::string functionName = ReadAtUntil(static_cast<size_t>(functionNameOffset), '\0');
 
-			LogDebug << "Found:" << functionNameBuffer;
+			LogDebug << "Found:" << functionName;
 
-			result.emplace_back(libraryNameBuffer, functionNameBuffer);
+			result.emplace_back(libraryName, functionName);
 		}
 	}
 
+	SetPosition(originalPosition);
 	return result;
 }
 
@@ -409,6 +408,7 @@ Library::Library(const std::filesystem::path& path) :
 std::vector<std::string> Library::ExportedFunctions() const
 {
 	std::vector<std::string> result;
+	size_t originalPosition = CurrentPosition();
 
 	auto dd = _dataDirectories[COFF::DataDirectoryType::ExportTable];
 	COFF::SectionHeader exportSection = FindSectionHeader(dd);
@@ -427,29 +427,25 @@ std::vector<std::string> Library::ExportedFunctions() const
 	{
 		uint64_t functionNameOffset = 0;  // large enough to hold 32 or 64 bit
 		
-		if (ReadAt(&functionNameOffset, _addressSize, functionNamesOffset) != _addressSize)
+		if (ReadAt(&functionNameOffset, _addressSize, static_cast<size_t>(functionNamesOffset)) != _addressSize)
 		{
 			throw ArgumentException("Failed to read function name offset");
 		}
 
-		LogDebug << std::format("functionNameOffset: 0x{:08X}", functionNameOffset);
+		LogDebug << std::format("functionNameOffset: 0x{:016X}", functionNameOffset);
 
 		functionNameOffset = VirtualAdressToFileOffset(exportSection, functionNameOffset);
-		LogDebug << std::format("functionNameOffset: 0x{:08X}", functionNameOffset);
+		LogDebug << std::format("functionNameOffset: 0x{:016X}", functionNameOffset);
 
-		char functionNameBuffer[MAX_PATH] = {};
+		std::string functionName = ReadAtUntil(static_cast<size_t>(functionNameOffset), '\0');
 
-		if (!ReadAt(functionNameBuffer, MAX_PATH, static_cast<size_t>(functionNameOffset)))
-		{
-			throw ArgumentException("Failed to read function name");
-		}
+		LogDebug << "Found:" << functionName;
 
-		LogDebug << "Found:" << functionNameBuffer;
-
-		result.emplace_back(functionNameBuffer);
+		result.emplace_back(functionName);
 
 		functionNamesOffset += _addressSize;
 	}
 
+	SetPosition(originalPosition);
 	return result;
 }
