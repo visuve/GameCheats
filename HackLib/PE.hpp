@@ -75,21 +75,36 @@ namespace COFF // https://wiki.osdev.org/COFF
 		CEE = 0xC0EEu
 	};
 
+	enum Flag : uint16_t
+	{
+		NoRelocations = 0x0001u,
+		Executable = 0x0002u,
+		NoLineNumbers = 0x0004u,
+		NoSymbols = 0x0008u,
+		AgressiveTrim = 0x0010u,
+		LargeAddressAware = 0x0020u,
+		BytesReverserLow = 0x0080u,
+		X86 = 0x0100u,
+		NoDebug = 0x0200u,
+		MediaSwappable = 0x0400u,
+		NetSwappable = 0x0800u,
+		SystemFile = 0x1000,
+		DynamicLinkLibrary = 0x2000u,
+		BytesReverserHigh = 0x8000u
+	};
+
 	struct Header
 	{
 		uint32_t Signature = 0u;
-		ArchitectureType Architecture = Unknown;
+		uint16_t Architecture = Unknown;
 		uint16_t NumberOfSections = 0u;
 		uint32_t TimeDateStamp = 0u;
 		uint32_t PointerToSymbolTable = 0u;
 		uint32_t NumberOfSymbols = 0u;
 		uint16_t SizeOfOptionalHeader = 0u;
-		uint16_t Characteristics = 0u;
+		uint16_t Flags = 0u;
 
 		static constexpr uint32_t ExpectedSignature = 0x00004550u;
-
-		static constexpr uint16_t ExecutableFlag = 0x0002u;
-		static constexpr uint16_t LibraryFlag = 0x2000u;
 	};
 
 	struct OptionalHeader

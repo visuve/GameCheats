@@ -62,7 +62,7 @@ inline std::ostream& operator << (std::ostream& os, const COFF::Header& ch)
 	os << std::format("\tPointerToSymbolTable: 0x{:08X}\n", ch.PointerToSymbolTable);
 	os << std::format("\tNumberOfSymbols:      0x{:08X}\n", ch.NumberOfSymbols);
 	os << std::format("\tSizeOfOptionalHeader: 0x{:04X}\n", ch.SizeOfOptionalHeader);
-	os << std::format("\tCharacteristics:      0x{:04X}", ch.Characteristics);
+	os << std::format("\tFlags:                0x{:04X}", ch.Flags);
 
 	return os;
 }
@@ -203,6 +203,12 @@ inline std::ostream& operator << (std::ostream& os, const PE::ExportDirectory& e
 	return os;
 }
 
+template <typename T>
+inline T VirtualAdressToFileOffset(const COFF::SectionHeader& sh, T virtualAddress)
+{
+	return sh.PointerToRawData + (virtualAddress - sh.VirtualAddress);
+}
+
 PEFile::PEFile(const std::filesystem::path& path) :
 	Win32File(path),
 	_mzHeader(Read<MZ::Header>())
@@ -232,7 +238,6 @@ PEFile::PEFile(const std::filesystem::path& path) :
 
 	_coffOptionalHeader = Read<COFF::OptionalHeader>();
 	LogDebug << _coffOptionalHeader;
-
 
 	size_t numberOfDataDirectories = 0;
 
@@ -320,7 +325,7 @@ COFF::SectionHeader PEFile::FindSectionHeader(const COFF::DataDirectory& dd) con
 Executable::Executable(const std::filesystem::path& path) :
 	PEFile(path)
 {
-	if (!(_coffHeader.Characteristics & COFF::Header::ExecutableFlag))
+	if (!(_coffHeader.Flags & COFF::Flag::Executable))
 	{
 		throw ArgumentException("Not an executable");
 	}
@@ -333,11 +338,13 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 	auto dd = _dataDirectories[COFF::DataDirectoryType::ImportTable];
 	COFF::SectionHeader importSection = FindSectionHeader(dd);
 
-	size_t importOffset = importSection.PointerToRawData + (dd.VirtualAddress - importSection.VirtualAddress);
+	LogDebug << importSection;
 
 	PE::ImportDescriptor iid;
 
-	do
+	for (size_t importOffset = VirtualAdressToFileOffset(importSection, dd.VirtualAddress); 
+		true; // 4ever loop
+		importOffset += sizeof(PE::ImportDescriptor))
 	{
 		LogDebug << std::format("importOffset: 0x{:08X}", importOffset);
 		iid = ReadAt<PE::ImportDescriptor>(importOffset);
@@ -349,22 +356,21 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 
 		LogDebug << iid;
 
-		size_t libraryNameOffset = importSection.PointerToRawData + (iid.Name - importSection.VirtualAddress);
+		size_t libraryNameOffset = VirtualAdressToFileOffset(importSection, iid.Name);
 
 		char libraryNameBuffer[MAX_PATH] = {};
 		ReadAt(libraryNameBuffer, MAX_PATH, libraryNameOffset);
 
 		LogDebug << "Found:" << libraryNameBuffer;
 
-		size_t thunkOffset = iid.OriginalFirstThunk == 0 ? iid.FirstThunk : iid.OriginalFirstThunk;
-		thunkOffset -= importSection.VirtualAddress;
-		thunkOffset += importSection.PointerToRawData;
-
-		uint64_t thunk = 0; // large enough to hold 32 or 64 bit
-
-		do
+		for (size_t thunkOffset = VirtualAdressToFileOffset(importSection,
+			iid.OriginalFirstThunk == 0 ? iid.FirstThunk : iid.OriginalFirstThunk);
+			true; // 4ever loop
+			thunkOffset += _addressSize)
 		{
 			LogDebug << std::format("thunkOffset: 0x{:08X}", thunkOffset);
+
+			uint64_t thunk = 0; // large enough to hold 32 or 64 bit
 
 			if (ReadAt(&thunk, _addressSize, thunkOffset) != _addressSize)
 			{
@@ -378,20 +384,15 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 
 			char functionNameBuffer[MAX_PATH] = {};
 
-			size_t functionNameOffset = importSection.PointerToRawData + (thunk - importSection.VirtualAddress + 2);
+			uint64_t functionNameOffset = VirtualAdressToFileOffset(importSection, thunk) + 2;
 
-			ReadAt(functionNameBuffer, MAX_PATH, functionNameOffset);
+			ReadAt(functionNameBuffer, MAX_PATH, static_cast<size_t>(functionNameOffset));
 
 			LogDebug << "Found:" << functionNameBuffer;
 
 			result.emplace_back(libraryNameBuffer, functionNameBuffer);
-
-			thunkOffset += _addressSize;
-				
-		} while (thunk);
-
-		importOffset += sizeof(PE::ImportDescriptor);
-	} while (iid.Name);
+		}
+	}
 
 	return result;
 }
@@ -399,7 +400,7 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 Library::Library(const std::filesystem::path& path) :
 	PEFile(path)
 {
-	if (!(_coffHeader.Characteristics & COFF::Header::LibraryFlag))
+	if (!(_coffHeader.Flags & COFF::Flag::DynamicLinkLibrary))
 	{
 		throw ArgumentException("Not a library");
 	}
@@ -412,14 +413,14 @@ std::vector<std::string> Library::ExportedFunctions() const
 	auto dd = _dataDirectories[COFF::DataDirectoryType::ExportTable];
 	COFF::SectionHeader exportSection = FindSectionHeader(dd);
 
-	size_t exportOffset = exportSection.PointerToRawData + (dd.VirtualAddress - exportSection.VirtualAddress);
+	size_t exportOffset = VirtualAdressToFileOffset(exportSection, dd.VirtualAddress);
 	LogDebug << std::format("exportOffset: 0x{:08X}", exportOffset);
 
 	auto ed = ReadAt<PE::ExportDirectory>(exportOffset);
 
 	LogDebug << ed;
 
-	size_t functionNamesOffset = exportSection.PointerToRawData + (ed.AddressOfNames - exportSection.VirtualAddress);
+	size_t functionNamesOffset = VirtualAdressToFileOffset(exportSection, ed.AddressOfNames);
 	LogDebug << std::format("functionNamesOffset: 0x{:08X}", functionNamesOffset);
 
 	for (size_t i = 0; i < ed.NumberOfNames; ++i)
@@ -433,12 +434,12 @@ std::vector<std::string> Library::ExportedFunctions() const
 
 		LogDebug << std::format("functionNameOffset: 0x{:08X}", functionNameOffset);
 
-		functionNameOffset = exportSection.PointerToRawData + (functionNameOffset - exportSection.VirtualAddress);
+		functionNameOffset = VirtualAdressToFileOffset(exportSection, functionNameOffset);
 		LogDebug << std::format("functionNameOffset: 0x{:08X}", functionNameOffset);
 
 		char functionNameBuffer[MAX_PATH] = {};
 
-		if (!ReadAt(functionNameBuffer, MAX_PATH, functionNameOffset))
+		if (!ReadAt(functionNameBuffer, MAX_PATH, static_cast<size_t>(functionNameOffset)))
 		{
 			throw ArgumentException("Failed to read function name");
 		}
