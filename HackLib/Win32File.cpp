@@ -23,10 +23,12 @@ Win32File::Win32File(const std::filesystem::path& path) :
 		throw Win32Exception("GetFileSizeEx");
 	}
 
-	if (size.QuadPart > std::numeric_limits<size_t>::max())
+#ifdef _WIN32
+	if (size.QuadPart > 0x7FFF'FFFF)
 	{
 		throw OutOfRangeException("Too large file to handle");
 	}
+#endif
 
 	_size = static_cast<size_t>(size.QuadPart);
 }
