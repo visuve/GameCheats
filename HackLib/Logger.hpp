@@ -131,6 +131,33 @@ public:
 		throw ArgumentException("Unknown background color");
 	}
 
+	template <typename T>
+	void Hex(std::string_view name, T value) = delete;
+
+	template <>
+	void Hex(std::string_view name, uint8_t value)
+	{
+		_stream << std::format(" {} = 0x{:02X}", name, value);
+	}
+
+	template <>
+	void Hex(std::string_view name, uint16_t value)
+	{
+		_stream << std::format(" {} = 0x{:04X}", name, value);
+	}
+
+	template <>
+	void Hex(std::string_view name, uint32_t value)
+	{
+		_stream << std::format(" {} = 0x{:08X}", name, value);
+	}
+
+	template <>
+	void Hex(std::string_view name, uint64_t value)
+	{
+		_stream << std::format(" {} = 0x{:16X}", name, value);
+	}
+
 private:
 	static std::mutex _mutex;
 	std::ostream& _stream;
@@ -155,6 +182,7 @@ private:
 #define JoinExpand(A, B) JoinNoExpand(A, B)
 
 #define LogDebug Logger(std::clog, std::source_location::current())
+#define LogVariable(x) LogDebug.Hex(#x, x)
 #define LogScope ScopeLogger JoinExpand(logger, __LINE__)(std::source_location::current())
 #else
 struct PseudoLogger
@@ -166,6 +194,7 @@ struct PseudoLogger
 	}
 };
 #define LogDebug PseudoLogger()
+#define LogVariable(x)
 #define LogScope PseudoLogger()
 #endif
 
