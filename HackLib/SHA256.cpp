@@ -98,7 +98,7 @@ void SHA256::ProcessFile(const Win32File& file)
 	std::vector<uint8_t> buffer(0x100000);
 
 	size_t originalPosition = file.CurrentPosition();
-	file.SetPosition(0);
+	file.SetPosition(0u);
 
 	size_t fileSize = file.Size();
 	size_t bytesLeft = fileSize;

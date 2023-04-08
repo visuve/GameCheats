@@ -28,7 +28,7 @@ private:
 
 	BCRYPT_ALG_HANDLE _algorithmHandle = nullptr;
 	BCRYPT_HASH_HANDLE _hashHandle = nullptr;
-	std::array<uint8_t, Bytes> _hashData;
+	std::array<uint8_t, Bytes> _hashData = {};
 };
 
 std::ostream& operator << (std::ostream& os, const SHA256& sha256);
