@@ -204,9 +204,10 @@ inline std::ostream& operator << (std::ostream& os, const PE::ExportDirectory& e
 }
 
 template <typename T>
-inline T VirtualAdressToFileOffset(const COFF::SectionHeader& sh, T virtualAddress)
+inline T VirtualAdressToFilePosition(const COFF::SectionHeader& sh, T virtualAddress)
 {
-	return sh.PointerToRawData + (virtualAddress - sh.VirtualAddress);
+	T offset = virtualAddress - sh.VirtualAddress;
+	return sh.PointerToRawData + offset;
 }
 
 PEFile::PEFile(const std::filesystem::path& path) :
@@ -343,12 +344,13 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 
 	PE::ImportDescriptor iid;
 
-	for (size_t importOffset = VirtualAdressToFileOffset(importSection, dd.VirtualAddress); 
+	for (size_t importSectionPosition = VirtualAdressToFilePosition(importSection, dd.VirtualAddress);
 		true; // 4ever loop
-		importOffset += sizeof(PE::ImportDescriptor))
+		importSectionPosition += sizeof(PE::ImportDescriptor))
 	{
-		LogDebug << std::format("importOffset: 0x{:08X}", importOffset);
-		iid = ReadAt<PE::ImportDescriptor>(importOffset);
+		LogVariable(importSectionPosition);
+
+		iid = ReadAt<PE::ImportDescriptor>(importSectionPosition);
 
 		if (!iid.Name)
 		{
@@ -357,22 +359,23 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 
 		LogDebug << iid;
 
-		size_t libraryNameOffset = VirtualAdressToFileOffset(importSection, iid.Name);
+		size_t libraryNamePosition = VirtualAdressToFilePosition(importSection, iid.Name);
+		LogVariable(libraryNamePosition);
 
-		std::string libraryName = ReadAtUntil(libraryNameOffset, '\0');
+		std::string libraryName = ReadAtUntil(libraryNamePosition, '\0');
 
 		LogDebug << "Found:" << libraryName;
 
-		for (size_t thunkOffset = VirtualAdressToFileOffset(importSection,
+		for (size_t thunkPosition = VirtualAdressToFilePosition(importSection,
 			iid.OriginalFirstThunk == 0 ? iid.FirstThunk : iid.OriginalFirstThunk);
 			true; // 4ever loop
-			thunkOffset += _addressSize)
+			thunkPosition += _addressSize)
 		{
-			LogDebug << std::format("thunkOffset: 0x{:08X}", thunkOffset);
+			LogVariable(thunkPosition);
 
 			uint64_t thunk = 0; // large enough to hold 32 or 64 bit
 
-			if (ReadAt(&thunk, _addressSize, thunkOffset) != _addressSize)
+			if (ReadAt(&thunk, _addressSize, thunkPosition) != _addressSize)
 			{
 				throw ArgumentException("Failed to read thunk");
 			}
@@ -382,9 +385,12 @@ std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions()
 				break;
 			}
 
-			uint64_t functionNameOffset = VirtualAdressToFileOffset(importSection, thunk) + 2;
+			LogVariable(thunk);
 
-			std::string functionName = ReadAtUntil(static_cast<size_t>(functionNameOffset), '\0');
+			size_t functionNamePosition = VirtualAdressToFilePosition(importSection, static_cast<size_t>(thunk)) + 2u;
+			LogVariable(functionNamePosition);
+
+			std::string functionName = ReadAtUntil(functionNamePosition, '\0');
 
 			LogDebug << "Found:" << functionName;
 
@@ -413,37 +419,38 @@ std::vector<std::string> Library::ExportedFunctions() const
 	auto dd = _dataDirectories[COFF::DataDirectoryType::ExportTable];
 	COFF::SectionHeader exportSection = FindSectionHeader(dd);
 
-	size_t exportOffset = VirtualAdressToFileOffset(exportSection, dd.VirtualAddress);
-	LogDebug << std::format("exportOffset: 0x{:08X}", exportOffset);
+	size_t exportSectionPosition = VirtualAdressToFilePosition(exportSection, dd.VirtualAddress);
+	LogVariable(exportSectionPosition);
 
-	auto ed = ReadAt<PE::ExportDirectory>(exportOffset);
+	auto ed = ReadAt<PE::ExportDirectory>(exportSectionPosition);
 
 	LogDebug << ed;
 
-	size_t functionNamesOffset = VirtualAdressToFileOffset(exportSection, ed.AddressOfNames);
-	LogDebug << std::format("functionNamesOffset: 0x{:08X}", functionNamesOffset);
+	size_t functionNameListPosition = VirtualAdressToFilePosition(exportSection, ed.AddressOfNames);
+	LogVariable(functionNameListPosition);
 
 	for (size_t i = 0; i < ed.NumberOfNames; ++i)
 	{
-		uint64_t functionNameOffset = 0;  // large enough to hold 32 or 64 bit
+		size_t functionNamePosition = 0;
 		
-		if (ReadAt(&functionNameOffset, _addressSize, static_cast<size_t>(functionNamesOffset)) != _addressSize)
+		if (ReadAt(&functionNamePosition, _addressSize, functionNameListPosition) != _addressSize)
 		{
 			throw ArgumentException("Failed to read function name offset");
 		}
 
-		LogDebug << std::format("functionNameOffset: 0x{:016X}", functionNameOffset);
+		LogVariable(functionNamePosition);
 
-		functionNameOffset = VirtualAdressToFileOffset(exportSection, functionNameOffset);
-		LogDebug << std::format("functionNameOffset: 0x{:016X}", functionNameOffset);
+		functionNamePosition = VirtualAdressToFilePosition(exportSection, functionNamePosition);
 
-		std::string functionName = ReadAtUntil(static_cast<size_t>(functionNameOffset), '\0');
+		LogVariable(functionNamePosition);
+
+		std::string functionName = ReadAtUntil(functionNamePosition, '\0');
 
 		LogDebug << "Found:" << functionName;
 
 		result.emplace_back(functionName);
 
-		functionNamesOffset += _addressSize;
+		functionNameListPosition += _addressSize;
 	}
 
 	SetPosition(originalPosition);
