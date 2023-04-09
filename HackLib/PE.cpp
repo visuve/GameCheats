@@ -8,7 +8,7 @@ inline std::ostream& operator << (std::ostream& os, const MZ::Header& mh)
 {
 	os << "\n\nMZ header:\n";
 
-	os << std::format("\tSignature:             0x{:04X}\n",mh.Signature);
+	os << std::format("\tSignature:             0x{:04X}\n", mh.Signature);
 	os << std::format("\tExtraBytes:            0x{:04X}\n", mh.ExtraBytes);
 	os << std::format("\tPages:                 0x{:04X}\n", mh.Pages);
 	os << std::format("\tRelocationCount:       0x{:04X}\n", mh.RelocationCount);
@@ -117,7 +117,7 @@ inline std::ostream& operator << (std::ostream& os, const COFF::OptionalHeaderEx
 {
 	os << "\n\nCOFF optional header extension:\n";
 
-	os << std::format("\tImageBase:                   0x{:16X}\n", ioh.ImageBase);
+	os << std::format("\tImageBase:                   0x{:016X}\n", ioh.ImageBase);
 	os << std::format("\tSectionAlignment:            0x{:08X}\n", ioh.SectionAlignment);
 	os << std::format("\tFileAlignment:               0x{:08X}\n", ioh.FileAlignment);
 	os << std::format("\tMajorOperatingSystemVersion: 0x{:04X}\n", ioh.MajorOperatingSystemVersion);
@@ -132,10 +132,10 @@ inline std::ostream& operator << (std::ostream& os, const COFF::OptionalHeaderEx
 	os << std::format("\tCheckSum:                    0x{:08X}\n", ioh.CheckSum);
 	os << std::format("\tSubsystem:                   0x{:04X}\n", ioh.Subsystem);
 	os << std::format("\tDllCharacteristics:          0x{:04X}\n", ioh.DllCharacteristics);
-	os << std::format("\tSizeOfStackReserve:          0x{:16X}\n", ioh.SizeOfStackReserve);
-	os << std::format("\tSizeOfStackCommit:           0x{:16X}\n", ioh.SizeOfStackCommit);
-	os << std::format("\tSizeOfHeapReserve:           0x{:16X}\n", ioh.SizeOfHeapReserve);
-	os << std::format("\tSizeOfHeapCommit:            0x{:16X}\n", ioh.SizeOfHeapCommit);
+	os << std::format("\tSizeOfStackReserve:          0x{:016X}\n", ioh.SizeOfStackReserve);
+	os << std::format("\tSizeOfStackCommit:           0x{:016X}\n", ioh.SizeOfStackCommit);
+	os << std::format("\tSizeOfHeapReserve:           0x{:016X}\n", ioh.SizeOfHeapReserve);
+	os << std::format("\tSizeOfHeapCommit:            0x{:016X}\n", ioh.SizeOfHeapCommit);
 	os << std::format("\tLoaderFlags:                 0x{:08X}\n", ioh.LoaderFlags);
 	os << std::format("\tNumberOfDataDirectories:     0x{:08X}", ioh.NumberOfDataDirectories);
 
@@ -203,256 +203,259 @@ inline std::ostream& operator << (std::ostream& os, const PE::ExportDirectory& e
 	return os;
 }
 
-template <typename T>
-inline T VirtualAdressToFilePosition(const COFF::SectionHeader& sh, T virtualAddress)
+namespace PE
 {
-	T offset = virtualAddress - sh.VirtualAddress;
-	return sh.PointerToRawData + offset;
-}
-
-PEFile::PEFile(const std::filesystem::path& path) :
-	Win32File(path),
-	_mzHeader(Read<MZ::Header>())
-{
-	LogDebug << _mzHeader;
-
-	if (_mzHeader.Signature != MZ::Header::ExpectedSignature)
+	template <typename T>
+	inline T VirtualAdressToFilePosition(const COFF::SectionHeader& sh, T virtualAddress)
 	{
-		throw ArgumentException("Invalid MZ header signature");
+		T offset = virtualAddress - sh.VirtualAddress;
+		return sh.PointerToRawData + offset;
 	}
 
-	_mzExtension = Read<MZ::HeaderExtension>();
-	LogDebug << _mzExtension;
-
-	_coffHeader = ReadAt<COFF::Header>(_mzExtension.COFFHeaderStart);
-	LogDebug << _coffHeader;
-
-	if (_coffHeader.Signature != COFF::Header::ExpectedSignature)
+	File::File(const std::filesystem::path& path) :
+		Win32File(path),
+		_mzHeader(Read<MZ::Header>())
 	{
-		throw ArgumentException("Invalid COFF header signature");
-	}
+		LogDebug << _mzHeader;
 
-	if (!_coffHeader.SizeOfOptionalHeader)
-	{
-		throw ArgumentException("No optional header");
-	}
-
-	_coffOptionalHeader = Read<COFF::OptionalHeader>();
-	LogDebug << _coffOptionalHeader;
-
-	size_t numberOfDataDirectories = 0;
-
-	switch (_coffHeader.Architecture)
-	{
-		case COFF::ArchitectureType::I386:
-			if (_coffOptionalHeader.Signature != COFF::OptionalHeader::ExpectedSignaturePE32)
-			{
-				throw ArgumentException("Architecture and PE format mismatch!");
-			}
-
-			numberOfDataDirectories = ReadCOFFOptionalHeaderExtension<uint32_t>();
-			_addressSize = 4;
-			break;
-		case COFF::ArchitectureType::AMD64:
-			if (_coffOptionalHeader.Signature != COFF::OptionalHeader::ExpectedSignaturePE32Plus)
-			{
-				throw ArgumentException("Architecture and PE format mismatch!");
-			}
-
-			numberOfDataDirectories = ReadCOFFOptionalHeaderExtension<uint64_t>();
-			_addressSize = 8;
-			break;
-
-		default:
-			throw ArgumentException("Unsupported architecture");
-	}
-
-	if (!numberOfDataDirectories)
-	{
-		throw ArgumentException("No data directories");
-	}
-
-	for (size_t i = 0; i < numberOfDataDirectories; ++i)
-	{
-		auto dd = Read<COFF::DataDirectory>();
-
-		LogDebug << dd;
-
-		_dataDirectories.emplace_back(dd);
-	}
-
-	if (!_coffHeader.NumberOfSections)
-	{
-		throw ArgumentException("No sections");
-	}
-
-	for (size_t i = 0; i < _coffHeader.NumberOfSections; ++i)
-	{
-		auto sh = Read<COFF::SectionHeader>();
-
-		LogDebug << sh;
-
-		_sectionHeaders.emplace_back(sh);
-	}
-}
-
-PEFile::~PEFile()
-{
-	if (_optionalHeaderExtension)
-	{
-		delete _optionalHeaderExtension;
-	}
-}
-
-SHA256 PEFile::Checksum() const
-{
-	auto self = dynamic_cast<const Win32File*>(this);
-	return SHA256(*self);
-}
-
-COFF::SectionHeader PEFile::FindSectionHeader(const COFF::DataDirectory& dd) const
-{
-	for (const COFF::SectionHeader& sh : _sectionHeaders)
-	{
-		if (dd.VirtualAddress >= sh.VirtualAddress && dd.VirtualAddress < sh.VirtualAddress + sh.VirtualSize)
+		if (_mzHeader.Signature != MZ::Header::ExpectedSignature)
 		{
-			return sh;
+			throw ArgumentException("Invalid MZ header signature");
+		}
+
+		_mzExtension = Read<MZ::HeaderExtension>();
+		LogDebug << _mzExtension;
+
+		_coffHeader = ReadAt<COFF::Header>(_mzExtension.COFFHeaderStart);
+		LogDebug << _coffHeader;
+
+		if (_coffHeader.Signature != COFF::Header::ExpectedSignature)
+		{
+			throw ArgumentException("Invalid COFF header signature");
+		}
+
+		if (!_coffHeader.SizeOfOptionalHeader)
+		{
+			throw ArgumentException("No optional header");
+		}
+
+		_coffOptionalHeader = Read<COFF::OptionalHeader>();
+		LogDebug << _coffOptionalHeader;
+
+		size_t numberOfDataDirectories = 0;
+
+		switch (_coffHeader.Architecture)
+		{
+			case COFF::ArchitectureType::I386:
+				if (_coffOptionalHeader.Signature != COFF::OptionalHeader::ExpectedSignaturePE32)
+				{
+					throw ArgumentException("Architecture and PE format mismatch!");
+				}
+
+				numberOfDataDirectories = ReadCOFFOptionalHeaderExtension<uint32_t>();
+				_addressSize = 4;
+				break;
+			case COFF::ArchitectureType::AMD64:
+				if (_coffOptionalHeader.Signature != COFF::OptionalHeader::ExpectedSignaturePE32Plus)
+				{
+					throw ArgumentException("Architecture and PE format mismatch!");
+				}
+
+				numberOfDataDirectories = ReadCOFFOptionalHeaderExtension<uint64_t>();
+				_addressSize = 8;
+				break;
+
+			default:
+				throw ArgumentException("Unsupported architecture");
+		}
+
+		if (!numberOfDataDirectories)
+		{
+			throw ArgumentException("No data directories");
+		}
+
+		for (size_t i = 0; i < numberOfDataDirectories; ++i)
+		{
+			auto dd = Read<COFF::DataDirectory>();
+
+			LogDebug << dd;
+
+			_dataDirectories.emplace_back(dd);
+		}
+
+		if (!_coffHeader.NumberOfSections)
+		{
+			throw ArgumentException("No sections");
+		}
+
+		for (size_t i = 0; i < _coffHeader.NumberOfSections; ++i)
+		{
+			auto sh = Read<COFF::SectionHeader>();
+
+			LogDebug << sh;
+
+			_sectionHeaders.emplace_back(sh);
 		}
 	}
 
-	throw RangeException("Not found");
-}
-
-Executable::Executable(const std::filesystem::path& path) :
-	PEFile(path)
-{
-	if (!(_coffHeader.Flags & COFF::Flag::Executable))
+	File::~File()
 	{
-		throw ArgumentException("Not an executable");
-	}
-}
-
-std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions() const
-{
-	std::vector<std::pair<std::string, std::string>> result;
-	size_t originalPosition = CurrentPosition();
-
-	auto dd = _dataDirectories[COFF::DataDirectoryType::ImportTable];
-	COFF::SectionHeader importSection = FindSectionHeader(dd);
-
-	LogDebug << importSection;
-
-	PE::ImportDescriptor iid;
-
-	for (size_t importSectionPosition = VirtualAdressToFilePosition(importSection, dd.VirtualAddress);
-		true; // 4ever loop
-		importSectionPosition += sizeof(PE::ImportDescriptor))
-	{
-		LogVariable(importSectionPosition);
-
-		iid = ReadAt<PE::ImportDescriptor>(importSectionPosition);
-
-		if (!iid.Name)
+		if (_optionalHeaderExtension)
 		{
-			break;
+			delete _optionalHeaderExtension;
+		}
+	}
+
+	SHA256 File::Checksum() const
+	{
+		auto self = dynamic_cast<const Win32File*>(this);
+		return SHA256(*self);
+	}
+
+	COFF::SectionHeader File::FindSectionHeader(const COFF::DataDirectory& dd) const
+	{
+		for (const COFF::SectionHeader& sh : _sectionHeaders)
+		{
+			if (dd.VirtualAddress >= sh.VirtualAddress && dd.VirtualAddress < sh.VirtualAddress + sh.VirtualSize)
+			{
+				return sh;
+			}
 		}
 
-		LogDebug << iid;
+		throw RangeException("Not found");
+	}
 
-		size_t libraryNamePosition = VirtualAdressToFilePosition(importSection, iid.Name);
-		LogVariable(libraryNamePosition);
+	Executable::Executable(const std::filesystem::path& path) :
+		File(path)
+	{
+		if (!(_coffHeader.Flags & COFF::Flag::Executable))
+		{
+			throw ArgumentException("Not an executable");
+		}
+	}
 
-		std::string libraryName = ReadAtUntil(libraryNamePosition, '\0');
+	std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions() const
+	{
+		std::vector<std::pair<std::string, std::string>> result;
+		size_t originalPosition = CurrentPosition();
 
-		LogDebug << "Found:" << libraryName;
+		const auto dd = _dataDirectories[COFF::DataDirectoryType::ImportTable];
+		COFF::SectionHeader importSection = FindSectionHeader(dd);
 
-		for (size_t thunkPosition = VirtualAdressToFilePosition(importSection,
-			iid.OriginalFirstThunk == 0 ? iid.FirstThunk : iid.OriginalFirstThunk);
+		LogDebug << importSection;
+
+		PE::ImportDescriptor iid;
+
+		for (size_t importSectionPosition = VirtualAdressToFilePosition(importSection, dd.VirtualAddress);
 			true; // 4ever loop
-			thunkPosition += _addressSize)
+			importSectionPosition += sizeof(PE::ImportDescriptor))
 		{
-			LogVariable(thunkPosition);
+			LogVariable(importSectionPosition);
 
-			uint64_t thunk = 0; // large enough to hold 32 or 64 bit
+			iid = ReadAt<PE::ImportDescriptor>(importSectionPosition);
 
-			if (ReadAt(&thunk, _addressSize, thunkPosition) != _addressSize)
-			{
-				throw ArgumentException("Failed to read thunk");
-			}
-
-			if (!thunk)
+			if (!iid.Name)
 			{
 				break;
 			}
 
-			LogVariable(thunk);
+			LogDebug << iid;
 
-			size_t functionNamePosition = VirtualAdressToFilePosition(importSection, static_cast<size_t>(thunk)) + 2u;
+			size_t libraryNamePosition = VirtualAdressToFilePosition(importSection, iid.Name);
+			LogVariable(libraryNamePosition);
+
+			std::string libraryName = ReadAtUntil(libraryNamePosition, '\0');
+
+			LogDebug << "Found:" << libraryName;
+
+			for (size_t thunkPosition = VirtualAdressToFilePosition(importSection,
+				iid.OriginalFirstThunk == 0 ? iid.FirstThunk : iid.OriginalFirstThunk);
+				true; // 4ever loop
+				thunkPosition += _addressSize)
+			{
+				LogVariable(thunkPosition);
+
+				uint64_t thunk = 0; // large enough to hold 32 or 64 bit
+
+				if (ReadAt(&thunk, _addressSize, thunkPosition) != _addressSize)
+				{
+					throw ArgumentException("Failed to read thunk");
+				}
+
+				if (!thunk)
+				{
+					break;
+				}
+
+				LogVariable(thunk);
+
+				size_t functionNamePosition = VirtualAdressToFilePosition(importSection, static_cast<size_t>(thunk)) + 2u;
+				LogVariable(functionNamePosition);
+
+				std::string functionName = ReadAtUntil(functionNamePosition, '\0');
+
+				LogDebug << "Found:" << functionName;
+
+				result.emplace_back(libraryName, functionName);
+			}
+		}
+
+		SetPosition(originalPosition);
+		return result;
+	}
+
+	Library::Library(const std::filesystem::path& path) :
+		File(path)
+	{
+		if (!(_coffHeader.Flags & COFF::Flag::DynamicLinkLibrary))
+		{
+			throw ArgumentException("Not a library");
+		}
+	}
+
+	std::vector<std::string> Library::ExportedFunctions() const
+	{
+		std::vector<std::string> result;
+		size_t originalPosition = CurrentPosition();
+
+		const auto dd = _dataDirectories[COFF::DataDirectoryType::ExportTable];
+		COFF::SectionHeader exportSection = FindSectionHeader(dd);
+
+		size_t exportSectionPosition = VirtualAdressToFilePosition(exportSection, dd.VirtualAddress);
+		LogVariable(exportSectionPosition);
+
+		auto ed = ReadAt<PE::ExportDirectory>(exportSectionPosition);
+
+		LogDebug << ed;
+
+		size_t functionNameListPosition = VirtualAdressToFilePosition(exportSection, ed.AddressOfNames);
+		LogVariable(functionNameListPosition);
+
+		for (size_t i = 0; i < ed.NumberOfNames; ++i)
+		{
+			size_t functionNamePosition = 0;
+
+			if (ReadAt(&functionNamePosition, _addressSize, functionNameListPosition) != _addressSize)
+			{
+				throw ArgumentException("Failed to read function name offset");
+			}
+
+			LogVariable(functionNamePosition);
+
+			functionNamePosition = VirtualAdressToFilePosition(exportSection, functionNamePosition);
+
 			LogVariable(functionNamePosition);
 
 			std::string functionName = ReadAtUntil(functionNamePosition, '\0');
 
 			LogDebug << "Found:" << functionName;
 
-			result.emplace_back(libraryName, functionName);
-		}
-	}
+			result.emplace_back(functionName);
 
-	SetPosition(originalPosition);
-	return result;
-}
-
-Library::Library(const std::filesystem::path& path) :
-	PEFile(path)
-{
-	if (!(_coffHeader.Flags & COFF::Flag::DynamicLinkLibrary))
-	{
-		throw ArgumentException("Not a library");
-	}
-}
-
-std::vector<std::string> Library::ExportedFunctions() const
-{
-	std::vector<std::string> result;
-	size_t originalPosition = CurrentPosition();
-
-	auto dd = _dataDirectories[COFF::DataDirectoryType::ExportTable];
-	COFF::SectionHeader exportSection = FindSectionHeader(dd);
-
-	size_t exportSectionPosition = VirtualAdressToFilePosition(exportSection, dd.VirtualAddress);
-	LogVariable(exportSectionPosition);
-
-	auto ed = ReadAt<PE::ExportDirectory>(exportSectionPosition);
-
-	LogDebug << ed;
-
-	size_t functionNameListPosition = VirtualAdressToFilePosition(exportSection, ed.AddressOfNames);
-	LogVariable(functionNameListPosition);
-
-	for (size_t i = 0; i < ed.NumberOfNames; ++i)
-	{
-		size_t functionNamePosition = 0;
-		
-		if (ReadAt(&functionNamePosition, _addressSize, functionNameListPosition) != _addressSize)
-		{
-			throw ArgumentException("Failed to read function name offset");
+			functionNameListPosition += _addressSize;
 		}
 
-		LogVariable(functionNamePosition);
-
-		functionNamePosition = VirtualAdressToFilePosition(exportSection, functionNamePosition);
-
-		LogVariable(functionNamePosition);
-
-		std::string functionName = ReadAtUntil(functionNamePosition, '\0');
-
-		LogDebug << "Found:" << functionName;
-
-		result.emplace_back(functionName);
-
-		functionNameListPosition += _addressSize;
+		SetPosition(originalPosition);
+		return result;
 	}
-
-	SetPosition(originalPosition);
-	return result;
 }

@@ -155,7 +155,7 @@ public:
 	template <>
 	void Hex(std::string_view name, uint64_t value)
 	{
-		_stream << std::format(" {} = 0x{:16X}", name, value);
+		_stream << std::format(" {} = 0x{:016X}", name, value);
 	}
 
 private:

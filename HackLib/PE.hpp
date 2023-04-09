@@ -218,66 +218,67 @@ namespace PE // https://wiki.osdev.org/PE
 		uint32_t AddressOfNames = 0u;
 		uint32_t AddressOfNameOrdinals = 0u;
 	};
-}
 
-// https://learn.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)?redirectedfrom=MSDN
-class PEFile : protected Win32File
-{
-public:
-	PEFile(const std::filesystem::path& path);
-	virtual ~PEFile();
 
-	SHA256 Checksum() const;
-
-protected:
-	COFF::SectionHeader FindSectionHeader(const COFF::DataDirectory&) const;
-
-	MZ::Header _mzHeader;
-	MZ::HeaderExtension _mzExtension;
-
-	COFF::Header _coffHeader;
-	COFF::OptionalHeader _coffOptionalHeader;
-	
-	std::vector<COFF::DataDirectory> _dataDirectories;
-	std::vector<COFF::SectionHeader> _sectionHeaders;
-
-	void* _optionalHeaderExtension = nullptr;
-	size_t _addressSize = 0;
-
-private:
-	template <typename T>
-	size_t ReadCOFFOptionalHeaderExtension()
+	// https://learn.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)?redirectedfrom=MSDN
+	class File : protected Win32File
 	{
-		using HT = COFF::OptionalHeaderExtension<T>;
+	public:
+		File(const std::filesystem::path& path);
+		virtual ~File();
 
-		_optionalHeaderExtension = new HT();
+		SHA256 Checksum() const;
 
-		[[maybe_unused]]
-		size_t bytesRead = Read(_optionalHeaderExtension, sizeof(HT));
-		_ASSERT(bytesRead == sizeof(HT));
+	protected:
+		COFF::SectionHeader FindSectionHeader(const COFF::DataDirectory&) const;
 
-		auto ohe = reinterpret_cast<HT*>(_optionalHeaderExtension);
+		MZ::Header _mzHeader;
+		MZ::HeaderExtension _mzExtension;
 
-		LogDebug << *ohe;
+		COFF::Header _coffHeader;
+		COFF::OptionalHeader _coffOptionalHeader;
 
-		return ohe->NumberOfDataDirectories;
-	}
-};
+		std::vector<COFF::DataDirectory> _dataDirectories;
+		std::vector<COFF::SectionHeader> _sectionHeaders;
 
-class Executable : public PEFile
-{
-public:
-	Executable(const std::filesystem::path& path);
-	~Executable() = default;
+		void* _optionalHeaderExtension = nullptr;
+		size_t _addressSize = 0;
 
-	std::vector<std::pair<std::string, std::string>> ImportedFunctions() const;
-};
+	private:
+		template <typename T>
+		size_t ReadCOFFOptionalHeaderExtension()
+		{
+			using HT = COFF::OptionalHeaderExtension<T>;
 
-class Library : public PEFile
-{
-public:
-	Library(const std::filesystem::path& path);
-	~Library() = default;
+			_optionalHeaderExtension = new HT();
 
-	std::vector<std::string> ExportedFunctions() const;
-};
+			[[maybe_unused]]
+			size_t bytesRead = Read(_optionalHeaderExtension, sizeof(HT));
+			_ASSERT(bytesRead == sizeof(HT));
+
+			auto ohe = reinterpret_cast<HT*>(_optionalHeaderExtension);
+
+			LogDebug << *ohe;
+
+			return ohe->NumberOfDataDirectories;
+		}
+	};
+
+	class Executable : public File
+	{
+	public:
+		Executable(const std::filesystem::path& path);
+		~Executable() = default;
+
+		std::vector<std::pair<std::string, std::string>> ImportedFunctions() const;
+	};
+
+	class Library : public File
+	{
+	public:
+		Library(const std::filesystem::path& path);
+		~Library() = default;
+
+		std::vector<std::string> ExportedFunctions() const;
+	};
+}
