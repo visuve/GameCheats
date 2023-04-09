@@ -144,7 +144,7 @@ std::any CmdArgs::ValueByKey(std::string_view key) const
 		
 		providedArgument.remove_prefix(key.size());
 
-		if (providedArgument.front() != L'=')
+		if (providedArgument.empty() || providedArgument.front() != L'=')
 		{
 			throw CmdArgs::Exception(
 				"Arguments with values should be passed with \'=\' sign", _usage);
