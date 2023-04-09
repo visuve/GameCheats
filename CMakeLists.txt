@@ -22,6 +22,7 @@ endif()
 add_subdirectory("HackLib")
 include_directories("HackLib")
 add_subdirectory("EntryPoint")
+add_subdirectory("ProxyLibraryGenerator")
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	add_subdirectory("MayPayne")
