@@ -162,6 +162,13 @@ namespace FileGenerator
 
 		out << std::endl;
 
+		out << R"(  <PropertyGroup>)" << std::endl;
+		out << R"(    <IntDir>$(SolutionDir)obj</IntDir>)" << std::endl;
+		out << R"(    <OutDir>$(SolutionDir)bin</OutDir>)" << std::endl;
+		out << R"(  </PropertyGroup>)" << std::endl;
+
+		out << std::endl;
+
 		out << R"(  <ItemDefinitionGroup>)" << std::endl;
 		out << R"(    <Link>)" << std::endl;
 		out << R"(      <AdditionalDependencies>kernel32.lib;user32.lib;</AdditionalDependencies>)" << std::endl;
