@@ -5,7 +5,6 @@
 #include "Win32File.hpp"
 
 // https://en.wikibooks.org/wiki/X86_Disassembly/Windows_Executable_Files
-// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
 
 namespace MZ // https://wiki.osdev.org/MZ
 {
@@ -107,6 +106,8 @@ namespace COFF // https://wiki.osdev.org/COFF
 		static constexpr uint32_t ExpectedSignature = 0x00004550u;
 	};
 
+	// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
+
 	struct OptionalHeader
 	{
 		uint16_t Signature = 0u;
@@ -117,7 +118,7 @@ namespace COFF // https://wiki.osdev.org/COFF
 		uint32_t SizeOfUninitializedData = 0u;
 		uint32_t AddressOfEntryPoint = 0u;
 		uint32_t BaseOfCode = 0u;
-		uint32_t BaseOfData = 0u;
+		// uint32_t BaseOfData = 0u; // This does not exist in x64
 
 		static constexpr uint32_t ExpectedSignaturePE32 = 0x10Bu;
 		static constexpr uint32_t ExpectedSignaturePE32Plus = 0x20Bu;
@@ -228,6 +229,11 @@ namespace PE // https://wiki.osdev.org/PE
 		virtual ~File();
 
 		SHA256 Checksum() const;
+
+		inline COFF::ArchitectureType Architecture() const
+		{
+			return static_cast<COFF::ArchitectureType>(_coffHeader.Architecture);
+		}
 
 	protected:
 		COFF::SectionHeader FindSectionHeader(const COFF::DataDirectory&) const;

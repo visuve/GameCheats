@@ -79,7 +79,7 @@ inline std::ostream& operator << (std::ostream& os, const COFF::OptionalHeader& 
 	os << std::format("\tSizeOfUninitializedData: 0x{:08X}\n", ioh.SizeOfUninitializedData);
 	os << std::format("\tAddressOfEntryPoint:     0x{:08X}\n", ioh.AddressOfEntryPoint);
 	os << std::format("\tBaseOfCode:              0x{:08X}\n", ioh.BaseOfCode);
-	os << std::format("\tBaseOfData:              0x{:08X}", ioh.BaseOfData);
+	// os << std::format("\tBaseOfData:              0x{:08X}", ioh.BaseOfData);
 
 	return os;
 }
@@ -247,6 +247,11 @@ namespace PE
 		switch (_coffHeader.Architecture)
 		{
 			case COFF::ArchitectureType::I386:
+			{
+				// I utterly hate this hack
+				uint32_t baseOfData = Read<uint32_t>();
+				LogVariable(baseOfData);
+
 				if (_coffOptionalHeader.Signature != COFF::OptionalHeader::ExpectedSignaturePE32)
 				{
 					throw ArgumentException("Architecture and PE format mismatch!");
@@ -255,7 +260,9 @@ namespace PE
 				numberOfDataDirectories = ReadCOFFOptionalHeaderExtension<uint32_t>();
 				_addressSize = 4;
 				break;
+			}
 			case COFF::ArchitectureType::AMD64:
+			{
 				if (_coffOptionalHeader.Signature != COFF::OptionalHeader::ExpectedSignaturePE32Plus)
 				{
 					throw ArgumentException("Architecture and PE format mismatch!");
@@ -264,7 +271,7 @@ namespace PE
 				numberOfDataDirectories = ReadCOFFOptionalHeaderExtension<uint64_t>();
 				_addressSize = 8;
 				break;
-
+			}
 			default:
 				throw ArgumentException("Unsupported architecture");
 		}
@@ -273,6 +280,8 @@ namespace PE
 		{
 			throw ArgumentException("No data directories");
 		}
+
+		_ASSERT(numberOfDataDirectories <= 16);
 
 		for (size_t i = 0; i < numberOfDataDirectories; ++i)
 		{
@@ -433,11 +442,11 @@ namespace PE
 
 		for (size_t i = 0; i < ed.NumberOfNames; ++i)
 		{
-			size_t functionNamePosition = 0;
+			size_t functionNamePosition = ReadAt<uint32_t>(functionNameListPosition);
 
-			if (ReadAt(&functionNamePosition, _addressSize, functionNameListPosition) != _addressSize)
+			if (!functionNamePosition)
 			{
-				throw ArgumentException("Failed to read function name offset");
+				throw ArgumentException("Failed to read function name position");
 			}
 
 			LogVariable(functionNamePosition);
@@ -452,7 +461,7 @@ namespace PE
 
 			result.emplace_back(functionName);
 
-			functionNameListPosition += _addressSize;
+			functionNameListPosition += sizeof(uint32_t);
 		}
 
 		SetPosition(originalPosition);
