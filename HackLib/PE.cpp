@@ -249,6 +249,7 @@ namespace PE
 			case COFF::ArchitectureType::I386:
 			{
 				// I utterly hate this hack
+				[[maybe_unused]]
 				uint32_t baseOfData = Read<uint32_t>();
 				LogVariable(baseOfData);
 
