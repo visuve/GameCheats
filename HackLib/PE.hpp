@@ -276,7 +276,11 @@ namespace PE // https://wiki.osdev.org/PE
 		Executable(const std::filesystem::path& path);
 		~Executable() = default;
 
-		std::vector<std::pair<std::string, std::string>> ImportedFunctions() const;
+		std::vector<std::string> ImportedFunctions(std::string_view libraryName) const;
+
+	private:
+		COFF::SectionHeader _importSection;
+		std::vector<ImportDescriptor> _importDescriptors;
 	};
 
 	class Library : public File
@@ -286,5 +290,9 @@ namespace PE // https://wiki.osdev.org/PE
 		~Library() = default;
 
 		std::vector<std::string> ExportedFunctions() const;
+
+	private:
+		COFF::SectionHeader _exportSection;
+		PE::ExportDirectory _exportDirectory;
 	};
 }

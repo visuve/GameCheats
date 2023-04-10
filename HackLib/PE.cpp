@@ -2,6 +2,7 @@
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "Pointer.hpp"
+#include "StrConvert.hpp"
 #include "Win32File.hpp"
 
 inline std::ostream& operator << (std::ostream& os, const MZ::Header& mh)
@@ -332,7 +333,10 @@ namespace PE
 			}
 		}
 
-		throw RangeException("Not found");
+		// Could it be even theoretically possible, that an executable does not depend on kernel32.dll,
+		// i.e. Not have any imports?
+		// A DLL must have export section as otherwise it would not make sense...
+		throw RangeException("Section header not found");
 	}
 
 	Executable::Executable(const std::filesystem::path& path) :
@@ -342,44 +346,56 @@ namespace PE
 		{
 			throw ArgumentException("Not an executable");
 		}
-	}
 
-	std::vector<std::pair<std::string, std::string>> Executable::ImportedFunctions() const
-	{
-		std::vector<std::pair<std::string, std::string>> result;
-		size_t originalPosition = CurrentPosition();
+		const auto& dd = _dataDirectories[COFF::DataDirectoryType::ImportTable];
+		_importSection = FindSectionHeader(dd);
 
-		const auto dd = _dataDirectories[COFF::DataDirectoryType::ImportTable];
-		COFF::SectionHeader importSection = FindSectionHeader(dd);
+		LogDebug << _importSection;
 
-		LogDebug << importSection;
-
-		PE::ImportDescriptor iid;
-
-		for (size_t importSectionPosition = VirtualAdressToFilePosition(importSection, dd.VirtualAddress);
+		for (size_t importSectionPosition = VirtualAdressToFilePosition(_importSection, dd.VirtualAddress);
 			true; // 4ever loop
 			importSectionPosition += sizeof(PE::ImportDescriptor))
 		{
 			LogVariable(importSectionPosition);
 
-			iid = ReadAt<PE::ImportDescriptor>(importSectionPosition);
+			PE::ImportDescriptor importDescriptor = 
+				ReadAt<PE::ImportDescriptor>(importSectionPosition);
 
-			if (!iid.Name)
+			if (!importDescriptor.FirstThunk ||
+				!importDescriptor.Name ||
+				!importDescriptor.OriginalFirstThunk)
 			{
 				break;
 			}
 
-			LogDebug << iid;
+			LogDebug << importDescriptor;
 
-			size_t libraryNamePosition = VirtualAdressToFilePosition(importSection, iid.Name);
+			_importDescriptors.emplace_back(importDescriptor);
+		}
+	}
+
+	std::vector<std::string> Executable::ImportedFunctions(std::string_view libraryName) const
+	{
+		std::vector<std::string> result;
+		size_t originalPosition = CurrentPosition();
+
+		for (const PE::ImportDescriptor& importDescriptor : _importDescriptors)
+		{
+			size_t libraryNamePosition = VirtualAdressToFilePosition(_importSection, importDescriptor.Name);
 			LogVariable(libraryNamePosition);
 
-			std::string libraryName = ReadAtUntil(libraryNamePosition, '\0');
+			std::string importedLibraryName = ReadAtUntil(libraryNamePosition, '\0');
 
-			LogDebug << "Found:" << libraryName;
+			if (!StrConvert::IEquals(importedLibraryName, libraryName))
+			{
+				LogDebug << "Skipped: " << importedLibraryName;
+				continue;
+			}
 
-			for (size_t thunkPosition = VirtualAdressToFilePosition(importSection,
-				iid.OriginalFirstThunk == 0 ? iid.FirstThunk : iid.OriginalFirstThunk);
+			LogDebug << "Found:" << importedLibraryName;
+
+			for (size_t thunkPosition = VirtualAdressToFilePosition(_importSection,
+				importDescriptor.OriginalFirstThunk == 0 ? importDescriptor.FirstThunk : importDescriptor.OriginalFirstThunk);
 				true; // 4ever loop
 				thunkPosition += _addressSize)
 			{
@@ -399,14 +415,14 @@ namespace PE
 
 				LogVariable(thunk);
 
-				size_t functionNamePosition = VirtualAdressToFilePosition(importSection, static_cast<size_t>(thunk)) + 2u;
+				size_t functionNamePosition = VirtualAdressToFilePosition(_importSection, static_cast<size_t>(thunk)) + 2u;
 				LogVariable(functionNamePosition);
 
 				std::string functionName = ReadAtUntil(functionNamePosition, '\0');
 
 				LogDebug << "Found:" << functionName;
 
-				result.emplace_back(libraryName, functionName);
+				result.emplace_back(functionName);
 			}
 		}
 
@@ -421,6 +437,16 @@ namespace PE
 		{
 			throw ArgumentException("Not a library");
 		}
+
+		const auto dd = _dataDirectories[COFF::DataDirectoryType::ExportTable];
+		_exportSection = FindSectionHeader(dd);
+		LogDebug << _exportSection;
+
+		size_t exportSectionPosition = VirtualAdressToFilePosition(_exportSection, dd.VirtualAddress);
+		LogVariable(exportSectionPosition);
+
+		_exportDirectory = ReadAt<PE::ExportDirectory>(exportSectionPosition);
+		LogDebug << _exportDirectory;
 	}
 
 	std::vector<std::string> Library::ExportedFunctions() const
@@ -428,20 +454,10 @@ namespace PE
 		std::vector<std::string> result;
 		size_t originalPosition = CurrentPosition();
 
-		const auto dd = _dataDirectories[COFF::DataDirectoryType::ExportTable];
-		COFF::SectionHeader exportSection = FindSectionHeader(dd);
-
-		size_t exportSectionPosition = VirtualAdressToFilePosition(exportSection, dd.VirtualAddress);
-		LogVariable(exportSectionPosition);
-
-		auto ed = ReadAt<PE::ExportDirectory>(exportSectionPosition);
-
-		LogDebug << ed;
-
-		size_t functionNameListPosition = VirtualAdressToFilePosition(exportSection, ed.AddressOfNames);
+		size_t functionNameListPosition = VirtualAdressToFilePosition(_exportSection, _exportDirectory.AddressOfNames);
 		LogVariable(functionNameListPosition);
 
-		for (size_t i = 0; i < ed.NumberOfNames; ++i)
+		for (size_t i = 0; i < _exportDirectory.NumberOfNames; ++i)
 		{
 			size_t functionNamePosition = ReadAt<uint32_t>(functionNameListPosition);
 
@@ -452,7 +468,7 @@ namespace PE
 
 			LogVariable(functionNamePosition);
 
-			functionNamePosition = VirtualAdressToFilePosition(exportSection, functionNamePosition);
+			functionNamePosition = VirtualAdressToFilePosition(_exportSection, functionNamePosition);
 
 			LogVariable(functionNamePosition);
 
