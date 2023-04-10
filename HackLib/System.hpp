@@ -15,6 +15,9 @@ namespace System
 	// but the Win32 functions were so horrible
 	std::string GenerateGuid();
 
+	std::filesystem::path WindowsDirectory();
+	std::filesystem::path SystemDirectory();
+
 	void BeepUp();
 	void BeepBurst();
 	void BeepDown();

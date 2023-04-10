@@ -50,3 +50,19 @@ TEST(SystemTests, ModuleEntryNotFound)
 			L"This certainly does not exist 123456789.exe"), std::range_error);
 	}
 }
+
+TEST(SystemTests, WindowsDirectory)
+{
+	auto windowsDirectory = System::WindowsDirectory();
+	EXPECT_FALSE(windowsDirectory.empty());
+	EXPECT_TRUE(std::filesystem::exists(windowsDirectory));
+	EXPECT_TRUE(std::filesystem::is_directory(windowsDirectory));
+}
+
+TEST(SystemTests, SystemDirectory)
+{
+	auto systemDirectory = System::SystemDirectory();
+	EXPECT_FALSE(systemDirectory.empty());
+	EXPECT_TRUE(std::filesystem::exists(systemDirectory));
+	EXPECT_TRUE(std::filesystem::is_directory(systemDirectory));
+}

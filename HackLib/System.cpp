@@ -1,3 +1,5 @@
+#include "System.hpp"
+#include "System.hpp"
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "NonCopyable.hpp"
@@ -278,6 +280,46 @@ std::string System::GenerateGuid()
 		hack.Guid.Data4[5],
 		hack.Guid.Data4[6],
 		hack.Guid.Data4[7]);
+}
+
+std::filesystem::path System::WindowsDirectory()
+{
+	uint32_t required = GetWindowsDirectoryW(nullptr, 0);
+
+	if (!required)
+	{
+		throw Win32Exception("GetWindowsDirectoryW");
+	}
+
+	std::wstring buffer(required, '\0');
+
+	if (GetWindowsDirectoryW(buffer.data(), required) != required - 1)
+	{
+		throw Win32Exception("GetWindowsDirectoryW");
+	}
+
+	// Trim the trailing null
+	return buffer.substr(0, required - 1);
+}
+
+std::filesystem::path System::SystemDirectory()
+{
+	uint32_t required = GetSystemDirectoryW(nullptr, 0);
+
+	if (!required)
+	{
+		throw Win32Exception("GetSystemDirectoryW");
+	}
+
+	std::wstring buffer(required, '\0');
+
+	if (GetSystemDirectoryW(buffer.data(), required) != required - 1)
+	{
+		throw Win32Exception("GetSystemDirectoryW");
+	}
+
+	// Trim the trailing null
+	return buffer.substr(0, required - 1);
 }
 
 void System::BeepUp()
