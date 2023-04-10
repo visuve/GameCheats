@@ -2,9 +2,42 @@
 #include "Logger.hpp"
 #include "FileGenerator.hpp"
 
-void GenerateFiles(const std::filesystem::path& outputDirectory, const std::filesystem::path& libraryPath)
+void Filter(
+	std::vector<std::string>& exports,
+	const std::filesystem::path& executablePath,
+	std::string_view libraryFileName)
 {
-	std::string libraryName = libraryPath.filename().replace_extension("").string();
+	PE::Executable executable(executablePath);
+
+	auto imports = executable.ImportedFunctions(libraryFileName);
+
+	for (auto exportIter = exports.begin(); exportIter != exports.end();)
+	{
+		auto importIter = std::find(imports.begin(), imports.end(), *exportIter);
+
+		if (importIter != imports.end())
+		{
+			imports.erase(importIter); // This is now dealth with
+			++exportIter;
+			continue;
+		}
+
+		exportIter = exports.erase(exportIter);
+	}
+
+	for (const auto& imported : imports)
+	{
+		LogWarning << imported << "not found in" << libraryFileName << "for" << executablePath;
+	}
+}
+
+void GenerateFiles(
+	const std::filesystem::path& libraryPath,
+	const std::filesystem::path& executablePath,
+	const std::filesystem::path& outputDirectory)
+{
+	const std::filesystem::path libraryFileName = libraryPath.filename();
+	std::string libraryName = std::filesystem::path(libraryFileName).replace_extension("").string();
 
 	const std::filesystem::path asmPath = outputDirectory / "jumps.asm";
 	const std::filesystem::path cPath = outputDirectory / "proxy.c";
@@ -13,13 +46,23 @@ void GenerateFiles(const std::filesystem::path& outputDirectory, const std::file
 	PE::Library library(libraryPath);
 
 	COFF::ArchitectureType architecture = library.Architecture();
-	auto functions = library.ExportedFunctions();
+	auto exports = library.ExportedFunctions();
+
+	if (!executablePath.empty())
+	{
+		Filter(exports, executablePath, libraryFileName.string());
+	}
+
+	if (exports.empty())
+	{
+		throw ArgumentException("No exports!");
+	}
 
 	std::ofstream asmFile(asmPath);
-	FileGenerator::GenerateASM(asmFile, architecture, functions);
+	FileGenerator::GenerateASM(asmFile, architecture, exports);
 
 	std::ofstream ceeFile(cPath);
-	FileGenerator::GenerateC(ceeFile, libraryPath, functions);
+	FileGenerator::GenerateC(ceeFile, libraryPath, exports);
 
 	std::ofstream xmlFile(xmlPath);
 	FileGenerator::GenerateVisualStudioProject(xmlFile, libraryName, asmPath, cPath);
@@ -33,13 +76,15 @@ int main(int argc, char** argv)
 
 	const CmdArgs args(argc, argv,
 	{
-		{ "input", typeid(std::filesystem::path), "The DLL to replicate" },
+		{ "library", typeid(std::filesystem::path), "The DLL to replicate" },
+		{ "executable", typeid(std::filesystem::path), "[Optional] The EXE to use as a filter for proxied functions" },
 		{ "output", typeid(std::filesystem::path), "The output directory for the generated files" },
 	});
 
 	try
 	{
-		const std::filesystem::path input = args.Value<std::filesystem::path>("input");
+		const std::filesystem::path library = args.Value<std::filesystem::path>("library");
+		const std::filesystem::path executable = args.Value<std::filesystem::path>("executable", "");
 		const std::filesystem::path output = args.Value<std::filesystem::path>("output");
 
 		if (!std::filesystem::exists(output))
@@ -51,10 +96,9 @@ int main(int argc, char** argv)
 			throw ArgumentException("Expected a directory for the output parameter");
 		}
 
-		GenerateFiles(output, input);
+		GenerateFiles(library, executable, output);
 
 		Log << "Please compile the project file in" << output;
-
 	}
 	catch (const CmdArgs::Exception& e)
 	{
