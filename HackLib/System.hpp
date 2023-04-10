@@ -15,6 +15,7 @@ namespace System
 	// but the Win32 functions were so horrible
 	std::string GenerateGuid();
 
+	std::filesystem::path CurrentExecutablePath();
 	std::filesystem::path WindowsDirectory();
 	std::filesystem::path SystemDirectory();
 

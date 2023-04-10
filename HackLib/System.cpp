@@ -1,5 +1,4 @@
 #include "System.hpp"
-#include "System.hpp"
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "NonCopyable.hpp"
@@ -282,6 +281,25 @@ std::string System::GenerateGuid()
 		hack.Guid.Data4[7]);
 }
 
+std::filesystem::path System::CurrentExecutablePath()
+{
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+	std::wstring buffer(0x7FFFu, '\0');
+
+	// GetModuleFileNameW just sets last error to ERROR_INSUFFICIENT_BUFFER
+	// if the buffer is too small and returns how many characters were copied
+
+	size_t copied =
+		GetModuleFileNameW(nullptr, buffer.data(), static_cast<uint32_t>(buffer.size()));
+
+	if (!copied)
+	{
+		throw Win32Exception("GetModuleFileNameW");
+	}
+
+	return buffer.substr(0, copied);
+}
+
 std::filesystem::path System::WindowsDirectory()
 {
 	uint32_t required = GetWindowsDirectoryW(nullptr, 0);
@@ -293,13 +311,13 @@ std::filesystem::path System::WindowsDirectory()
 
 	std::wstring buffer(required, '\0');
 
-	if (GetWindowsDirectoryW(buffer.data(), required) != required - 1)
+	if (GetWindowsDirectoryW(buffer.data(), static_cast<uint32_t>(buffer.size())) != --required)
 	{
 		throw Win32Exception("GetWindowsDirectoryW");
 	}
 
 	// Trim the trailing null
-	return buffer.substr(0, required - 1);
+	return buffer.substr(0, required);
 }
 
 std::filesystem::path System::SystemDirectory()
@@ -313,13 +331,13 @@ std::filesystem::path System::SystemDirectory()
 
 	std::wstring buffer(required, '\0');
 
-	if (GetSystemDirectoryW(buffer.data(), required) != required - 1)
+	if (GetSystemDirectoryW(buffer.data(), static_cast<uint32_t>(buffer.size())) != --required)
 	{
 		throw Win32Exception("GetSystemDirectoryW");
 	}
 
 	// Trim the trailing null
-	return buffer.substr(0, required - 1);
+	return buffer.substr(0, required);
 }
 
 void System::BeepUp()

@@ -5,7 +5,7 @@ TEST(PETests, ImportFound)
 {
 	Sleep(1);
 
-	PE::Executable current(L"HackLibTests.exe");
+	PE::Executable current(System::CurrentExecutablePath());
 
 	auto imported = current.ImportedFunctions("KERNEL32.dll");
 
@@ -15,7 +15,7 @@ TEST(PETests, ImportFound)
 
 TEST(PETests, ImportedLibraryNotFound)
 {
-	PE::Executable current(L"HackLibTests.exe");
+	PE::Executable current(System::CurrentExecutablePath());
 
 	auto imported = current.ImportedFunctions("I surely do not exist.dll");
 

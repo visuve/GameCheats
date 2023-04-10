@@ -51,6 +51,14 @@ TEST(SystemTests, ModuleEntryNotFound)
 	}
 }
 
+TEST(SystemTests, CurrentExecutablePath)
+{
+	auto exe = System::CurrentExecutablePath();
+	EXPECT_FALSE(exe.empty());
+	EXPECT_TRUE(std::filesystem::exists(exe));
+	EXPECT_TRUE(std::filesystem::is_regular_file(exe));
+}
+
 TEST(SystemTests, WindowsDirectory)
 {
 	auto windowsDirectory = System::WindowsDirectory();
