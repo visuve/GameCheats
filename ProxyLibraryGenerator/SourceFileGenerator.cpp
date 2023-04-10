@@ -1,7 +1,7 @@
-#include "FileGenerator.hpp"
+#include "SourceFileGenerator.hpp"
 #include "System.hpp"
 
-namespace FileGenerator
+namespace SourceFileGenerator
 {
 	void GenerateASM(std::ostream& out, COFF::ArchitectureType architecture, std::span<std::string> functions)
 	{

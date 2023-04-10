@@ -2,7 +2,7 @@
 
 #include "PE.hpp"
 
-namespace FileGenerator
+namespace SourceFileGenerator
 {
 	void GenerateASM(
 		std::ostream& out, 

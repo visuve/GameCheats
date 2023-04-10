@@ -1,6 +1,6 @@
 #include "CmdArgs.hpp"
 #include "Logger.hpp"
-#include "FileGenerator.hpp"
+#include "SourceFileGenerator.hpp"
 
 void Filter(
 	std::vector<std::string>& exports,
@@ -59,13 +59,13 @@ void GenerateFiles(
 	}
 
 	std::ofstream asmFile(asmPath);
-	FileGenerator::GenerateASM(asmFile, architecture, exports);
+	SourceFileGenerator::GenerateASM(asmFile, architecture, exports);
 
 	std::ofstream ceeFile(cPath);
-	FileGenerator::GenerateC(ceeFile, libraryPath, exports);
+	SourceFileGenerator::GenerateC(ceeFile, libraryPath, exports);
 
 	std::ofstream xmlFile(xmlPath);
-	FileGenerator::GenerateVisualStudioProject(xmlFile, libraryName, asmPath, cPath);
+	SourceFileGenerator::GenerateVisualStudioProject(xmlFile, libraryName, asmPath, cPath);
 
 	Log << asmPath << cPath << '&' << xmlPath << "generated";
 }
