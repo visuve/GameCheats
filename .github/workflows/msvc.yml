@@ -6,8 +6,8 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: microsoft/setup-msbuild@v1.0.3
+    - uses: actions/checkout@v3
+    - uses: microsoft/setup-msbuild@v1.1
 
     - name: Build x86
       run: |
@@ -27,10 +27,19 @@ jobs:
     - name: Test 64
       run: x64/Release/HackLibTests.exe
 
-    - uses: actions/upload-artifact@v2
+    - name: Print Hashes
+      shell: pwsh
+      run: |
+        Get-ChildItem "x??/Release/*.exe" | Get-FileHash -Algorithm SHA256 | Format-List | Tee-Object Hashes.txt
+
+    - name: Create Release
+      uses: "marvinpinto/action-automatic-releases@v1.2.1"
       with:
-        name: Executables
-        path: |
-           x86/Release/*.exe
-           x64/Release/*.exe
-        if-no-files-found: error
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Automated release (latest commit)"
+          files: |
+            Hashes.txt
+            x64/Release/*.exe
+            x86/Release/*.exe
