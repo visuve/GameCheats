@@ -26,8 +26,8 @@ private:
 	void Update(std::span<uint8_t> data);
 	void Finish();
 
-	BCRYPT_ALG_HANDLE _algorithmHandle = nullptr;
-	BCRYPT_HASH_HANDLE _hashHandle = nullptr;
+	void* _algorithmHandle = nullptr;
+	void* _hashHandle = nullptr;
 	std::array<uint8_t, Bytes> _hashData = {};
 };
 

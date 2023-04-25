@@ -2,167 +2,63 @@
 
 /*
 	NOTES:
-	1. The non-persistent hacks have to be applied when the "Custom Mission" menu is open
-		- The UI might not reflect the values immediately, but they are there
-	2. The persistent hacks create lots of backups of the mission files etc
+	1. I would not install the game using the installer which is not signed and prompts for admin privileges
+		- I installed it on a virtual machine and just copied the game folder to the real target machine
+	2. The persistent hacks need to be run only once. Otherwise it will create redundant backups
+	3. Needs more runtime hacks ;-)
 */
 
 namespace R6BO
 {
 	// The game crashes when terrorist count is above 100
 	constexpr DWORD NewTerroristMax = 100;
-	const std::wregex MissionFileRegex(L"lwf|mis|tht", std::regex::icase);
-	const std::regex MemberRegex(R"("Random(\d+)Team"(.+))");
+	const std::regex MissionRegex(R"((\".+\")(\s+)\d+)");
 
-	void TweakMissionFile(const std::filesystem::path& path)
+	void ApplyPersistentHacks(const std::filesystem::path& r6boHome)
 	{
+		std::filesystem::path maxTerroristTxtPath =
+			r6boHome /
+			L"mods\\Black Ops\\mission\\MaxTerrorists.txt";
+
+		const std::filesystem::path backupPath = FsOps::BackupRename(maxTerroristTxtPath);
+
+		std::ifstream input;
+		input.exceptions(std::fstream::badbit);
+		input.open(backupPath);
+
+		std::ofstream output;
+		output.exceptions(std::fstream::failbit | std::fstream::badbit);
+		output.open(maxTerroristTxtPath);
+
+		std::string line;
 		std::smatch match;
 
-		uint32_t highestId = 0;
-		uint32_t highestLineNum = 0;
-		std::string highestLine;
-
-		// Find the highest ID and it's line in the file
-		const auto predicate = [&](uint32_t lineNum, const std::string& line)
+		while (std::getline(input, line))
 		{
-			if (std::regex_search(line, match, MemberRegex))
+			if (std::regex_search(line, match, MissionRegex))
 			{
-				uint32_t id = std::stoul(match[1]);
-
-				if (id > highestId)
-				{
-					highestId = id;
-					highestLineNum = lineNum;
-					highestLine = line;
-				}
-
-				return true;
+				output << match[1] << match[2] << NewTerroristMax << std::endl;
 			}
-
-			return false;
-		};
-
-		if (FsOps::CountLines(path, predicate) != highestId)
-		{
-			throw LogicException("Terrorist count does not match with highest ID");
+			else
+			{
+				output << line << std::endl;
+			}
 		}
 
-		if (highestId >= NewTerroristMax)
-		{
-			Log << path << " is already tweaked!" ;
-			return;
-		}
+		Log << maxTerroristTxtPath << "stabbed";
+		Log << "Backup @" << backupPath;
 
-		const auto mutator = [&](uint32_t lineNum, const std::string& line, std::ostream& output)
-		{
-			output << line ;
+		std::wstring registryPath = 
+			L"Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\Red Storm Entertainment\\Black Ops";
 
-			if (lineNum < highestLineNum)
-			{
-				return;
-			}
+		Registry userReg(HKEY_CURRENT_USER, registryPath);
 
-			while (++highestId <= NewTerroristMax)
-			{
-				output << std::regex_replace(
-					highestLine, MemberRegex, std::format("\"Random{}Team\"$2", highestId)) ;
-			}
-		};
+		userReg.Write<DWORD>(L"CustomMissionNumberOfTerrorists", NewTerroristMax);
+		userReg.Write<DWORD>(L"MaximumNumberOfTerrorists", NewTerroristMax);
+		userReg.Write<DWORD>(L"MultiplayerNumberOfTerrorists", NewTerroristMax);
+		userReg.Write<DWORD>(L"SelectedNumberOfTerrorists", NewTerroristMax);
 
-		FsOps::Replicate(FsOps::BackupRename(path), mutator, path);
-	}
-
-	void ApplyPersistentHacks()
-	{
-		Registry reg(
-			HKEY_CURRENT_USER,
-			L"Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\Red Storm Entertainment\\Black Ops");
-
-		std::filesystem::path modsPath = reg.Read<std::wstring>(L"InstallationPath") + reg.Read<std::wstring>(L"ModsPath");
-		auto maxTerroristTxtPath = reg.Read<std::filesystem::path>(L"MissionPath") / L"MaxTerrorists.txt";
-
-		FsOps::BackupRename(maxTerroristTxtPath);
-
-		std::ofstream maxTerroristTxtFile;
-		maxTerroristTxtFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-		maxTerroristTxtFile.open(maxTerroristTxtPath);
-
-		const auto disableModSpecificMaxTerroristsOverride = [](const std::filesystem::path& path)
-		{
-			if (path.filename() == L"MaxTerrorists.txt")
-			{
-				FsOps::BackupRename(path);
-				Log << "Disabled:" << path ;
-			}
-
-			return true;
-		};
-
-		const auto tweakMissionFiles = [&](const std::filesystem::path& path)
-		{
-			const std::wstring extension = path.extension();
-
-			if (std::regex_search(extension, MissionFileRegex))
-			{
-				TweakMissionFile(path);
-
-				maxTerroristTxtFile << path.filename() << "\t\t" << NewTerroristMax ;
-
-				Log << "Tweaked:" << path ;
-			}
-
-			return true;
-		};
-
-		FsOps::PathFunction functions[] =
-		{
-			disableModSpecificMaxTerroristsOverride,
-			tweakMissionFiles
-		};
-
-		FsOps::ProcessDirectory(modsPath, functions);
-
-		reg.Write<DWORD>(L"CustomMissionNumberOfTerrorists", NewTerroristMax);
-		reg.Write<DWORD>(L"MaximumNumberOfTerrorists", NewTerroristMax);
-		reg.Write<DWORD>(L"MultiplayerNumberOfTerrorists", NewTerroristMax);
-		reg.Write<DWORD>(L"SelectedNumberOfTerrorists", NewTerroristMax);
-	}
-
-	void HackRunningProcess()
-	{
-		DWORD pid = System::WaitForExe(L"R6BO.exe");
-
-		Process process(pid);
-
-		if (!process.Verify("06ee11a05a029a9827c093caa67de63c395c03082f7bc843ac302eadb9ff6373"))
-		{
-			LogError << "Expected Rainbow Six - Black Ops";
-			return;
-		}
-
-		// Skips any overrides with registry forced values
-		process.ChangeByte(0x0010A0AE, X86::JnbJb, X86::JbeJb);
-
-		// Increasing ammo :-)
-		process.ChangeByte(0x00215D1F, X86::SubGvEv, X86::AddGvEv);
-
-		// Forces selected & maximum values
-		constexpr size_t base = 0x0046CDA4;
-
-		Pointer backgroundMax = process.ResolvePointer(base, 0x10u, 0x420u);
-		Pointer backgroundSelected = process.ResolvePointer(base, 0x99Cu);
-		Pointer uiMax = process.ResolvePointer(base, 0x8u, 0xD4u, 0x18Cu);
-		Pointer uiSelected = process.ResolvePointer(base, 0x8u, 0xD4u, 0x184u);
-
-		Log << process.Read<uint32_t>(backgroundMax) ;
-		Log << process.Read<uint32_t>(backgroundSelected) ;
-		Log << process.Read<uint32_t>(uiMax) ;
-		Log << process.Read<uint32_t>(uiSelected) ;
-
-		process.Write<uint32_t>(backgroundMax, 100);
-		process.Write<uint32_t>(backgroundSelected, 100);
-		process.Write<uint32_t>(uiMax, 100);
-		process.Write<uint32_t>(uiSelected, 100);
+		Log << "Registry entries stabbed";
 	}
 }
 
@@ -170,18 +66,33 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	const CmdArgs args(givenArguments,
 	{
-		{ "persistent", typeid(std::nullopt), "Hack the registry & some mission files to allow more terrorists" },
-		{ "persistent", typeid(std::nullopt), "Apply various in memory hacks, e.g. increasing ammo" },
+		{ "path", typeid(std::filesystem::path), "Path to the installation directory" },
+		{ "persistent", typeid(std::nullopt), "Hack the registry & global terrorist max limit file. The game does not need to be running." },
+		{ "infammo", typeid(std::nullopt), "Infinite ammo. The game needs to be running." },
 	});
+
+	const std::filesystem::path r6boHome = args.Value<std::filesystem::path>("path");
+	const std::filesystem::path exePath = r6boHome / L"R6BO.exe";
+
+	if (SHA256(exePath) != "50d9413f4fca68205d2ff73a123e37898fb294274edbb4fb665b9e98a7a2a06e")
+	{
+		LogError << "Expected a clean installation of Rainbow Six: Black Ops 2.0 - Release (11/22 Update)";
+		return ERROR_INVALID_IMAGE_HASH;
+	}
 
 	if (args.Contains("persistent"))
 	{
-		R6BO::ApplyPersistentHacks();
+		R6BO::ApplyPersistentHacks(r6boHome);
 	}
 
-	if (args.Contains("inmemory"))
+	if (args.Contains("infammo"))
 	{
-		R6BO::HackRunningProcess();
+		DWORD pid = System::WaitForWindow(L"R6BO.exe");
+
+		Process process(pid);
+
+		// Increasing ammo :-)
+		process.ChangeByte(0x00215D1F, X86::SubGvEv, X86::AddGvEv);
 	}
 
 	return 0;
