@@ -6,6 +6,12 @@
 #include "Win32Event.hpp"
 #include "TypeHelp.hpp"
 
+#ifdef _WIN64
+extern "C" void FindFunctionAsm();
+#else
+extern "C" void FindFunctionAsm();
+#endif
+
 Process::Process(DWORD pid) :
 	_pid(pid),
 	_baseAddress(System::ModuleEntryByPid(pid).modBaseAddr),
@@ -166,83 +172,27 @@ Pointer Process::FindImportAddress(std::string_view moduleName, std::string_view
 
 Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_view functionName)
 {
-	const size_t moduleNameBytes = moduleName.size() * sizeof(char) + sizeof(char);
-	const size_t functionNameBytes = functionName.size() * sizeof(char) + sizeof(char);
+	_ASSERTE(moduleName.size() <= 0x400);
+	_ASSERTE(functionName.size() <= 0x400);
 
-	Pointer moduleNameArea = AllocateMemory(moduleNameBytes);
-	Pointer functionNameArea = AllocateMemory(functionNameBytes);
-	Pointer codeArea = AllocateMemory(0x400); // 1k, should be enough
-	Pointer resultArea = AllocateMemory(Pointer::Size);
+	std::vector<uint8_t> code = ReadFunction(FindFunctionAsm);
+	Pointer codeArea = AllocateMemory(code.size());
+	WriteBytes(codeArea, code);
 
-	Write(moduleNameArea, moduleName.data(), moduleNameBytes);
-	Write(functionNameArea, functionName.data(), functionNameBytes);
+	Pointer dataArea = AllocateMemory(0x800 + Pointer::Size);
+	Write(dataArea + 0x000, moduleName.data(), moduleName.size());
+	Write(dataArea + 0x400, functionName.data(), functionName.size());
+	Write(dataArea + 0x800, size_t(-1));
 
-	// kernel32 functions have same address in all processess, hence we can use our own address
-	Pointer getModuleHandleA(reinterpret_cast<void*>(&GetModuleHandleA));
-	Pointer getProcAddress(reinterpret_cast<void*>(&GetProcAddress));
+	_targetProcess.FlushInstructionCache(dataArea, 0x800 + Pointer::Size);
+	_targetProcess.FlushInstructionCache(codeArea, code.size());
 
-	ByteStream threadFunction;
-
-#ifdef _WIN64
-	threadFunction << "48 83 EC 28"; // sub rsp, 28
-
-	threadFunction << "48 B9" << moduleNameArea; // mov rcx, moduleNamePtr
-	threadFunction << "48 B8" << getModuleHandleA; // mov rax, getModuleHandleA
-	threadFunction << "FF D0"; // call rax
-
-	threadFunction << "48 85 C0"; // test rax, rax
-	threadFunction << "75 07"; // jne 7 bytes forward
-	threadFunction << "B8 01 00 00 00"; // mov eax, 1
-	threadFunction << "EB 32"; // jmp to end...
-
-	threadFunction << "48 BA" << functionNameArea; // mov rdx, functionNameArea
-	threadFunction << "48 8B C8"; // mov rcx, rax
-
-	threadFunction << "48 B8" << getProcAddress; // mov rax, getProcAddress
-	threadFunction << "FF D0"; // call rax
-
-	threadFunction << "48 A3" << resultArea; // mov [resultArea], rax
-
-	threadFunction << "48 85 C0"; // test rax, rax
-	threadFunction << "75 07"; // jne 7 bytes forward
-	threadFunction << "B8 02 00 00 00"; // mov eax, 2
-	threadFunction << "EB 05"; // jmp to end...
-	threadFunction << "B8 00 00 00 00"; // mov eax, 0
-
-	threadFunction << "48 83 C4 28"; // add rsp, 28
-	threadFunction << "C3"; // ret
-#else
-	threadFunction << "68" << moduleNameArea; // push moduleNamePtr
-	threadFunction << "E8" << getModuleHandleA - codeArea - 0xA; // call GetModuleHandleA
-
-	threadFunction << "85 C0"; // test eax, eax
-	threadFunction << "75 07"; // jne 7 bytes forward
-	threadFunction << "B8 01 00 00 00"; // mov eax, 1
-	threadFunction << "EB 20"; // jmp to end...
-
-	threadFunction << "68" << functionNameArea; // push functionNamePtr
-	threadFunction << "50"; // push eax
-	threadFunction << "E8" << getProcAddress - codeArea - 0x20; // call GetProcAddress
-	threadFunction << "A3" << resultArea; // mov [resultArea], eax
-
-	threadFunction << "85 C0"; // test eax, eax
-	threadFunction << "75 07"; // jne 5 bytes forward
-	threadFunction << "B8 02 00 00 00"; // mov eax, 2
-	threadFunction << "EB 05"; // jmp to end...
-
-	threadFunction << "B8 00 00 00 00"; // mov eax, 0
-
-	threadFunction << "C3"; // ret
-#endif
-
-	WriteBytes(codeArea, threadFunction);
-
-	DWORD threadResult = SpawnThread(codeArea, Pointer(), false);
+	DWORD threadResult = SpawnThread(codeArea, dataArea, false);
 
 	switch (threadResult)
 	{
 		case 0:
-			return Read<size_t>(resultArea);
+			return Read<size_t>(dataArea + 0x800);
 		case 1:
 			throw RuntimeException("Remote GetModuleHandleA failed");
 		case 2:
@@ -454,7 +404,23 @@ Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops,
 std::vector<uint8_t> Process::ReadFunction(void(*function)(void), size_t size)
 {
 	Pointer address(reinterpret_cast<uint8_t*>(function));
+
+	Log << "Reading function @" << address;
+
 	Win32Process process(PROCESS_VM_READ, GetCurrentProcessId());
+
+#ifdef _DEBUG // In debug mode MSVC just generates a jump table
+	uint8_t jump[5] = {};
+	process.ReadProcessMemory(address, jump, sizeof(jump));
+
+	_ASSERTE(jump[0] == X86::JmpJz);
+
+	// Make absolute
+	address += jump[1] | (jump[2] << 8) | (jump[3] << 16) | (jump[4] << 24);
+	address += 5; // Size of relative jump
+
+	Log << function << "jumps to" << address;
+#endif
 
 	size_t bytesRead = 0;
 	std::vector<uint8_t> result(size);
@@ -471,8 +437,7 @@ std::vector<uint8_t> Process::ReadFunction(void(*function)(void), size_t size)
 		return result;
 	}
 
-
-	LogWarning << "function size not set!";
+	LogWarning << "Function size not set!";
 
 	size_t pageSize = System::PageSize();
 	std::vector<uint8_t> buffer(pageSize);
@@ -485,6 +450,12 @@ std::vector<uint8_t> Process::ReadFunction(void(*function)(void), size_t size)
 		constexpr uint8_t Trap[] = { X86::Int3, X86::Int3, X86::Int3 };
 
 		auto trap = std::search(buffer.begin(), buffer.end(), std::begin(Trap), std::end(Trap));
+
+		if (trap == buffer.begin())
+		{
+			LogWarning << "Landed right in the middle of int 3s";
+			break;
+		}
 
 		if (trap != buffer.end())
 		{
