@@ -69,30 +69,39 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		{ "path", typeid(std::filesystem::path), "Path to the installation directory" },
 		{ "persistent", typeid(std::nullopt), "Hack the registry & global terrorist max limit file. The game does not need to be running." },
 		{ "infammo", typeid(std::nullopt), "Infinite ammo. The game needs to be running." },
+		{ "recoil", typeid(float), "Set recoil base. 1 is default, 0 is none. Affects all recoil calculation. Use zoom to enable." },
 	});
 
-	const std::filesystem::path r6boHome = args.Value<std::filesystem::path>("path");
-	const std::filesystem::path exePath = r6boHome / L"R6BO.exe";
-
-	if (SHA256(exePath) != "50d9413f4fca68205d2ff73a123e37898fb294274edbb4fb665b9e98a7a2a06e")
-	{
-		LogError << "Expected a clean installation of Rainbow Six: Black Ops 2.0 - Release (11/22 Update)";
-		return ERROR_INVALID_IMAGE_HASH;
-	}
 
 	if (args.Contains("persistent"))
 	{
+		const std::filesystem::path r6boHome = args.Value<std::filesystem::path>("path");
+		const std::filesystem::path exePath = r6boHome / L"R6BO.exe";
+
+		if (SHA256(exePath) != "50d9413f4fca68205d2ff73a123e37898fb294274edbb4fb665b9e98a7a2a06e")
+		{
+			LogError << "Expected a clean installation of Rainbow Six: Black Ops 2.0 - Release (11/22 Update)";
+			return ERROR_INVALID_IMAGE_HASH;
+		}
+
 		R6BO::ApplyPersistentHacks(r6boHome);
+		return 0;
 	}
+
+	DWORD pid = System::WaitForWindow(L"Black Ops");
+
+	Process process(pid);
 
 	if (args.Contains("infammo"))
 	{
-		DWORD pid = System::WaitForWindow(L"R6BO.exe");
-
-		Process process(pid);
-
 		// Increasing ammo :-)
 		process.ChangeByte(0x00215D1F, X86::SubGvEv, X86::AddGvEv);
+	}
+
+	if (args.Contains("recoil"))
+	{
+		float recoil = args.Value<float>("recoil");
+		process.Write(0x1D7416, recoil);
 	}
 
 	return 0;
