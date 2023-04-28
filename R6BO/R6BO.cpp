@@ -2,40 +2,45 @@
 
 /*
 	NOTES:
-	1. I would not install the game using the installer which is not signed and prompts for admin privileges
+
+	I would not install the game using the installer which is not signed and prompts for admin privileges
 		- I installed it on a virtual machine and just copied the game folder to the real target machine
-	2. The persistent hacks need to be run only once. Otherwise it will create redundant backups
-	3. Needs more runtime hacks ;-)
 */
+
 
 namespace R6BO
 {
 	// The game crashes when terrorist count is above 100
 	constexpr DWORD NewTerroristMax = 100;
-	const std::regex MissionRegex(R"((\".+\")(\s+)\d+)");
+	const std::regex MaxTerroristRegex(R"((\".+\")(\s+)(\d+))");
+	const std::wregex MissionFileExtensionRegex(L"lwf|mis|tht", std::regex::icase);
+	const std::regex MissionFileMemberRegex(R"("Random(\d+)Team"(.+))");
 
-	void ApplyPersistentHacks(const std::filesystem::path& r6boHome)
+	// This function basically duplicates the last "member" aka terrorist
+	// until the total number of "members" reaches 100
+	void PatchMaxTerroristFile(const std::filesystem::path& path)
 	{
-		std::filesystem::path maxTerroristTxtPath =
-			r6boHome /
-			L"mods\\Black Ops\\mission\\MaxTerrorists.txt";
-
-		const std::filesystem::path backupPath = FsOps::BackupRename(maxTerroristTxtPath);
-
-		std::ifstream input;
-		input.exceptions(std::fstream::badbit);
-		input.open(backupPath);
-
-		std::ofstream output;
-		output.exceptions(std::fstream::failbit | std::fstream::badbit);
-		output.open(maxTerroristTxtPath);
-
-		std::string line;
 		std::smatch match;
 
-		while (std::getline(input, line))
+		const auto predicate = [&](uint32_t, const std::string& line)
 		{
-			if (std::regex_search(line, match, MissionRegex))
+			if (std::regex_search(line, match, MaxTerroristRegex))
+			{
+				return match[3] != std::to_string(NewTerroristMax);
+			}
+
+			return false;
+		};
+
+		if (!FsOps::CountLines(path, predicate))
+		{
+			Log << path << "appears already patched!";
+			return;
+		}
+
+		const auto mutator = [&](uint32_t, const std::string& line, std::ostream& output)
+		{
+			if (std::regex_search(line, match, MaxTerroristRegex))
 			{
 				output << match[1] << match[2] << NewTerroristMax << std::endl;
 			}
@@ -43,11 +48,131 @@ namespace R6BO
 			{
 				output << line << std::endl;
 			}
+		};
+
+		auto backup = FsOps::BackupRename(path);
+
+		FsOps::Replicate(backup, mutator, path);
+
+		Log << "Patched:" << path;
+		Log << "Backup @" << backup;
+	}
+
+	void PatchMissionFile(const std::filesystem::path& path)
+	{
+		std::smatch match;
+
+		uint32_t highestId = 0;
+		uint32_t highestLineNum = 0;
+		std::string highestLine;
+
+		// Find the highest ID and it's line in the file
+		const auto predicate = [&](uint32_t lineNum, const std::string& line)
+		{
+			if (std::regex_search(line, match, MissionFileMemberRegex))
+			{
+				uint32_t id = std::stoul(match[1]);
+
+				if (id > highestId + 1)
+				{
+					LogWarning << "There is probably a typo in" << path << "@ line" << lineNum;
+				}
+
+				if (id > highestId)
+				{
+					highestId = id;
+					highestLineNum = lineNum;
+					highestLine = line;
+				}
+
+				return true;
+			}
+
+			return false;
+		};
+
+		uint32_t members = FsOps::CountLines(path, predicate);
+
+		if (!members)
+		{
+			Log << "No terrorists in" << path;
+			return;
 		}
 
-		Log << maxTerroristTxtPath << "stabbed";
-		Log << "Backup @" << backupPath;
+		if (members != highestId)
+		{
+			LogError << "Terrorist count does not match with highest ID parsed @" << path;
+			return;
+		}
 
+		if (highestId >= NewTerroristMax)
+		{
+			Log << path << "appears already patched!";
+			return;
+		}
+
+		const auto mutator = [&](uint32_t lineNum, const std::string& line, std::ostream& output)
+		{
+			output << line << std::endl;
+
+			if (lineNum < highestLineNum)
+			{
+				return;
+			}
+
+			while (++highestId <= NewTerroristMax)
+			{
+				std::string newMemberId = std::format("\"Random{}Team\"$2", highestId);
+				output << std::regex_replace(highestLine, MissionFileMemberRegex, newMemberId);
+				output << std::endl;
+			}
+		};
+
+		auto backup = FsOps::BackupRename(path);
+
+		FsOps::Replicate(backup, mutator, path);
+
+		Log << "Patched:" << path;
+		Log << "Backup @" << backup;
+	}
+
+	void ApplyFileHacks(const std::filesystem::path& r6boHome)
+	{
+		const std::filesystem::path modsPath = r6boHome / L"mods";
+
+		const auto patchMaxTerroristFiles = [](const std::filesystem::path& path)
+		{
+			if (path.filename() == L"MaxTerrorists.txt")
+			{
+				PatchMaxTerroristFile(path);
+			}
+
+			return true;
+		};
+
+		const auto patchMissionFiles = [&](const std::filesystem::path& path)
+		{
+			const std::wstring extension = path.extension();
+
+			if (std::regex_search(extension, MissionFileExtensionRegex))
+			{
+				PatchMissionFile(path);
+			}
+
+			return true;
+		};
+
+		FsOps::PathFunction functions[] =
+		{
+			patchMaxTerroristFiles,
+			patchMissionFiles
+		};
+
+		FsOps::ProcessDirectory(modsPath, functions);
+	}
+
+	void ApplyRegistryHacks()
+	{
 		std::wstring registryPath = 
 			L"Software\\Classes\\VirtualStore\\MACHINE\\SOFTWARE\\Wow6432Node\\Red Storm Entertainment\\Black Ops";
 
@@ -66,12 +191,12 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	const CmdArgs args(givenArguments,
 	{
-		{ "path", typeid(std::filesystem::path), "Path to the installation directory" },
-		{ "persistent", typeid(std::nullopt), "Hack the registry & global terrorist max limit file. The game does not need to be running." },
+		{ "path", typeid(std::filesystem::path), "Path to the installation directory. Needed for option \"persistent\"." },
+		{ "persistent", typeid(std::nullopt), "Overrides maximum terrorists related values in mission files"
+			", max terrorist limit files and Windows registry. The game does not need to be running." },
 		{ "infammo", typeid(std::nullopt), "Infinite ammo. The game needs to be running." },
 		{ "recoil", typeid(float), "Set recoil base. 1 is default, 0 is none. Affects all recoil calculation. Use zoom to enable." },
 	});
-
 
 	if (args.Contains("persistent"))
 	{
@@ -84,7 +209,8 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 			return ERROR_INVALID_IMAGE_HASH;
 		}
 
-		R6BO::ApplyPersistentHacks(r6boHome);
+		R6BO::ApplyFileHacks(r6boHome);
+		R6BO::ApplyRegistryHacks();
 		return 0;
 	}
 
