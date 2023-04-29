@@ -188,10 +188,10 @@ DWORD System::WaitForExe(std::wstring_view name)
 
 	if (waitResult == WAIT_OBJECT_0)
 	{
-		throw Win32Exception("Aborted", ERROR_CANCELLED);
+		waitResult = ERROR_CANCELLED;
 	}
 
-	throw Win32Exception("Aborted", waitResult);
+	throw Win32Exception("WaitForSingleObject", waitResult);
 }
 
 DWORD System::WaitForWindow(std::wstring_view name)
@@ -229,10 +229,10 @@ DWORD System::WaitForWindow(std::wstring_view name)
 
 	if (waitResult == WAIT_OBJECT_0)
 	{
-		throw Win32Exception("Aborted", ERROR_CANCELLED);
+		waitResult = ERROR_CANCELLED;
 	}
 
-	throw Win32Exception("Aborted", waitResult);
+	throw Win32Exception("WaitForSingleObject", waitResult);
 }
 
 size_t System::PageSize()
