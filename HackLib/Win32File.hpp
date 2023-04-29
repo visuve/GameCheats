@@ -56,8 +56,8 @@ public:
 	std::string ReadUntil(char byte);
 	std::string ReadAtUntil(size_t offset, char byte);
 
-	size_t Write(void* buffer, size_t size);
-	size_t WriteAt(void* buffer, size_t size, size_t offset);
+	size_t Write(const void* buffer, size_t size);
+	size_t WriteAt(size_t offset, const void* buffer, size_t size);
 
 	template<std::semiregular T, size_t N = sizeof(T)>
 	void Write(T x)
@@ -68,7 +68,7 @@ public:
 	}
 
 	template<std::semiregular T, size_t N = sizeof(T)>
-	void WriteAt(T x, size_t offset)
+	void WriteAt(size_t offset, T x)
 	{
 		[[maybe_unused]]
 		size_t bytesWritten = WriteAt(&x, N, offset);

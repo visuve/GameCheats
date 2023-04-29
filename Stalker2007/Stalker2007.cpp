@@ -19,15 +19,18 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	{
 		std::filesystem::path path = args.Value<std::filesystem::path>("patch");
 
-		if (SHA256(path) != UnpatchedChecksum)
+		Win32File file(path, GENERIC_READ | GENERIC_WRITE);
+
+		if (SHA256(file) != UnpatchedChecksum)
 		{
 			LogError << "Cheksum mismatch. Won't patch, will definetely break!";
 			return ERROR_REVISION_MISMATCH;
 		}
 
-		FsOps::Stab(path, 0x17D73F, "asInvoker\"       ");
+		const std::string text = "asInvoker\"       ";
+		file.WriteAt(size_t(0x17D73Fu), text.data(), text.size());
 
-		if (SHA256(path) != PatchedChecksum)
+		if (SHA256(file) != PatchedChecksum)
 		{
 			LogError << "Cheksum mismatch. Stabbing the .exe failed :-( The game might be broken!";
 			return ERROR_REVISION_MISMATCH;

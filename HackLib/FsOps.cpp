@@ -1,4 +1,5 @@
 #include "FsOps.hpp"
+#include "Win32File.hpp"
 
 void FsOps::ProcessDirectory(const std::filesystem::path path, std::span<PathFunction>&& functions)
 {
@@ -18,15 +19,13 @@ uint32_t FsOps::CountLines(
 	const std::filesystem::path& path,
 	const LineMatchFunction& predicate)
 {
-	std::ifstream file;
-	file.exceptions(std::ifstream::badbit);
-	file.open(path);
-
-	std::string line;
 	uint32_t count = 0;
+	Win32File file(path);
 
-	for (uint32_t lineNum = 1; std::getline(file, line); ++lineNum)
+	for (uint32_t lineNum = 1; file; ++lineNum)
 	{
+		std::string line = file.ReadUntil('\n');
+
 		if (predicate(lineNum, line))
 		{
 			++count;
@@ -41,18 +40,16 @@ void FsOps::Replicate(
 	const LineProcessFunction& fn,
 	const std::filesystem::path& to)
 {
-	std::ifstream input;
-	input.exceptions(std::fstream::badbit);
-	input.open(from);
+	Win32File input(from);
 
 	std::ofstream output;
 	output.exceptions(std::fstream::failbit | std::fstream::badbit);
 	output.open(to);
 
-	std::string line;
-
-	for (uint32_t lineNum = 1; std::getline(input, line); ++lineNum)
+	for (uint32_t lineNum = 1; input; ++lineNum)
 	{
+		std::string line = input.ReadUntil('\n');
+
 		fn(lineNum, line, output);
 	}
 }
@@ -68,15 +65,4 @@ std::filesystem::path FsOps::BackupRename(const std::filesystem::path& path)
 	std::filesystem::rename(path, backupPath);
 
 	return backupPath;
-}
-
-void FsOps::Stab(const std::filesystem::path& path, std::streampos offset, std::string_view text)
-{
-	std::fstream file;
-	file.exceptions(std::fstream::failbit | std::fstream::badbit);
-	file.open(path, std::ios::in | std::ios::out | std::ios::binary);
-
-	file.seekp(offset);
-
-	file.write(text.data(), text.size());
 }

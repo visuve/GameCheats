@@ -64,7 +64,7 @@ size_t Win32File::ReadAt(void* buffer, size_t size, size_t offset)
 	return bytesRead;
 }
 
-size_t Win32File::Write(void* buffer, size_t size)
+size_t Win32File::Write(const void* buffer, size_t size)
 {
 	DWORD bytesWritten = 0;
 
@@ -77,7 +77,7 @@ size_t Win32File::Write(void* buffer, size_t size)
 	return bytesWritten;
 }
 
-size_t Win32File::WriteAt(void* buffer, size_t size, size_t offset)
+size_t Win32File::WriteAt(size_t offset, const void* buffer, size_t size)
 {
 	DWORD bytesWritten = 0;
 	_ovl.Offset = static_cast<DWORD>(offset);
