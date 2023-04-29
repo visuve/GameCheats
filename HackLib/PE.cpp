@@ -317,9 +317,9 @@ namespace PE
 		}
 	}
 
-	SHA256 File::Checksum() const
+	SHA256 File::Checksum()
 	{
-		auto self = dynamic_cast<const Win32File*>(this);
+		auto self = dynamic_cast<Win32File*>(this);
 		return SHA256(*self);
 	}
 
@@ -374,7 +374,7 @@ namespace PE
 		}
 	}
 
-	std::vector<std::string> Executable::ImportedFunctions(std::string_view libraryName) const
+	std::vector<std::string> Executable::ImportedFunctions(std::string_view libraryName)
 	{
 		std::vector<std::string> result;
 		size_t originalPosition = CurrentPosition();
@@ -449,7 +449,7 @@ namespace PE
 		LogDebug << _exportDirectory;
 	}
 
-	std::vector<std::string> Library::ExportedFunctions() const
+	std::vector<std::string> Library::ExportedFunctions()
 	{
 		std::vector<std::string> result;
 		size_t originalPosition = CurrentPosition();

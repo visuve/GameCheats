@@ -6,7 +6,7 @@
 class Win32File : public Win32Handle
 {
 public:
-	explicit Win32File(const std::filesystem::path& path);
+	explicit Win32File(const std::filesystem::path& path, DWORD access = GENERIC_READ);
 	virtual ~Win32File();
 
 	NonCopyable(Win32File);
@@ -21,10 +21,16 @@ public:
 		return _size;
 	}
 
-	size_t Read(void* buffer, size_t size) const;
+	inline operator bool() const
+	{
+		return _ovl.Offset <= _size;
+	}
+
+	size_t Read(void* buffer, size_t size);
+	size_t ReadAt(void* buffer, size_t size, size_t offset);
 
 	template<std::semiregular T, size_t N = sizeof(T)>
-	T Read() const
+	T Read()
 	{
 		T result = {};
 
@@ -35,10 +41,8 @@ public:
 		return result;
 	}
 
-	size_t ReadAt(void* buffer, size_t size, size_t offset) const;
-
 	template<std::semiregular T, size_t N = sizeof(T)>
-	T ReadAt(size_t offset) const
+	T ReadAt(size_t offset)
 	{
 		T result = {};
 
@@ -49,12 +53,32 @@ public:
 		return result;
 	}
 
-	std::string ReadUntil(char byte) const;
-	std::string ReadAtUntil(size_t offset, char byte) const;
+	std::string ReadUntil(char byte);
+	std::string ReadAtUntil(size_t offset, char byte);
+
+	size_t Write(void* buffer, size_t size);
+	size_t WriteAt(void* buffer, size_t size, size_t offset);
+
+	template<std::semiregular T, size_t N = sizeof(T)>
+	void Write(T x)
+	{
+		[[maybe_unused]]
+		size_t bytesWritten = Write(&x, N);
+		_ASSERT(bytesWritten == N);
+	}
+
+	template<std::semiregular T, size_t N = sizeof(T)>
+	void WriteAt(T x, size_t offset)
+	{
+		[[maybe_unused]]
+		size_t bytesWritten = WriteAt(&x, N, offset);
+		_ASSERT(bytesWritten == N);
+	}
 
 	size_t CurrentPosition() const;
-	void SetPosition(size_t) const;
+	void SetPosition(size_t);
 
 private:
 	size_t _size = 0;
+	OVERLAPPED _ovl = {};
 };

@@ -7,7 +7,7 @@ class SHA256
 {
 public:
 	SHA256(const std::filesystem::path& path);
-	SHA256(const Win32File& file);
+	SHA256(Win32File& file);
 
 	~SHA256();
 
@@ -22,7 +22,7 @@ public:
 
 private:
 	SHA256();
-	void ProcessFile(const Win32File& file);
+	void ProcessFile(Win32File& file);
 	void Update(std::span<uint8_t> data);
 	void Finish();
 

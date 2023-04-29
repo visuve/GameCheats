@@ -10,7 +10,7 @@ SHA256::SHA256(const std::filesystem::path& path) :
 	ProcessFile(file);
 }
 
-SHA256::SHA256(const Win32File& file) :
+SHA256::SHA256(Win32File& file) :
 	SHA256()
 {
 	ProcessFile(file);
@@ -91,7 +91,7 @@ SHA256::SHA256()
 	}
 }
 
-void SHA256::ProcessFile(const Win32File& file)
+void SHA256::ProcessFile(Win32File& file)
 {
 	auto before = std::chrono::high_resolution_clock::now();
 

@@ -228,7 +228,7 @@ namespace PE // https://wiki.osdev.org/PE
 		File(const std::filesystem::path& path);
 		virtual ~File();
 
-		SHA256 Checksum() const;
+		SHA256 Checksum();
 
 		inline COFF::ArchitectureType Architecture() const
 		{
@@ -276,7 +276,7 @@ namespace PE // https://wiki.osdev.org/PE
 		Executable(const std::filesystem::path& path);
 		~Executable() = default;
 
-		std::vector<std::string> ImportedFunctions(std::string_view libraryName) const;
+		std::vector<std::string> ImportedFunctions(std::string_view libraryName);
 
 	private:
 		COFF::SectionHeader _importSection;
@@ -289,7 +289,7 @@ namespace PE // https://wiki.osdev.org/PE
 		Library(const std::filesystem::path& path);
 		~Library() = default;
 
-		std::vector<std::string> ExportedFunctions() const;
+		std::vector<std::string> ExportedFunctions();
 
 	private:
 		COFF::SectionHeader _exportSection;

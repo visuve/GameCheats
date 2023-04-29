@@ -1,10 +1,10 @@
 #include "Win32File.hpp"
 #include "Exceptions.hpp"
 
-Win32File::Win32File(const std::filesystem::path& path) :
+Win32File::Win32File(const std::filesystem::path& path, DWORD access) :
 	Win32Handle(CreateFileW(
 		path.c_str(),
-		GENERIC_READ,
+		access,
 		FILE_SHARE_READ | FILE_SHARE_WRITE,
 		nullptr,
 		OPEN_EXISTING,
@@ -23,48 +23,75 @@ Win32File::Win32File(const std::filesystem::path& path) :
 		throw Win32Exception("GetFileSizeEx");
 	}
 
-#ifdef _WIN32
-	if (size.QuadPart > 0x7FFF'FFFF)
+	// I do not need support for over 4GiB for now
+
+	if (size.HighPart)
 	{
 		throw OutOfRangeException("Too large file to handle");
 	}
-#endif
 
-	_size = static_cast<size_t>(size.QuadPart);
+	_size = size.LowPart;
 }
 
 Win32File::~Win32File()
 {
 }
 
-size_t Win32File::Read(void* buffer, size_t size) const
+size_t Win32File::Read(void* buffer, size_t size)
 {
 	DWORD bytesRead = 0;
 	
-	if (!ReadFile(_handle, buffer, static_cast<DWORD>(size), &bytesRead, nullptr))
+	if (!ReadFile(_handle, buffer, static_cast<DWORD>(size), &bytesRead, &_ovl))
 	{
 		throw Win32Exception("ReadFile");
 	}
 
+	_ovl.Offset += bytesRead;
 	return bytesRead;
 }
 
-size_t Win32File::ReadAt(void* buffer, size_t size, size_t offset) const
+size_t Win32File::ReadAt(void* buffer, size_t size, size_t offset)
 {
 	DWORD bytesRead = 0;
+	_ovl.Offset = static_cast<DWORD>(offset);
 
-	OVERLAPPED ovl = {};
-	ovl.Pointer = reinterpret_cast<void*>(offset);
-
-	if (!ReadFile(_handle, buffer, static_cast<DWORD>(size), &bytesRead, &ovl))
+	if (!ReadFile(_handle, buffer, static_cast<DWORD>(size), &bytesRead, &_ovl))
 	{
 		throw Win32Exception("ReadFile");
 	}
 
+	_ovl.Offset += bytesRead;
 	return bytesRead;
 }
 
-std::string Win32File::ReadUntil(char byte) const
+size_t Win32File::Write(void* buffer, size_t size)
+{
+	DWORD bytesWritten = 0;
+
+	if (!WriteFile(_handle, buffer, static_cast<DWORD>(size), &bytesWritten, &_ovl))
+	{
+		throw Win32Exception("WriteFile");
+	}
+
+	_ovl.Offset += bytesWritten;
+	return bytesWritten;
+}
+
+size_t Win32File::WriteAt(void* buffer, size_t size, size_t offset)
+{
+	DWORD bytesWritten = 0;
+	_ovl.Offset = static_cast<DWORD>(offset);
+
+	if (!WriteFile(_handle, buffer, static_cast<DWORD>(size), &bytesWritten, &_ovl))
+	{
+		throw Win32Exception("WriteFile");
+	}
+
+	_ovl.Offset += bytesWritten;
+	return bytesWritten;
+}
+
+std::string Win32File::ReadUntil(char byte)
 {
 	std::string result;
 
@@ -87,7 +114,7 @@ std::string Win32File::ReadUntil(char byte) const
 	return result;
 }
 
-std::string Win32File::ReadAtUntil(size_t offset, char byte) const
+std::string Win32File::ReadAtUntil(size_t offset, char byte)
 {
 	SetPosition(offset);
 	return ReadUntil(byte);
@@ -95,28 +122,10 @@ std::string Win32File::ReadAtUntil(size_t offset, char byte) const
 
 size_t Win32File::CurrentPosition() const
 {
-	LARGE_INTEGER distanceToMove = {};
-	LARGE_INTEGER result = {};
-
-	if (!SetFilePointerEx(_handle, distanceToMove, &result, FILE_CURRENT))
-	{
-		throw Win32Exception("SetFilePointerEx");
-	}
-
-	return static_cast<size_t>(result.QuadPart);
+	return _ovl.Offset;
 }
 
-void Win32File::SetPosition(size_t position) const
+void Win32File::SetPosition(size_t position)
 {
-	LARGE_INTEGER distanceToMove = {};
-	distanceToMove.QuadPart = static_cast<int64_t>(position);
-
-	LARGE_INTEGER result = {};
-
-	if (!SetFilePointerEx(_handle, distanceToMove, &result, FILE_BEGIN))
-	{
-		throw Win32Exception("SetFilePointerEx");
-	}
-
-	_ASSERT(static_cast<size_t>(result.QuadPart) == position);
+	_ovl.Offset = static_cast<DWORD>(position);
 }
