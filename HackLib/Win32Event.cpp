@@ -3,105 +3,13 @@
 #include "System.hpp"
 #include "Win32Event.hpp"
 
-static BOOL WINAPI ConsoleHandler(_In_ DWORD);
-
-class EventList
-{
-public:
-	EventList()
-	{
-		SetConsoleCtrlHandler(ConsoleHandler, true);
-
-		LogDebug << "Hello, Welcome from HackLib!";
-	}
-
-	~EventList()
-	{
-		_ASSERT(_eventNames.empty());
-
-		LogDebug << "Bye!";
-	}
-
-	void Add(const std::string& name)
-	{
-		_eventNames.push_back(name);
-	}
-
-	void Remove(const std::string& name)
-	{
-		_eventNames.remove(name);
-	}
-
-	std::list<std::string> Names() const
-	{
-		return _eventNames;
-	}
-
-private:
-	// Shouldn't need a mutex for these.
-	// Also, directly adding the handles instead of names
-	// resulted the assertion in SetEvent below to fail :-(
-	std::list<std::string> _eventNames;
-};
-
-EventList events;
-
-static BOOL WINAPI ConsoleHandler(_In_ DWORD signal)
-{
-	int exitCode = ERROR_CANCELLED;
-
-	switch (signal)
-	{
-		case CTRL_C_EVENT:
-			Log << "Signaled CTRL+C event";
-			break;
-		case CTRL_BREAK_EVENT:
-			Log << "Signaled CTRL+BREAK event";
-			break;
-		case CTRL_CLOSE_EVENT:
-			Log << "Signaled close event";
-			break;
-		case CTRL_LOGOFF_EVENT:
-			Log << "Signaled logoff event";
-			// There is no sane exit code for logoff
-			exitCode = static_cast<int>(SCARD_E_SYSTEM_CANCELLED);
-			break;
-		case CTRL_SHUTDOWN_EVENT:
-			Log << "Signaled shutdown event";
-			exitCode = ERROR_SYSTEM_SHUTDOWN;
-			break;
-		default:
-			Log << "Signaled" << signal;
-			break;
-	}
-
-	std::list<std::string> names = events.Names();
-
-	if (names.empty())
-	{
-		exit(exitCode);
-	}
-
-	for (const std::string& eventName : names)
-	{
-		HANDLE event = OpenEventA(EVENT_MODIFY_STATE, false, eventName.data());
-
-		if (event)
-		{
-			[[maybe_unused]]
-			bool result = SetEvent(event);
-			_ASSERT_EXPR(result, L"Could not set event");
-		}
-	}
-
-	return true;
-}
+std::list<std::string> Win32EventNames;
 
 Win32Event::Win32Event(const std::string& name) :
 	Win32Handle(CreateEventA(nullptr, true, false, name.data())),
 	_name(name)
 {
-	events.Add(_name);
+	Win32EventNames.emplace_back(_name);
 }
 
 Win32Event::Win32Event() :
@@ -111,7 +19,7 @@ Win32Event::Win32Event() :
 
 Win32Event::~Win32Event()
 {
-	events.Remove(_name);
+	Win32EventNames.remove(_name);
 }
 
 DWORD Win32Event::Wait(std::chrono::milliseconds timeout) const
