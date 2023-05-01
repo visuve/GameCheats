@@ -158,6 +158,12 @@ public:
 		_stream << std::format(" {} = 0x{:016X}", name, value);
 	}
 
+	template <typename T>
+	void Hex(std::string_view name, T* value) requires std::convertible_to<T, size_t>
+	{
+		Hex(name, reinterpret_cast<size_t>(value));
+	}
+
 private:
 	static std::mutex _mutex;
 	std::ostream& _stream;
