@@ -132,6 +132,13 @@ public:
 	}
 
 	template <typename T>
+	void Plain(std::string_view name, T value)
+	{
+		// std::to_string limits to basic numerals
+		_stream << ' ' << name << '=' << std::to_string(value);
+	}
+
+	template <typename T>
 	void Hex(std::string_view name, T value) = delete;
 
 	template <>
@@ -188,6 +195,7 @@ private:
 #define JoinExpand(A, B) JoinNoExpand(A, B)
 
 #define LogDebug Logger(std::clog, std::source_location::current())
+#define LogVariable(x) LogDebug.Plain(#x, x)
 #define LogVariableHex(x) LogDebug.Hex(#x, x)
 #define LogScope ScopeLogger JoinExpand(logger, __LINE__)(std::source_location::current())
 #else
@@ -200,6 +208,7 @@ struct PseudoLogger
 	}
 };
 #define LogDebug PseudoLogger()
+#define LogVariable(x)
 #define LogVariableHex(x)
 #define LogScope PseudoLogger()
 #endif
