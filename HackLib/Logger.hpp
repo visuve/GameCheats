@@ -188,7 +188,7 @@ private:
 #define JoinExpand(A, B) JoinNoExpand(A, B)
 
 #define LogDebug Logger(std::clog, std::source_location::current())
-#define LogVariable(x) LogDebug.Hex(#x, x)
+#define LogVariableHex(x) LogDebug.Hex(#x, x)
 #define LogScope ScopeLogger JoinExpand(logger, __LINE__)(std::source_location::current())
 #else
 struct PseudoLogger
@@ -200,7 +200,7 @@ struct PseudoLogger
 	}
 };
 #define LogDebug PseudoLogger()
-#define LogVariable(x)
+#define LogVariableHex(x)
 #define LogScope PseudoLogger()
 #endif
 

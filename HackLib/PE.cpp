@@ -252,7 +252,7 @@ namespace PE
 				// I utterly hate this hack
 				[[maybe_unused]]
 				uint32_t baseOfData = Read<uint32_t>();
-				LogVariable(baseOfData);
+				LogVariableHex(baseOfData);
 
 				if (_coffOptionalHeader.Signature != COFF::OptionalHeader::ExpectedSignaturePE32)
 				{
@@ -356,7 +356,7 @@ namespace PE
 			true; // 4ever loop
 			importSectionPosition += sizeof(PE::ImportDescriptor))
 		{
-			LogVariable(importSectionPosition);
+			LogVariableHex(importSectionPosition);
 
 			PE::ImportDescriptor importDescriptor = 
 				ReadAt<PE::ImportDescriptor>(importSectionPosition);
@@ -382,7 +382,7 @@ namespace PE
 		for (const PE::ImportDescriptor& importDescriptor : _importDescriptors)
 		{
 			size_t libraryNamePosition = VirtualAdressToFilePosition(_importSection, importDescriptor.Name);
-			LogVariable(libraryNamePosition);
+			LogVariableHex(libraryNamePosition);
 
 			std::string importedLibraryName = ReadAtUntil(libraryNamePosition, '\0');
 
@@ -399,7 +399,7 @@ namespace PE
 				true; // 4ever loop
 				thunkPosition += _addressSize)
 			{
-				LogVariable(thunkPosition);
+				LogVariableHex(thunkPosition);
 
 				uint64_t thunk = 0; // large enough to hold 32 or 64 bit
 
@@ -413,10 +413,10 @@ namespace PE
 					break;
 				}
 
-				LogVariable(thunk);
+				LogVariableHex(thunk);
 
 				size_t functionNamePosition = VirtualAdressToFilePosition(_importSection, static_cast<size_t>(thunk)) + 2u;
-				LogVariable(functionNamePosition);
+				LogVariableHex(functionNamePosition);
 
 				std::string functionName = ReadAtUntil(functionNamePosition, '\0');
 
@@ -443,7 +443,7 @@ namespace PE
 		LogDebug << _exportSection;
 
 		size_t exportSectionPosition = VirtualAdressToFilePosition(_exportSection, dd.VirtualAddress);
-		LogVariable(exportSectionPosition);
+		LogVariableHex(exportSectionPosition);
 
 		_exportDirectory = ReadAt<PE::ExportDirectory>(exportSectionPosition);
 		LogDebug << _exportDirectory;
@@ -455,7 +455,7 @@ namespace PE
 		size_t originalPosition = CurrentPosition();
 
 		size_t functionNameListPosition = VirtualAdressToFilePosition(_exportSection, _exportDirectory.AddressOfNames);
-		LogVariable(functionNameListPosition);
+		LogVariableHex(functionNameListPosition);
 
 		for (size_t i = 0; i < _exportDirectory.NumberOfNames; ++i)
 		{
@@ -466,11 +466,11 @@ namespace PE
 				throw ArgumentException("Failed to read function name position");
 			}
 
-			LogVariable(functionNamePosition);
+			LogVariableHex(functionNamePosition);
 
 			functionNamePosition = VirtualAdressToFilePosition(_exportSection, functionNamePosition);
 
-			LogVariable(functionNamePosition);
+			LogVariableHex(functionNamePosition);
 
 			std::string functionName = ReadAtUntil(functionNamePosition, '\0');
 
