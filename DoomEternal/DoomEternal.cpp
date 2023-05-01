@@ -15,9 +15,9 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		{ "infammo", typeid(std::nullopt), "Infinite ammo" },
 		{ "freeupgrades", typeid(std::nullopt), "Free weapon & gear upgrades" },
 		{ "coollauncher", typeid(std::nullopt), "No cooldown for equipment launcher (grenades & flame)" },
-		{ "coolguns", typeid(std::nullopt), "No cooldown for guns" },
-		{ "health", typeid(float), "Set current and max health. Default 100." },
-		{ "armor", typeid(float), "Set current and max armor. Default 50." },
+		{ "health", typeid(float), "Set current and max health. Default 100.0." },
+		{ "armor", typeid(float), "Set current and max armor. Default 50.0." },
+		{ "damage", typeid(float), "Damage scale. Default 1.0. Note: does not appear to be linear." }
 	});
 
 	DWORD pid = System::WaitForExe(L"DOOMEternalx64vk.exe");
@@ -74,11 +74,11 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	if (args.Contains("health") || args.Contains("armor"))
 	{
 		// All of the above appear to work, but I just picked the nicest
-		// doomGuy = process.ResolvePointer(0x06BC2270, 0x38, 0x5DCu, 0x58u);
-		// doomGuy = process.ResolvePointer(0x06BC2270, 0x1F0, 0x52Cu, 0x58u);
-		doomGuy = process.ResolvePointer(0x06BC2270, 0x0u, 0x20u, 0x58u);
-		// doomGuy = process.ResolvePointer(0x06BC2270, 0x400, 0x5DCu, 0x58u);
-		// doomGuy = process.ResolvePointer(0x06BC2270, 0x1F0, 0x82Cu, 0x58u);
+		// doomGuy = process.ResolvePointer(0x6BC2270, 0x38, 0x5DCu, 0x58u);
+		// doomGuy = process.ResolvePointer(0x6BC2270, 0x1F0, 0x52Cu, 0x58u);
+		doomGuy = process.ResolvePointer(0x6BC2270, 0x0u, 0x20u, 0x58u);
+		// doomGuy = process.ResolvePointer(0x6BC2270, 0x400, 0x5DCu, 0x58u);
+		// doomGuy = process.ResolvePointer(0x6BC2270, 0x1F0, 0x82Cu, 0x58u);
 		LogVariableHex(doomGuy.Value());
 	}
 
@@ -140,6 +140,22 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		LogVariable(armor);
 
 		Log << "Armor updated";
+	}
+
+	if (args.Contains("damage"))
+	{
+		float wantedDamage = args.Value<float>("damage", 1.0f);
+		Pointer damagePtr = process.ResolvePointer(0x6B81080, 0xCu);
+		float damage = process.Read<float>(damagePtr);
+
+		LogDebug << "Before:";
+		LogVariable(damage);
+
+		process.Write(damagePtr, wantedDamage);
+		damage = process.Read<float>(damagePtr);
+
+		LogDebug << "After:";
+		LogVariable(damage);
 	}
 
 	return exitCode;
