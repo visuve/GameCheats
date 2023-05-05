@@ -13,11 +13,12 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	const CmdArgs args(givenArguments,
 	{
 		{ "infammo", typeid(std::nullopt), "Infinite ammo" },
-		{ "freeupgrades", typeid(std::nullopt), "Free weapon & gear upgrades" },
+		{ "freeupgrades", typeid(std::nullopt), "Free weapon & gear upgrades. Note: do not use before third level (Cultist Base)..." },
 		{ "coollauncher", typeid(std::nullopt), "No cooldown for equipment launcher (grenades & flame)" },
-		{ "health", typeid(float), "Set current and max health. Default 100.0." },
-		{ "armor", typeid(float), "Set current and max armor. Default 50.0." },
-		{ "damage", typeid(float), "Damage scale. Default 1.0. Note: does not appear to be linear." }
+		{ "damage", typeid(float), "Damage scale. Default 1.0. Note: does not appear to be linear." },
+		{ "health", typeid(float), "Set current and max health. Default 100.0. Note: a map needs to be loaded!" },
+		{ "armor", typeid(float), "Set current and max armor. Default 50.0. Note: a map needs to be loaded!" },
+		{ "coolguns", typeid(std::nullopt), "No cooldown for weapons. NOTE: Does not work for sticky bombs and micro-missiles glitch." }
 	});
 
 	DWORD pid = System::WaitForExe(L"DOOMEternalx64vk.exe");
@@ -69,16 +70,45 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		Log << "Cool launcher applied";
 	}
 
+	if (args.Contains("damage"))
+	{
+		float wantedDamage = args.Value<float>("damage", 1.0f);
+		Pointer damagePtr = process.ResolvePointer(0x6B81080, 0xCu);
+		float damage = process.Read<float>(damagePtr);
+
+		LogDebug << "Before:";
+		LogVariable(damage);
+
+		process.Write(damagePtr, wantedDamage);
+		damage = process.Read<float>(damagePtr);
+
+		LogDebug << "After:";
+		LogVariable(damage);
+
+		Log << "More damage applied";
+	}
+
+	if (args.Contains("coolguns"))
+	{
+		process.ChangeBytes(0x1D407F9,
+			ByteStream("F3 41 0F 11 B7 68 31 00 00"), // movss [r15+00003168],xmm6
+			ByteStream("F3 45 0F 11 8F 68 31 00 00")); // movss [r15+00003168],xmm9
+
+		Pointer compare = process.ResolvePointer(0x6BF36F0, 0x8);
+
+		process.Write(compare, uint64_t(1));
+	}
+
 	Pointer doomGuy;
 
 	if (args.Contains("health") || args.Contains("armor"))
 	{
-		// All of the above appear to work, but I just picked the nicest
-		// doomGuy = process.ResolvePointer(0x6BC2270, 0x38, 0x5DCu, 0x58u);
-		// doomGuy = process.ResolvePointer(0x6BC2270, 0x1F0, 0x52Cu, 0x58u);
+		// All of the below appear to work, but I just picked the nicest
+		// doomGuy = process.ResolvePointer(0x6BC2270, 0x38u, 0x5DCu, 0x58u);
+		// doomGuy = process.ResolvePointer(0x6BC2270, 0x1F0u, 0x52Cu, 0x58u);
 		doomGuy = process.ResolvePointer(0x6BC2270, 0x0u, 0x20u, 0x58u);
-		// doomGuy = process.ResolvePointer(0x6BC2270, 0x400, 0x5DCu, 0x58u);
-		// doomGuy = process.ResolvePointer(0x6BC2270, 0x1F0, 0x82Cu, 0x58u);
+		// doomGuy = process.ResolvePointer(0x6BC2270, 0x400u, 0x5DCu, 0x58u);
+		// doomGuy = process.ResolvePointer(0x6BC2270, 0x1F0u, 0x82Cu, 0x58u);
 		LogVariableHex(doomGuy.Value());
 	}
 
@@ -140,22 +170,6 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		LogVariable(armor);
 
 		Log << "Armor updated";
-	}
-
-	if (args.Contains("damage"))
-	{
-		float wantedDamage = args.Value<float>("damage", 1.0f);
-		Pointer damagePtr = process.ResolvePointer(0x6B81080, 0xCu);
-		float damage = process.Read<float>(damagePtr);
-
-		LogDebug << "Before:";
-		LogVariable(damage);
-
-		process.Write(damagePtr, wantedDamage);
-		damage = process.Read<float>(damagePtr);
-
-		LogDebug << "After:";
-		LogVariable(damage);
 	}
 
 	return exitCode;
