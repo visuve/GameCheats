@@ -343,7 +343,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 		_targetProcess.FlushInstructionCache(origin, relay.Size());
 	}
 
-	Log << Logger::Color::Cyan << "Injected" << JumpOpSize + nops << "bytes to" << origin;
+	Log << "Injected" << JumpOpSize + nops << "bytes to" << origin;
 	return trampoline;
 }
 
@@ -385,7 +385,7 @@ Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 		_targetProcess.FlushInstructionCache(origin, relay.Size());
 	}
 
-	Log << Logger::Color::Cyan << "Injected" << JumpOpSize + nops << "bytes to" << origin;
+	Log << "Injected" << JumpOpSize + nops << "bytes to" << origin;
 	return trampoline;
 }
 
@@ -488,12 +488,11 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 			if (exitCode != 0)
 			{
 				std::string message = WindowsErrorCategory().message(exitCode);
-				Log << Logger::Color::Red 
-					<< "Process" << _pid << "exited with code" << exitCode << "message:" << message;
+				Log << "Process" << _pid << "exited with code" << exitCode << "message:" << message;
 			}
 			else
 			{
-				Log << Logger::Color::LightMagenta << "Process" << _pid << "exited with code 0";
+				Log << "Process" << _pid << "exited with code 0";
 			}
 
 			return exitCode;

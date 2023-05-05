@@ -16,7 +16,7 @@ if(MSVC)
 	add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:/WX>")
 	add_compile_options("$<$<COMPILE_LANGUAGE:C,CXX>:/utf-8>")
 	add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:ASM_MASM>,$<CONFIG:DEBUG>>:/Zi>")
-	add_compile_definitions(NOMINMAX VC_EXTRALEAN)
+	add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
 
 add_subdirectory("HackLib")

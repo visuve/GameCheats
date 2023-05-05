@@ -29,54 +29,58 @@ public:
 
 	enum class Modifier
 	{
-		Space = ' ',
+		Spaced = ' ', // Default
 		Quoted = '"'
 	};
 
-	Logger(std::ostream& stream, const std::source_location& location);
+	Logger(std::ostream& stream, const std::source_location& location, Color color);
 	~Logger();
 
-	NonCopyable(Logger)
+	NonCopyable(Logger);
 
-	template <typename T>
-	Logger& operator << (T x)
+	Logger& operator << (Color c)
 	{
-		if (!_stream)
+		if (_stream && _isConsoleOutput)
 		{
-			return *this;
+			_modifiers.emplace_back(Foreground(c), Foreground(_color));
 		}
 
-		if (_isConsoleOutput)
-		{
-			switch (_color)
-			{
-				case Color::Black:
-				case Color::Default:
-					break;
-				default:
-					_stream << Foreground(Color::Default) << Foreground(_color);
-					break;
-			}
-		}
-
-		switch (_modifier)
-		{
-			case Modifier::Quoted:
-				_stream << " \"" << x << '"';
-				break;
-			default:
-				_stream << ' ' << x;
-				break;
-		}
-
-
-		_color = Color::Default;
-		_modifier = Modifier::Space;
 		return *this;
 	}
 
-	Logger& operator << (Modifier x);
-	Logger& operator << (Color x);
+	Logger& operator << (Modifier m)
+	{
+		if (_stream && m == Logger::Modifier::Quoted)
+		{
+			_modifiers.emplace_back("\"", "\"");
+		}
+
+		return *this;
+	}
+
+	Logger& operator << (auto x)
+	{
+		if (_stream)
+		{
+			_buffer << ' ';
+
+			for (auto tag = _modifiers.cbegin(); tag != _modifiers.cend(); ++tag)
+			{
+				_buffer << tag->first;
+			}
+
+			_buffer << x;
+
+			for (auto tag = _modifiers.crbegin(); tag != _modifiers.crend(); ++tag)
+			{
+				_buffer << tag->second;
+			}
+
+			_modifiers.clear();
+		}
+
+		return *this;
+	}
 
 	static std::string Prefix(const std::source_location& location);
 
@@ -132,10 +136,10 @@ public:
 	}
 
 	template <typename T>
-	void Plain(std::string_view name, T value)
+	constexpr void Plain(std::string_view name, T value)
 	{
 		// std::to_string limits to basic numerals
-		_stream << ' ' << name << '=' << std::to_string(value);
+		_buffer << ' ' << name << '=' << std::to_string(value);
 	}
 
 	template <typename T>
@@ -144,38 +148,38 @@ public:
 	template <>
 	void Hex(std::string_view name, uint8_t value)
 	{
-		_stream << std::format(" {} = 0x{:02X}", name, value);
+		_buffer << std::format(" {} = 0x{:02X}", name, value);
 	}
 
 	template <>
 	void Hex(std::string_view name, uint16_t value)
 	{
-		_stream << std::format(" {} = 0x{:04X}", name, value);
+		_buffer << std::format(" {} = 0x{:04X}", name, value);
 	}
 
 	template <>
 	void Hex(std::string_view name, uint32_t value)
 	{
-		_stream << std::format(" {} = 0x{:08X}", name, value);
+		_buffer << std::format(" {} = 0x{:08X}", name, value);
 	}
 
 	template <>
 	void Hex(std::string_view name, uint64_t value)
 	{
-		_stream << std::format(" {} = 0x{:016X}", name, value);
+		_buffer << std::format(" {} = 0x{:016X}", name, value);
 	}
 
 	template <typename T>
-	void Hex(std::string_view name, T* value) requires std::convertible_to<T, size_t>
+	constexpr void Hex(std::string_view name, T* value) requires std::convertible_to<T, size_t>
 	{
 		Hex(name, reinterpret_cast<size_t>(value));
 	}
 
 private:
-	static std::mutex _mutex;
+	std::stringstream _buffer;
 	std::ostream& _stream;
-	Modifier _modifier = Modifier::Space;
-	Color _color = Color::Default;
+	const Color _color;
+	std::vector<std::pair<std::string, std::string>> _modifiers;
 	const bool _isConsoleOutput;
 };
 
@@ -194,7 +198,7 @@ private:
 #define JoinNoExpand(A, B) A ## B
 #define JoinExpand(A, B) JoinNoExpand(A, B)
 
-#define LogDebug Logger(std::clog, std::source_location::current())
+#define LogDebug Logger(std::cout, std::source_location::current(), Logger::Color::DarkGray)
 #define LogVariable(x) LogDebug.Plain(#x, x)
 #define LogVariableHex(x) LogDebug.Hex(#x, x)
 #define LogScope ScopeLogger JoinExpand(logger, __LINE__)(std::source_location::current())
@@ -202,7 +206,7 @@ private:
 struct PseudoLogger
 {
 	template <typename T>
-	PseudoLogger& operator << (T)
+	constexpr PseudoLogger& operator << (T)
 	{
 		return *this;
 	}
@@ -213,6 +217,7 @@ struct PseudoLogger
 #define LogScope PseudoLogger()
 #endif
 
-#define Log Logger(std::cout, std::source_location::current())
-#define LogWarning Logger(std::cout, std::source_location::current()) << Logger::Color::Yellow << "Warning:"
-#define LogError Logger(std::cerr, std::source_location::current())
+#define Log Logger(std::cout, std::source_location::current(), Logger::Color::LightGreen)
+#define LogWarning Logger(std::cout, std::source_location::current(), Logger::Color::Yellow)
+#define LogError Logger(std::cerr, std::source_location::current(), Logger::Color::Red)
+#define LogColored(c) Logger(std::cout, std::source_location::current(), c)

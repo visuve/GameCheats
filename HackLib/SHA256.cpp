@@ -131,7 +131,7 @@ void SHA256::ProcessFile(Win32File& file)
 		}
 
 		float complete = float(fileSize - bytesLeft) / float(fileSize) * 100.f;
-		Log << Logger::Color::Yellow << std::format("Verifying {:.2f}%", complete);
+		LogColored(Logger::Color::Cyan) << std::format("Verifying {:.2f}%", complete);
 
 		Update(buffer);
 	}

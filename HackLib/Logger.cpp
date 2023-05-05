@@ -1,59 +1,41 @@
 #include "Logger.hpp"
 
-std::mutex Logger::_mutex;
+std::mutex LogMutex;
 
-Logger::Logger(std::ostream& stream, const std::source_location& location) :
+Logger::Logger(std::ostream& stream, const std::source_location& location, Color color) :
 	_stream(stream),
+	_color(color),
 	_isConsoleOutput(&stream == &std::cout || &stream == &std::cerr || &stream == &std::clog)
 {
-	if (!_stream)
+	if (_stream)
 	{
-		return;
+		_buffer << Prefix(location);
 	}
-
-	_mutex.lock();
-
-	if (&_stream == &std::cout)
-	{
-		_stream << Background(Color::Black) << Foreground(Color::LightGreen);
-	}
-	else if (&_stream == &std::cerr)
-	{
-		_stream << Background(Color::Black) <<  Foreground(Color::Red);
-	}
-	else if (&_stream == &std::clog)
-	{
-		_stream << Background(Color::Black) << Foreground(Color::DarkGray);
-	}
-
-	_stream << Prefix(location);
 }
 
 Logger::~Logger()
 {
-	if (!_stream)
+	if (_stream)
 	{
-		return;
+		LogMutex.lock();
+
+		if (_isConsoleOutput)
+		{
+			_stream << Background(Color::Black);
+			_stream << Foreground(_color);
+		}
+
+		_stream << _buffer.str();
+
+		if (_isConsoleOutput)
+		{
+			_stream << Foreground(Color::Default);
+		}
+
+		_stream << std::endl;
+
+		LogMutex.unlock();
 	}
-
-	if (_isConsoleOutput)
-	{
-		_stream << Foreground(Color::Default) << std::endl;
-	}
-
-	_mutex.unlock();
-}
-
-Logger& Logger::operator << (Modifier x)
-{
-	_modifier = x;
-	return *this;
-}
-
-Logger& Logger::operator << (Color x)
-{
-	_color = x;
-	return *this;
 }
 
 std::string Logger::Prefix(const std::source_location& location)
@@ -72,29 +54,36 @@ std::string Logger::Prefix(const std::source_location& location)
 ScopeLogger::ScopeLogger(const std::source_location& location) :
 	_sourceLocation(location)
 {
-	if (std::clog)
+	if (std::cout)
 	{
-		std::clog << Logger::Background(Logger::Color::Black)
-			<< Logger::Foreground(Logger::Color::Magenta)
-			<< Logger::Prefix(_sourceLocation) 
-			<< " Enter" << std::endl;
-	}
+		LogMutex.lock();
 
-	_start = std::chrono::high_resolution_clock::now();
+		std::cout << Logger::Background(Logger::Color::Black)
+			<< Logger::Foreground(Logger::Color::Magenta)
+			<< Logger::Prefix(_sourceLocation)
+			<< " Enter\n";
+
+		LogMutex.unlock();
+
+		_start = std::chrono::high_resolution_clock::now();
+	}
 }
 
 ScopeLogger::~ScopeLogger()
 {
-	if (std::clog)
+	if (std::cout)
 	{
 		auto stop = std::chrono::high_resolution_clock::now();
 		auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(stop - _start);
 
-		std::clog << Logger::Background(Logger::Color::Black)
+		LogMutex.lock();
+
+		std::cout << Logger::Background(Logger::Color::Black)
 			<< Logger::Foreground(Logger::Color::Magenta)
 			<< Logger::Prefix(_sourceLocation)
-			<< " Exit (~" << diff << ')'
-			<< std::endl;
+			<< " Exit (~" << diff << ")\n";
+
+		LogMutex.unlock();
 	}
 }
 #endif
