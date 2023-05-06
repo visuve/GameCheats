@@ -99,15 +99,17 @@ std::string Win32File::ReadUntil(char byte)
 
 	while (Read(buffer.data(), buffer.size()))
 	{
-		size_t nullPosition = buffer.find(byte);
+		size_t terminator = buffer.find(byte);
 
-		if (nullPosition == std::string::npos)
+		if (terminator == std::string::npos)
 		{
 			result.append(buffer);
 			continue;
 		}
 		
-		result.append(buffer, 0, nullPosition);
+		result.append(buffer, 0, terminator);
+		_ovl.Offset -= static_cast<DWORD>(buffer.size());
+		_ovl.Offset += static_cast<DWORD>(terminator + 1);
 		break;
 	}
 
