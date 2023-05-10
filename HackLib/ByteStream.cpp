@@ -1,18 +1,17 @@
 #include "ByteStream.hpp"
-#include "Exceptions.hpp"
 
 ByteStream::ByteStream(size_t size, uint8_t byte) :
 	_bytes(size, byte)
 {
 }
 
-ByteStream::ByteStream(std::span<uint8_t> data) :
+ByteStream::ByteStream(std::span<const uint8_t> data) :
 	_bytes(data.begin(), data.end())
 {
 }
 
-ByteStream::ByteStream(std::initializer_list<uint8_t>&& data) :
-	_bytes(std::move(data))
+ByteStream::ByteStream(std::initializer_list<uint8_t> data) :
+	_bytes(data)
 {
 }
 
@@ -27,7 +26,7 @@ ByteStream& ByteStream::operator << (const uint8_t byte)
 	return *this;
 }
 
-ByteStream& ByteStream::operator << (std::span<uint8_t> data)
+ByteStream& ByteStream::operator << (std::span<const uint8_t> data)
 {
 	std::copy(data.begin(), data.end(), std::back_inserter(_bytes));
 	return *this;
@@ -81,6 +80,11 @@ void ByteStream::Add(size_t n, uint8_t byte)
 	std::fill_n(std::back_inserter(_bytes), n, byte);
 }
 
+bool ByteStream::operator == (const ByteStream& other) const
+{
+	return _bytes == other._bytes;
+}
+
 ByteStream::operator std::span<uint8_t>()
 {
 	return _bytes;
@@ -118,21 +122,13 @@ size_t ByteStream::Size() const
 
 std::ostream& operator << (std::ostream& os, const ByteStream& bs)
 {
-	std::ios_base::fmtflags formatFlags = os.flags();
-
-	os.setf(std::ios::hex, std::ios::basefield);
-	os.setf(std::ios::uppercase);
-	os.fill('0');
-
 	char separator[2] = "";
 
 	for (uint8_t byte : bs)
 	{
-		os << separator << std::setw(2) << +byte;
+		os << separator << std::format("{:02X}", byte);
 		separator[0] = ' ';
 	}
-
-	os.flags(formatFlags);
 
 	return os;
 }

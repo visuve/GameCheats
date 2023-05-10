@@ -7,27 +7,13 @@ class ByteStream
 public:
 	ByteStream() = default;
 	explicit ByteStream(size_t size, uint8_t byte = 0x00);
-	explicit ByteStream(std::span<uint8_t> data);
-	explicit ByteStream(std::initializer_list<uint8_t>&& data);
-
-	template <size_t N>
-	explicit  ByteStream(const std::array<uint8_t, N> data) :
-		_bytes(data.begin(), data.end())
-	{
-	}
-
+	explicit ByteStream(std::span<const uint8_t> data);
+	explicit ByteStream(std::initializer_list<uint8_t> data);
 	explicit ByteStream(std::string&& data);
 
 	ByteStream& operator << (const uint8_t byte);
-	ByteStream& operator << (std::span<uint8_t> data);
+	ByteStream& operator << (std::span<const uint8_t> data);
 	ByteStream& operator << (const Pointer& ptr);
-
-	template <size_t N>
-	ByteStream& operator << (const std::array<uint8_t, N>& data)
-	{
-		std::copy(data.cbegin(), data.cend(), std::back_inserter(_bytes));
-		return *this;
-	}
 
 	template <size_t N>
 	ByteStream& operator << (const uint8_t(&data)[N])
@@ -35,11 +21,11 @@ public:
 		std::copy(std::cbegin(data), std::cend(data), std::back_inserter(_bytes));
 		return *this;
 	}
-
 	ByteStream& operator << (std::string&& bytes);
 
 	void Add(size_t n, uint8_t byte);
 
+	bool operator == (const ByteStream& other) const;
 	operator std::span<uint8_t>();
 
 	uint8_t& operator [](size_t i);
