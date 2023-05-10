@@ -1,4 +1,4 @@
-file(GLOB SourceFiles "*.cpp")
+file(GLOB SourceFiles "*.cpp" "*.asm")
 
 set(Executable "Quake1Trainer")
 add_executable(${Executable} ${SourceFiles})
