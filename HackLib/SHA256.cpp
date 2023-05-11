@@ -1,6 +1,6 @@
+#include "SHA256.hpp"
 #include "Exceptions.hpp"
 #include "Logger.hpp"
-#include "SHA256.hpp"
 #include "StrConvert.hpp"
 
 SHA256::SHA256(const std::filesystem::path& path) :
@@ -140,7 +140,7 @@ void SHA256::ProcessFile(Win32File& file)
 
 	auto after = std::chrono::high_resolution_clock::now();
 
-	Log << "Verifying took" << std::chrono::duration_cast<std::chrono::milliseconds>(after - before);
+	LogInfo << "Verifying took" << std::chrono::duration_cast<std::chrono::milliseconds>(after - before);
 
 	file.SetPosition(originalPosition);
 }

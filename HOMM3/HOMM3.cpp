@@ -63,13 +63,13 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 		Resources resources = process.Read<Resources>(resourcePointer);
 
-		Log << "Before:";
-		Log << resources;
+		LogInfo << "Before:";
+		LogInfo << resources;
 
 		resources += 0xBEEF;
 
-		Log << "\nAfter:";
-		Log << resources;
+		LogInfo << "\nAfter:";
+		LogInfo << resources;
 
 		process.Write(resourcePointer, resources);
 	}

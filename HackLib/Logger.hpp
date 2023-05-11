@@ -217,7 +217,7 @@ struct PseudoLogger
 #define LogScope PseudoLogger()
 #endif
 
-#define Log Logger(std::cout, std::source_location::current(), Logger::Color::LightGreen)
+#define LogInfo Logger(std::cout, std::source_location::current(), Logger::Color::LightGreen)
 #define LogWarning Logger(std::cout, std::source_location::current(), Logger::Color::Yellow)
 #define LogError Logger(std::cerr, std::source_location::current(), Logger::Color::Red)
 #define LogColored(c) Logger(std::cout, std::source_location::current(), c)

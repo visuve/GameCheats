@@ -45,7 +45,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 			ByteStream("89 7B 40"), // mov [rbx+40], edi
 			ByteStream("90 90 90")); // mov [rbx+40], edi
 
-		Log << "Infinite ammo applied";
+		LogInfo << "Infinite ammo applied";
 	}
 
 	if (args.Contains("freeupgrades"))
@@ -54,7 +54,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 			ByteStream("44 01 84 B1 84 CD 04 00"), // add [rcx+rsi*4+0004CD84],r8d
 			ByteStream("FF 84 B1 84 CD 04 00 90")); // inc [rcx+rsi*4+0004CD84]; nop
 
-		Log << "Free upgrades applied";
+		LogInfo << "Free upgrades applied";
 	}
 
 	if (args.Contains("coollauncher"))
@@ -67,7 +67,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 			ByteStream("FF 8F E0 6F 00 00"), // dec [rdi+00006FE0]
 			ByteStream("FF 87 E0 6F 00 00")); // inc [rdi+00006FE0]
 
-		Log << "Cool launcher applied";
+		LogInfo << "Cool launcher applied";
 	}
 
 	if (args.Contains("damage"))
@@ -85,7 +85,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		LogDebug << "After:";
 		LogVariable(damage);
 
-		Log << "More damage applied";
+		LogInfo << "More damage applied";
 	}
 
 	if (args.Contains("coolguns"))
@@ -139,7 +139,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		LogVariable(maxHealth);
 		LogVariable(health);
 
-		Log << "Health updated";
+		LogInfo << "Health updated";
 	}
 
 	if (args.Contains("armor"))
@@ -169,7 +169,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		LogVariable(maxArmor);
 		LogVariable(armor);
 
-		Log << "Armor updated";
+		LogInfo << "Armor updated";
 	}
 
 	return exitCode;

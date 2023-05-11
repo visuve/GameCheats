@@ -12,7 +12,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	});
 
 	auto functionData = Process::ReadFunction(ExampleAsmFunction);
-	Log << ByteStream(functionData);
+	LogInfo << ByteStream(functionData);
 
 	if (args.Contains("calculator"))
 	{

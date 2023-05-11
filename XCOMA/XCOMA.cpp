@@ -164,8 +164,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		Soldier soldier;
 		file.read(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
 
-		Log << name << " had:";
-		std::cout << soldier << std::endl;
+		LogInfo << name << " had:\n" << soldier << '\n';
 
 		soldier.MaxOut();
 
@@ -176,10 +175,9 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		file.write(reinterpret_cast<char*>(&soldier), sizeof(Soldier));
 		file.flush();
 
-		Log << name << " now has:";
-		std::cout << soldier << std::endl;
+		LogInfo << name << " now has:\n" << soldier << '\n';
 
-		Log << "\n... KTHXBYE.";
+		LogInfo << "\n... KTHXBYE.";
 	}
 
 	std::fstream file = FindName(path, name);
@@ -193,7 +191,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 	uint8_t value = 0;
 	file >> value;
-	Log << name << " had skill of: " << +value;
+	LogInfo << name << " had skill of: " << +value;
 
 	value = 0xFF;
 
@@ -206,9 +204,9 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 	file.flush();
 
-	Log << name << " now has skill of: " << +value;
+	LogInfo << name << " now has skill of: " << +value;
 
-	Log << "\n... KTHXBYE.";
+	LogInfo << "\n... KTHXBYE.";
 
 	return 0;
 }

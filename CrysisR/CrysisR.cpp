@@ -21,7 +21,7 @@ void Cheat(const CmdArgs& args, std::string_view key, const Process& process, si
 
 	process.Write<T>(ptr, wanted);
 
-	Log << key << actual << "->" << wanted;
+	LogInfo << key << actual << "->" << wanted;
 }
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)

@@ -73,7 +73,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		{ "armor", typeid(float*) }
 	});
 
-	Log << "Created pointers:\n" << Logger::Color::Blue << ptrs.DeserializeToCheatEngineXml();
+	LogInfo << "Created pointers:\n" << Logger::Color::Blue << ptrs.DeserializeToCheatEngineXml();
 
 	// Hmmm IAT @ xrGame.dll+451278
 

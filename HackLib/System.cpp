@@ -180,7 +180,7 @@ DWORD System::WaitForExe(std::wstring_view name)
 			return result.value().th32ProcessID;
 		}
 
-		Log << "Process" << Logger::Modifier::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
+		LogInfo << "Process" << Logger::Modifier::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
 
 		waitResult = event.Wait(1000ms);
 
@@ -221,7 +221,7 @@ DWORD System::WaitForWindow(std::wstring_view name)
 			return pid;
 		}
 
-		Log << "Window" << Logger::Modifier::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
+		LogInfo << "Window" << Logger::Modifier::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
 
 		waitResult = event.Wait(1000ms);
 

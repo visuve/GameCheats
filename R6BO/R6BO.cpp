@@ -34,7 +34,7 @@ namespace R6BO
 
 		if (!FsOps::CountLines(path, predicate))
 		{
-			Log << path << "appears already patched!";
+			LogInfo << path << "appears already patched!";
 			return;
 		}
 
@@ -54,8 +54,8 @@ namespace R6BO
 
 		FsOps::Replicate(backup, mutator, path);
 
-		Log << "Patched:" << path;
-		Log << "Backup @" << backup;
+		LogInfo << "Patched:" << path;
+		LogInfo << "Backup @" << backup;
 	}
 
 	void PatchMissionFile(const std::filesystem::path& path)
@@ -95,7 +95,7 @@ namespace R6BO
 
 		if (!members)
 		{
-			Log << "No terrorists in" << path;
+			LogInfo << "No terrorists in" << path;
 			return;
 		}
 
@@ -107,7 +107,7 @@ namespace R6BO
 
 		if (highestId >= NewTerroristMax)
 		{
-			Log << path << "appears already patched!";
+			LogInfo << path << "appears already patched!";
 			return;
 		}
 
@@ -132,8 +132,8 @@ namespace R6BO
 
 		FsOps::Replicate(backup, mutator, path);
 
-		Log << "Patched:" << path;
-		Log << "Backup @" << backup;
+		LogInfo << "Patched:" << path;
+		LogInfo << "Backup @" << backup;
 	}
 
 	void ApplyFileHacks(const std::filesystem::path& r6boHome)
@@ -183,7 +183,7 @@ namespace R6BO
 		userReg.Write<DWORD>(L"MultiplayerNumberOfTerrorists", NewTerroristMax);
 		userReg.Write<DWORD>(L"SelectedNumberOfTerrorists", NewTerroristMax);
 
-		Log << "Registry entries stabbed";
+		LogInfo << "Registry entries stabbed";
 	}
 }
 

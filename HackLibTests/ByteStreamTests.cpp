@@ -80,12 +80,12 @@ TEST(ByteStreamTests, StreamOperators)
 	{
 		ByteStream stream;
 
-		std::vector<uint8_t> data(0x3);
+		std::vector<uint8_t> data = { 4, 5, 6 };
 		stream << data;
 
-		EXPECT_EQ(stream[0], 0x00u);
-		EXPECT_EQ(stream[1], 0x00u);
-		EXPECT_EQ(stream[2], 0x00u);
+		EXPECT_EQ(stream[0], 0x04u);
+		EXPECT_EQ(stream[1], 0x05u);
+		EXPECT_EQ(stream[2], 0x06u);
 		EXPECT_EQ(stream.Size(), 3u);
 	}
 	{

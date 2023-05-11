@@ -67,7 +67,7 @@ void GenerateFiles(
 	std::ofstream xmlFile(xmlPath);
 	SourceFileGenerator::GenerateVisualStudioProject(xmlFile, libraryName, asmPath, cPath);
 
-	Log << asmPath << cPath << '&' << xmlPath << "generated";
+	LogInfo << asmPath << cPath << '&' << xmlPath << "generated";
 }
 
 int main(int argc, char** argv)
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 
 		GenerateFiles(library, executable, output);
 
-		Log << "Please compile the project file in" << output;
+		LogInfo << "Please compile the project file in" << output;
 	}
 	catch (const CmdArgs::Exception& e)
 	{

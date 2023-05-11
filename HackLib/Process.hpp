@@ -161,7 +161,7 @@ public:
 
 		if (std::equal(to.begin(), to.end(), actual.begin(), actual.end()))
 		{
-			Log << "Bytes already equal to replacement @" << pointer;
+			LogInfo << "Bytes already equal to replacement @" << pointer;
 			return;
 		}
 

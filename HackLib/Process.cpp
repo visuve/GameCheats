@@ -22,7 +22,7 @@ Process::Process(DWORD pid) :
 		throw Win32Exception("OpenProcess");
 	}
 
-	Log << "Process" << pid << "opened";
+	LogInfo << "Process" << pid << "opened";
 }
 
 Process::~Process()
@@ -213,7 +213,7 @@ Pointer Process::AllocateMemory(size_t size)
 
 	MEMORY_BASIC_INFORMATION info = result.first->Query();
 
-	Log << "Allocated" << info.RegionSize << "bytes at" << result.first->Address();
+	LogInfo << "Allocated" << info.RegionSize << "bytes at" << result.first->Address();
 
 	return result.first->Address();
 }
@@ -343,7 +343,7 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 		_targetProcess.FlushInstructionCache(origin, relay.Size());
 	}
 
-	Log << "Injected" << JumpOpSize + nops << "bytes to" << origin;
+	LogInfo << "Injected" << JumpOpSize + nops << "bytes to" << origin;
 	return trampoline;
 }
 
@@ -385,7 +385,7 @@ Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 		_targetProcess.FlushInstructionCache(origin, relay.Size());
 	}
 
-	Log << "Injected" << JumpOpSize + nops << "bytes to" << origin;
+	LogInfo << "Injected" << JumpOpSize + nops << "bytes to" << origin;
 	return trampoline;
 }
 
@@ -405,7 +405,7 @@ std::vector<uint8_t> Process::ReadFunction(void(*function)(void), size_t size)
 {
 	Pointer address(reinterpret_cast<uint8_t*>(function));
 
-	Log << "Reading function @" << address;
+	LogInfo << "Reading function @" << address;
 
 	Win32Process process(PROCESS_VM_READ, GetCurrentProcessId());
 
@@ -419,7 +419,7 @@ std::vector<uint8_t> Process::ReadFunction(void(*function)(void), size_t size)
 	address += jump[1] | (jump[2] << 8) | (jump[3] << 16) | (jump[4] << 24);
 	address += 5; // Size of relative jump
 
-	Log << function << "jumps to" << address;
+	LogDebug << function << "jumps to" << address;
 #endif
 
 	size_t bytesRead = 0;
@@ -488,11 +488,11 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 			if (exitCode != 0)
 			{
 				std::string message = WindowsErrorCategory().message(exitCode);
-				Log << "Process" << _pid << "exited with code" << exitCode << "message:" << message;
+				LogInfo << "Process" << _pid << "exited with code" << exitCode << "message:" << message;
 			}
 			else
 			{
-				Log << "Process" << _pid << "exited with code 0";
+				LogInfo << "Process" << _pid << "exited with code 0";
 			}
 
 			return exitCode;
@@ -503,7 +503,7 @@ DWORD Process::WairForExit(std::chrono::milliseconds timeout)
 		}
 		case WAIT_TIMEOUT:
 		{
-			Log << "Waiting for" << _pid << "timed out" ;
+			LogInfo << "Waiting for" << _pid << "timed out" ;
 			return WAIT_TIMEOUT;
 		}
 		case WAIT_FAILED:
