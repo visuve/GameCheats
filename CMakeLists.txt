@@ -50,6 +50,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	add_subdirectory("Doom2016")
 	add_subdirectory("CrysisR")
 	add_subdirectory("DoomEternal")
+	add_subdirectory("Hitman2018")
 	add_subdirectory("Template")
 endif()
 
