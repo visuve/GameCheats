@@ -6,7 +6,7 @@ InfAmmo PROC
 	; within the binary.
 	mov rax,[1400DDCF4h]
 	cmp r10, rax
-	je ResetRax
+	je Original
 	; If the enemy is firing, 1st value in stack is a pointer.
 	; Otherwise it is the amount of projectiles.
 	pop rax
@@ -15,8 +15,6 @@ InfAmmo PROC
 	mov ebp, 999
 PushRax:
 	push rax
-ResetRax:
-	mov rax, 1
 Original:
 	mov [rcx+r14*4],ebp
 	lea rcx,[rbx-000003F8h]
