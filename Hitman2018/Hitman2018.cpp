@@ -7,7 +7,9 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	const CmdArgs args(givenArguments,
 	{
 		{ "infammo", typeid(std::nullopt), "Increasing ammunition" },
-		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" }
+		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" },
+		{ "fastfire", typeid(std::nullopt), "Semi automatic guns can fire faster. NOTE: will break automatic weapons." },
+		{ "lowrecoil", typeid(std::nullopt), "Low recoil" }
 	});
 
 	DWORD pid = System::WaitForWindow(L"HITMAN 2");
@@ -28,7 +30,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	{
 		auto bytes = Process::ReadFunction(InfAmmo);
 
-		process.InjectX64(0x1531F1, 4, bytes);
+		process.InjectX64(0x1262A2, 2, bytes);
 	}
 
 	if (args.Contains("crosshair"))
@@ -37,6 +39,24 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 			ByteStream("F3 44 0F 11 83 0C 08 00 00"), // movss [rbx+0000080C],xmm8
 			ByteStream("F3 44 0F 11 8B 0C 08 00 00"));  // movss [rbx+0000080C],xmm9
 
+		// This seems to work also
+		//	process.ChangeBytes(0x11ABA7,
+		//		ByteStream("F3 44 0F 11 83 0C 08 00 00 F3 0F 58 C6"), // mulss xmm0,[rdi+000003F4]
+		//		ByteStream("F3 41 0F 59 C7 90 90 90 90 90 90 90 90")); // mulss xmm0,xmm15
+	}
+
+	if (args.Contains("fastfire"))
+	{
+		process.ChangeBytes(0x12626D,
+			ByteStream("FF 83 F0 07 00 00"), // inc [rbx+000007F0]
+			ByteStream("90 90 90 90 90 90"));  // nop
+	}
+
+	if (args.Contains("lowrecoil"))
+	{
+		process.ChangeBytes(0x1262EA,
+			ByteStream("74 3C"),  // je 3C
+			ByteStream("75 3C")); // jne 3C
 	}
 
 	process.WairForExit();
