@@ -8,7 +8,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	{
 		{ "infammo", typeid(std::nullopt), "Increasing ammunition" },
 		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" },
-		{ "fastfire", typeid(std::nullopt), "Semi automatic guns can fire faster. NOTE: will break automatic weapons." },
+		{ "fastfire", typeid(std::nullopt), "Semi automatic guns can fire faster." },
 		{ "lowrecoil", typeid(std::nullopt), "Low recoil" }
 	});
 
@@ -49,7 +49,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	{
 		process.ChangeBytes(0x12626D,
 			ByteStream("FF 83 F0 07 00 00"), // inc [rbx+000007F0]
-			ByteStream("90 90 90 90 90 90"));  // nop
+			ByteStream("FF 8B F0 07 00 00"));  // dec [rbx+000007F0]
 	}
 
 	if (args.Contains("lowrecoil"))
