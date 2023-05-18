@@ -8,8 +8,10 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	{
 		{ "infammo", typeid(std::nullopt), "Increasing ammunition" },
 		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" },
-		{ "fastfire", typeid(std::nullopt), "Semi automatic guns can fire faster." },
-		{ "lowrecoil", typeid(std::nullopt), "Low recoil" }
+		{ "fastfire", typeid(std::nullopt), "Semi-automatic guns can fire faster" },
+		{ "lowrecoil", typeid(std::nullopt), "Low recoil" },
+		{ "stealth", typeid(std::nullopt), "AI does not notice you walking around" },
+		{ "retard", typeid(std::nullopt), "AI becomes retarded" }
 	});
 
 	DWORD pid = System::WaitForWindow(L"HITMAN 2");
@@ -57,6 +59,20 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		process.ChangeBytes(0x1262EA,
 			ByteStream("74 3C"),  // je 3C
 			ByteStream("75 3C")); // jne 3C
+	}
+
+	if (args.Contains("stealth"))
+	{
+		process.ChangeBytes(0x4E4C26,
+			ByteStream("E8 15 4C E1 FF"),  // call 1402F9840
+			ByteStream("90 90 90 90 90")); // nop
+	}
+
+	if (args.Contains("retard"))
+	{
+		process.ChangeBytes(0xC8A6,
+			ByteStream("E8 45 CC 00 00"),  // call 1403394F0
+			ByteStream("90 90 90 90 90")); // nop
 	}
 
 	process.WairForExit();
