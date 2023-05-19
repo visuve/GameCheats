@@ -2,7 +2,7 @@
 
 - This repository contains runtime applicable (mostly) cheats for various video games
 - Some of them might be flaky and crash your game
-- The goal of this repository is mainly to learn x86 and x64 assembly even though most of it is written directly in machine code
+- The goal of this repository is to fool around and learn x86 and x64 assembly
 
 <div align="center">
 	<img src="Screenshot.jpg" alt="Hitman (2016) with some cheats applied">
@@ -11,7 +11,8 @@
 
 ## Releases
 
-- Check [Actions/Artifacts](https://api.github.com/repos/visuve/GameCheats/actions/artifacts)
+- Check [releases](https://github.com/visuve/GameCheats/releasess) for automatic CI builds
+	- The binaries are collected from [actions/artifacts](https://api.github.com/repos/visuve/GameCheats/actions/artifacts), i.e. not built on my machine
 
 ## Building
 
