@@ -70,7 +70,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 	if (args.Contains("retard"))
 	{
-		process.ChangeBytes(0xC8A6,
+		process.ChangeBytes(0x32C8A6,
 			ByteStream("E8 45 CC 00 00"),  // call 1403394F0
 			ByteStream("90 90 90 90 90")); // nop
 	}

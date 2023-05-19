@@ -10,7 +10,7 @@ InfAmmo PROC
 
 	cmp r13, 0
 	je IsEnemy
-	mov rdx, 9999
+	mov rdx, 9001
 	; mov [rcx+358], rdx ; for debugging
 IsEnemy:
 	nop
