@@ -34,7 +34,7 @@ public:
 	};
 
 	Logger(std::ostream& stream, const std::source_location& location, Color color);
-	~Logger();
+	virtual ~Logger();
 
 	NonCopyable(Logger);
 
@@ -183,25 +183,21 @@ private:
 	const bool _isConsoleOutput;
 };
 
-#ifdef _DEBUG
-class ScopeLogger
+class DurationLogger : private Logger
 {
 public:
-	ScopeLogger(const std::source_location& location);
-	~ScopeLogger();
+	DurationLogger(std::ostream& stream, const std::source_location& location, const std::string& message);
+	~DurationLogger();
 
 private:
-	std::source_location _sourceLocation;
+	std::string _message;
 	std::chrono::high_resolution_clock::time_point _start;
 };
 
-#define JoinNoExpand(A, B) A ## B
-#define JoinExpand(A, B) JoinNoExpand(A, B)
-
+#ifdef _DEBUG
 #define LogDebug Logger(std::cout, std::source_location::current(), Logger::Color::DarkGray)
 #define LogVariable(x) LogDebug.Plain(#x, x)
 #define LogVariableHex(x) LogDebug.Hex(#x, x)
-#define LogScope ScopeLogger JoinExpand(logger, __LINE__)(std::source_location::current())
 #else
 struct PseudoLogger
 {
@@ -214,10 +210,13 @@ struct PseudoLogger
 #define LogDebug PseudoLogger()
 #define LogVariable(x)
 #define LogVariableHex(x)
-#define LogScope PseudoLogger()
 #endif
+
+#define JoinNoExpand(A, B) A ## B
+#define JoinExpand(A, B) JoinNoExpand(A, B)
 
 #define LogInfo Logger(std::cout, std::source_location::current(), Logger::Color::LightGreen)
 #define LogWarning Logger(std::cout, std::source_location::current(), Logger::Color::Yellow)
 #define LogError Logger(std::cerr, std::source_location::current(), Logger::Color::Red)
 #define LogColored(c) Logger(std::cout, std::source_location::current(), c)
+#define LogDuration(message) DurationLogger JoinExpand(logger, __LINE__)(std::cout, std::source_location::current(), message)

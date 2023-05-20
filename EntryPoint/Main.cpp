@@ -59,6 +59,7 @@ int main(int argc, char** argv)
 			throw Win32Exception("SetConsoleCtrlHandler");
 		}
 
+		LogDuration("Hacklib ran for");
 		exitCode = IWillNotUseHackLibForEvil({ argv, argv + argc });
 		System::BeepDown();
 	}

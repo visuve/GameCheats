@@ -93,7 +93,7 @@ SHA256::SHA256()
 
 void SHA256::ProcessFile(Win32File& file)
 {
-	auto before = std::chrono::high_resolution_clock::now();
+	LogDuration("Processed in");
 
 	std::vector<uint8_t> buffer(0x100000);
 
@@ -137,10 +137,6 @@ void SHA256::ProcessFile(Win32File& file)
 	}
 
 	Finish();
-
-	auto after = std::chrono::high_resolution_clock::now();
-
-	LogInfo << "Verifying took" << std::chrono::duration_cast<std::chrono::milliseconds>(after - before);
 
 	file.SetPosition(originalPosition);
 }

@@ -50,40 +50,16 @@ std::string Logger::Prefix(const std::source_location& location)
 	return std::format("[{:%T}][{}:{}]", currentTime, fileName, location.line());
 }
 
-#ifdef _DEBUG
-ScopeLogger::ScopeLogger(const std::source_location& location) :
-	_sourceLocation(location)
+DurationLogger::DurationLogger(std::ostream& stream, const std::source_location& location, const std::string& message) :
+	Logger(stream, location, Logger::Color::Magenta),
+	_start(std::chrono::high_resolution_clock::now())
 {
-	if (std::cout)
-	{
-		LogMutex.lock();
-
-		std::cout << Logger::Background(Logger::Color::Black)
-			<< Logger::Foreground(Logger::Color::Magenta)
-			<< Logger::Prefix(_sourceLocation)
-			<< " Enter\n";
-
-		LogMutex.unlock();
-
-		_start = std::chrono::high_resolution_clock::now();
-	}
+	*this << message;
 }
 
-ScopeLogger::~ScopeLogger()
+DurationLogger::~DurationLogger()
 {
-	if (std::cout)
-	{
-		auto stop = std::chrono::high_resolution_clock::now();
-		auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(stop - _start);
-
-		LogMutex.lock();
-
-		std::cout << Logger::Background(Logger::Color::Black)
-			<< Logger::Foreground(Logger::Color::Magenta)
-			<< Logger::Prefix(_sourceLocation)
-			<< " Exit (~" << diff << ")\n";
-
-		LogMutex.unlock();
-	}
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto delta = stop - _start;
+	*this << std::format("{:%T}", delta);
 }
-#endif
