@@ -30,26 +30,34 @@ public:
 	size_t ReadAt(void* buffer, size_t size, size_t offset);
 
 	template<std::semiregular T, size_t N = sizeof(T)>
+	void Read(T* result)
+	{
+		[[maybe_unused]]
+		size_t bytesRead = Read(result, N);
+		_ASSERT(bytesRead == N);
+	}
+
+	template<std::semiregular T, size_t N = sizeof(T)>
 	T Read()
 	{
 		T result = {};
-
-		[[maybe_unused]]
-		size_t bytesRead = Read(&result, N);
-
-		_ASSERT(bytesRead == N);
+		Read(&result);
 		return result;
+	}
+
+	template<std::semiregular T, size_t N = sizeof(T)>
+	void ReadAt(T* result, size_t offset)
+	{
+		[[maybe_unused]]
+		size_t bytesRead = ReadAt(result, N, offset);
+		_ASSERT(bytesRead == N);
 	}
 
 	template<std::semiregular T, size_t N = sizeof(T)>
 	T ReadAt(size_t offset)
 	{
 		T result = {};
-
-		[[maybe_unused]]
-		size_t bytesRead = ReadAt(&result, N, offset);
-
-		_ASSERT(bytesRead == N);
+		ReadAt(&result, offset);
 		return result;
 	}
 
