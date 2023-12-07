@@ -205,16 +205,15 @@ private:
 	} _internal;
 };
 
-inline std::ostream& operator << (std::ostream& os, const Pointer& p)
-{
-	return os << std::format("{0}", p);
-}
-
 template <>
-struct std::formatter<Pointer> : std::formatter<std::string>
+struct std::formatter<Pointer>
 {
-	template <typename FormatContext>
-	inline auto format(const Pointer& p, FormatContext& ctx)
+	constexpr auto parse(std::format_parse_context& ctx)
+	{
+		return ctx.begin();
+	}
+
+	auto format(const Pointer& p, std::format_context& ctx) const
 	{
 #ifdef _WIN64
 		return std::format_to(ctx.out(), "0x{:016X}", p._internal.Value);
@@ -223,3 +222,8 @@ struct std::formatter<Pointer> : std::formatter<std::string>
 #endif
 	}
 };
+
+inline std::ostream& operator << (std::ostream& os, const Pointer& p)
+{
+	return os << std::format("{0}", p);
+}
