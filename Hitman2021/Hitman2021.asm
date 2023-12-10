@@ -1,8 +1,8 @@
 .CODE
 
 InfAmmo PROC
-	cmp r9d, r8d
-	jg IsEnemy
+	cmp bx, 5200h
+	je IsEnemy
 	mov eax, 1000
 	ret
 IsEnemy:
