@@ -6,7 +6,8 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	const CmdArgs args(givenArguments,
 	{
-		{ "infammo", typeid(std::nullopt), "Infinite ammunition" }
+		{ "infammo", typeid(std::nullopt), "Infinite ammunition" },
+		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" }
 	});
 
 	DWORD pid = System::WaitForWindow(L"HITMAN 3");
@@ -27,7 +28,13 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	{
 		auto bytes = Process::ReadFunction(InfAmmo);
 		process.WriteBytes(0x3EEA6D, bytes);
+	}
 
+	if (args.Contains("crosshair"))
+	{
+		process.ChangeBytes(0x3F1F1B,
+			ByteStream("F3 44 0F 11 87 6C 08 00 00"),
+			ByteStream("45 0F 57 C0 90 90 90 90 90"));
 	}
 
 	return 0;

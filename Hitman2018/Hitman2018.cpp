@@ -6,7 +6,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	const CmdArgs args(givenArguments,
 	{
-		{ "infammo", typeid(std::nullopt), "Increasing ammunition" },
+		{ "infammo", typeid(std::nullopt), "Infinite ammunition" },
 		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" },
 		{ "fastfire", typeid(std::nullopt), "Semi-automatic guns can fire faster" },
 		{ "lowrecoil", typeid(std::nullopt), "Low recoil" },
