@@ -9,7 +9,8 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		{ "infammo", typeid(std::nullopt), "Infinite ammunition" },
 		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" },
 		{ "fastfire", typeid(std::nullopt), "Semi-automatic guns can fire faster" },
-		{ "lowrecoil", typeid(std::nullopt), "Low recoil after a few shots" }
+		{ "lowrecoil", typeid(std::nullopt), "Low recoil after a few shots" },
+		{ "godmode", typeid(std::nullopt), "Become invulnerable" }
 	});
 
 	DWORD pid = System::WaitForWindow(L"HITMAN 3");
@@ -51,6 +52,13 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		process.ChangeBytes(0x3F2236,
 			ByteStream("74 70"),  // je 70
 			ByteStream("75 70")); // jne 70
+	}
+
+	if (args.Contains("godmode"))
+	{
+		process.ChangeBytes(0x349D17,
+			ByteStream("E8 54 C1 3B 00"),
+			ByteStream("B8 00 00 00 00"));
 	}
 
 	return 0;
