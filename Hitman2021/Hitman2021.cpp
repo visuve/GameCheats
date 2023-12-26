@@ -10,7 +10,8 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" },
 		{ "fastfire", typeid(std::nullopt), "Semi-automatic guns can fire faster" },
 		{ "lowrecoil", typeid(std::nullopt), "Low recoil after a few shots" },
-		{ "godmode", typeid(std::nullopt), "Become invulnerable" }
+		{ "godmode", typeid(std::nullopt), "Become invulnerable" },
+		{ "onehitkill", typeid(std::nullopt), "One shot kills an NPC" }
 	});
 
 	DWORD pid = System::WaitForWindow(L"HITMAN 3");
@@ -59,6 +60,13 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		process.ChangeBytes(0x349D17,
 			ByteStream("E8 54 C1 3B 00"),
 			ByteStream("B8 00 00 00 00"));
+	}
+
+	if (args.Contains("onehitkill"))
+	{
+		process.ChangeBytes(0xD7155,
+			ByteStream("F3 0F 58 8A 18 10 00 00"),
+			ByteStream("F3 0F 58 0D 73 EE EE 01"));
 	}
 
 	return 0;
