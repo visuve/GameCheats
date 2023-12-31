@@ -1,8 +1,8 @@
 # GameCheats
 
 - This repository contains runtime applicable (mostly) cheats for various video games
-- Some of them might be flaky and crash your game
-- The goal of this repository is to fool around and learn x86 and x64 assembly
+	- Some of them might be flaky and crash your game - use at your own risk!
+- The goal of this repository is mostly to fool around and learn x86 and x64 assembly
 
 <div align="center">
 	<img src="Screenshot.jpg" alt="Hitman (2016) with some cheats applied">
