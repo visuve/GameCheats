@@ -56,30 +56,49 @@ const char* CmdArgs::Exception::what() const throw ()
 }
 
 CmdArgs::CmdArgs(const std::vector<std::string>& given, std::initializer_list<Argument> expected) :
-	_arguments(given),
+	_givenArguments(given),
 	_expected(expected)
 {
 	std::stringstream usage;
 
-	usage << std::filesystem::path(_arguments[0]).stem().string();
-	usage << " - usage:\n\n " << _arguments[0] << std::endl;
+	usage << std::filesystem::path(_givenArguments[0]).stem().string();
+	usage << " - usage:\n\n " << _givenArguments[0] << std::endl;
 
 	for (const Argument& argument : _expected)
 	{
 		usage << "  " << argument << std::endl;
 	}
 
-	_usage = usage.str();
+	size_t valid = 0;
+	size_t invalid = 0;
 
-	for (const Argument& argument : _expected)
+	// Intentionally skip the first
+	for (size_t i = 1; i < _givenArguments.size(); ++i)
 	{
-		if (Contains(argument.Key))
+		if (AppearsValid(_givenArguments[i]))
 		{
-			return;
+			++valid;
+		}
+		else
+		{
+			usage << "\n  Argument \"" << _givenArguments[i] 
+				<< "\" is unknown and was not processed." << std::endl;
+
+			++invalid;
 		}
 	}
 
-	throw CmdArgs::Exception("Missing arguments", _usage);
+	_usage = usage.str();
+
+	if (invalid > 0)
+	{
+		throw CmdArgs::Exception("Invalid arguments", _usage);
+	}
+
+	if (valid == 0)
+	{
+		throw CmdArgs::Exception("Missing arguments", _usage);
+	}
 }
 
 CmdArgs::CmdArgs(int argc, char** argv, std::initializer_list<Argument> expected) :
@@ -94,12 +113,27 @@ bool CmdArgs::Contains(std::string_view key) const
 		return argument == key || argument.starts_with(std::format("{0}=", key));
 	};
 
-	return std::any_of(_arguments.cbegin(), _arguments.cend(), equals);
+	return std::any_of(_givenArguments.cbegin(), _givenArguments.cend(), equals);
 }
 
 std::string CmdArgs::Usage() const
 {
 	return _usage;
+}
+
+bool CmdArgs::AppearsValid(std::string_view raw) const
+{
+	const auto valid = [&](const Argument& argument)
+	{
+		if (argument.Type == typeid(std::nullopt))
+		{
+			return raw == argument.Key;
+		}
+
+		return raw.starts_with(std::format("{0}=", argument.Key));
+	};
+
+	return std::any_of(_expected.cbegin(), _expected.cend(), valid);
 }
 
 std::type_index CmdArgs::TypeByKey(std::string_view key) const
@@ -135,7 +169,7 @@ std::any CmdArgs::ValueByKey(std::string_view key) const
 
 	std::string value;
 
-	for (std::string_view providedArgument : _arguments)
+	for (std::string_view providedArgument : _givenArguments)
 	{
 		if (!providedArgument.starts_with(key))
 		{

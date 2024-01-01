@@ -46,10 +46,11 @@ public:
 	std::string Usage() const;
 
 private:
+	bool AppearsValid(std::string_view raw) const;
 	std::type_index TypeByKey(std::string_view key) const;
 	std::any ValueByKey(std::string_view key) const;
 
 	std::string _usage;
 	const std::vector<Argument> _expected;
-	const std::vector<std::string> _arguments;
+	const std::vector<std::string> _givenArguments;
 };

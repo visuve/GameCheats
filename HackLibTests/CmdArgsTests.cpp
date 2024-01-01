@@ -127,14 +127,14 @@ TEST(CmdArgsTests, InvalidFormat)
 	const std::vector<std::string> given =
 	{
 		"alpha-",
-		"bravo==nonexistent/path",
+		"bravo==nonexistent/path", // this is actually okay
 		"charlie:3.14159265359",
 		"delta#3.14159265359",
 		"echo@3.14159265359",
 		"foxtrot foobar"
 	};
 
-	const CmdArgs args(given,
+	EXPECT_THROW(CmdArgs args(given,
 	{
 		{ "alpha", typeid(std::nullopt), "Null option" },
 		{ "bravo", typeid(std::filesystem::path), "A path" },
@@ -142,16 +142,21 @@ TEST(CmdArgsTests, InvalidFormat)
 		{ "delta", typeid(float), "A float value" },
 		{ "echo", typeid(int), "An integer value" },
 		{ "foxtrot", typeid(std::string), "A string value" }
-	});
+	}), CmdArgs::Exception);
+}
 
-	EXPECT_THROW(args.Value<bool>("alpha"), CmdArgs::Exception);
+TEST(CmdArgsTests, UnknownArgument)
+{
+	const std::vector<std::string> given =
+	{
+		"foobar.exe", // mimic real life
+		"alpha",
+		"bravo"
+	};
 
-	// I need one "valid" argument for the CmdArgs ctor not to throw
-	auto path = args.Value<std::filesystem::path>("bravo");
-	EXPECT_STREQ(path.c_str(), L"=nonexistent/path");
-
-	EXPECT_THROW(args.Value<double>("charlie"), CmdArgs::Exception);
-	EXPECT_THROW(args.Value<float>("delta"), CmdArgs::Exception);
-	EXPECT_THROW(args.Value<int>("echo"), CmdArgs::Exception);
-	EXPECT_THROW(args.Value<std::string>("foxtrot"), CmdArgs::Exception);
+	// Bravo is an unknown argument
+	EXPECT_THROW(CmdArgs(given,
+	{ 
+		{ "alpha", typeid(std::nullopt), "Null option" }
+	}), CmdArgs::Exception);
 }
