@@ -1,8 +1,11 @@
-#include "CmdArgs.hpp"
+#include "CommandLine.hpp"
+#include "System.hpp"
 
-TEST(CmdArgsTests, ContainsSimple)
+const auto CurrentExe = System::CurrentExecutablePath().string();
+
+TEST(CommandLineTests, ContainsSimple)
 {
-	const CmdArgs args({ "foo", "bar" },
+	const CommandLine args({ CurrentExe, "foo", "bar" },
 	{
 		{ "foo", typeid(std::nullopt), "Foos, not bars" },
 		{ "bar", typeid(std::nullopt), "Bars, not foos" }
@@ -13,29 +16,29 @@ TEST(CmdArgsTests, ContainsSimple)
 	EXPECT_FALSE(args.Contains("foobar"));
 }
 
-TEST(CmdArgsTests, Missing)
+TEST(CommandLineTests, Missing)
 {
-	EXPECT_THROW(CmdArgs({ "foobar", "barfoo" },
+	EXPECT_THROW(CommandLine({ CurrentExe, "foobar", "barfoo" },
 	{
 		{ "foo", typeid(std::nullopt), "Foos, not bars. Definetely not foobars" },
 		{ "bar", typeid(std::nullopt), "Bars, not foos. Definetely not barfoos" }
-	}), CmdArgs::Exception);
+	}), CommandLine::Exception);
 
-	const CmdArgs args({ "alpha", "bravo" },
+	const CommandLine args({ CurrentExe, "alpha", "bravo" },
 	{
 		{ "alpha", typeid(std::nullopt), "A" },
 		{ "bravo", typeid(std::nullopt), "B" }
 	});
 
-	EXPECT_THROW(args.Value<bool>("charlie"), CmdArgs::Exception);
-	EXPECT_THROW(args.Value<int>("charlie"), CmdArgs::Exception);
+	EXPECT_THROW(args.Value<bool>("charlie"), CommandLine::Exception);
+	EXPECT_THROW(args.Value<int>("charlie"), CommandLine::Exception);
 
 	EXPECT_TRUE(args.Value<bool>("charlie", true));
 }
 
-TEST(CmdArgsTests, ContainsValuedArgument)
+TEST(CommandLineTests, ContainsValuedArgument)
 {
-	const CmdArgs args({ "foo=123", "bar=456" },
+	const CommandLine args({ CurrentExe, "foo=123", "bar=456" },
 	{
 		{ "foo", typeid(int), "Foos, not bars" },
 		{ "bar", typeid(int), "Bars, not foos" }
@@ -46,9 +49,9 @@ TEST(CmdArgsTests, ContainsValuedArgument)
 	EXPECT_FALSE(args.Contains("foobar"));
 }
 
-TEST(CmdArgsTests, Default)
+TEST(CommandLineTests, BasicGetters)
 {
-	const CmdArgs args({ "foo=123", "bar=456" },
+	const CommandLine args({ CurrentExe, "foo=123", "bar=456" },
 	{
 		{ "foo", typeid(int), "Foos, not bars" },
 		{ "bar", typeid(int), "Bars, not foos" }
@@ -61,10 +64,11 @@ TEST(CmdArgsTests, Default)
 	EXPECT_EQ(args.Value<int>("foobar", 789), 789);
 }
 
-TEST(CmdArgsTests, ParseArgument)
+TEST(CommandLineTests, ParseArgument)
 {
 	const std::vector<std::string> given =
 	{
+		CurrentExe,
 		"alpha",
 		"bravo=nonexistent/path",
 		"charlie=3.14159265359",
@@ -73,7 +77,7 @@ TEST(CmdArgsTests, ParseArgument)
 		"foxtrot=foobar"
 	};
 
-	const CmdArgs args(given,
+	const CommandLine args(given,
 	{
 		{ "alpha", typeid(std::nullopt), "Null option" },
 		{ "bravo", typeid(std::filesystem::path), "A path" },
@@ -102,10 +106,11 @@ TEST(CmdArgsTests, ParseArgument)
 	EXPECT_STREQ(string.c_str(), "foobar");
 }
 
-TEST(CmdArgsTests, InvalidType)
+TEST(CommandLineTests, InvalidType)
 {
 	const std::vector<std::string> given =
 	{
+		CurrentExe,
 		"alpha",
 		"bravo=nonexistent/path",
 		"charlie=3.14159265359",
@@ -114,7 +119,7 @@ TEST(CmdArgsTests, InvalidType)
 		"foxtrot=foobar"
 	};
 
-	const CmdArgs args(given,
+	const CommandLine args(given,
 	{
 		{ "alpha", typeid(std::nullopt), "Null option" },
 		{ "bravo", typeid(std::filesystem::path), "A path" },
@@ -133,10 +138,11 @@ TEST(CmdArgsTests, InvalidType)
 	EXPECT_THROW(args.Value<std::wstring>("foxtrot"), std::bad_any_cast);
 }
 
-TEST(CmdArgsTests, InvalidFormat)
+TEST(CommandLineTests, InvalidFormat)
 {
 	const std::vector<std::string> given =
 	{
+		CurrentExe,
 		"alpha-",
 		"bravo==nonexistent/path", // this is actually okay
 		"charlie:3.14159265359",
@@ -145,7 +151,7 @@ TEST(CmdArgsTests, InvalidFormat)
 		"foxtrot foobar"
 	};
 
-	EXPECT_THROW(CmdArgs args(given,
+	EXPECT_THROW(CommandLine args(given,
 	{
 		{ "alpha", typeid(std::nullopt), "Null option" },
 		{ "bravo", typeid(std::filesystem::path), "A path" },
@@ -153,21 +159,21 @@ TEST(CmdArgsTests, InvalidFormat)
 		{ "delta", typeid(float), "A float value" },
 		{ "echo", typeid(int), "An integer value" },
 		{ "foxtrot", typeid(std::string), "A string value" }
-	}), CmdArgs::Exception);
+	}), CommandLine::Exception);
 }
 
-TEST(CmdArgsTests, UnknownArgument)
+TEST(CommandLineTests, UnknownArgument)
 {
 	const std::vector<std::string> given =
 	{
-		"foobar.exe", // mimic real life
+		CurrentExe,
 		"alpha",
 		"bravo"
 	};
 
 	// Bravo is an unknown argument
-	EXPECT_THROW(CmdArgs(given,
+	EXPECT_THROW(CommandLine(given,
 	{ 
 		{ "alpha", typeid(std::nullopt), "Null option" }
-	}), CmdArgs::Exception);
+	}), CommandLine::Exception);
 }

@@ -1,4 +1,4 @@
-#include "CmdArgs.hpp"
+#include "CommandLine.hpp"
 #include "System.hpp"
 #include "Logger.hpp"
 #include "Win32Event.hpp"
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 		exitCode = IWillNotUseHackLibForEvil({ argv, argv + argc });
 		System::BeepDown();
 	}
-	catch (const CmdArgs::Exception& e)
+	catch (const CommandLine::Exception& e)
 	{
 		LogError << e.what() << "\n";
 		std::cerr << e.Usage();

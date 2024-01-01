@@ -2,7 +2,7 @@
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "infammo", typeid(std::nullopt), "Ammunition is never reduced" }
 	});

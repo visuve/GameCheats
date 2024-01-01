@@ -11,7 +11,7 @@
 */
 
 template<typename T>
-void Cheat(const CmdArgs& args, std::string_view key, const Process& process, size_t offset)
+void Cheat(const CommandLine& args, std::string_view key, const Process& process, size_t offset)
 {
 	T wanted = args.Value<T>(key);
 
@@ -28,7 +28,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	int exitCode = 0;
 
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "i_unlimitedammo", typeid(int32_t), "Unlimited ammo" },
 		{ "g_suitRecoilEnergyCost", typeid(float), "Recoil energy cost" },

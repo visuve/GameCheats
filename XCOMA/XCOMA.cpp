@@ -82,7 +82,7 @@ std::fstream FindName(std::filesystem::path path, const std::string& name)
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "infmoney", typeid(std::nullopt), "Infinite money (DOSBox only). Exclusive to other parameters.\n"
 			"\t\t\tWarning, very hacky! Make sure you do not have other DOSBox instances running!" },
@@ -121,7 +121,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 	if (!args.Contains("name") || !args.Contains("path"))
 	{
-		throw CmdArgs::Exception("All patches require a path and a name to be given", args.Usage());
+		throw CommandLine::Exception("All patches require a path and a name to be given", args.Usage());
 	}
 
 	std::streamoff offset;
@@ -144,7 +144,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	}
 	else
 	{
-		throw CmdArgs::Exception("Cannot know what do you want to patch", args.Usage());
+		throw CommandLine::Exception("Cannot know what do you want to patch", args.Usage());
 	}
 
 	const std::filesystem::path path = args.Value<std::filesystem::path>("path");

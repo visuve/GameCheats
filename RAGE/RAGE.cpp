@@ -4,7 +4,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	int exitCode = 0;
 
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "infammo", typeid(std::nullopt), "Infinite ammo" },
 		{ "crosshair", typeid(std::nullopt), "The crosshair never grows" },

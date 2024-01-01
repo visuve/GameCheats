@@ -5,7 +5,7 @@ constexpr char PatchedChecksum[] = "52d325e3fbf0f468062090b9d594457e3fe0eb80827d
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "patch", typeid(std::filesystem::path), "Remove XR_3DA.exe administrator requirement" },
 		{ "infammo", typeid(std::nullopt), "Infinite ammunition" },

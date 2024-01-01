@@ -189,7 +189,7 @@ namespace R6BO
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "path", typeid(std::filesystem::path), "Path to the installation directory. Needed for option \"persistent\"." },
 		{ "persistent", typeid(std::nullopt), "Overrides maximum terrorists related values in mission files"

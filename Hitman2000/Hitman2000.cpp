@@ -9,7 +9,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	DWORD exitCode = 0;
 
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "infammo", typeid(std::nullopt), "Never decreasing ammunition" },
 		{ "infarmor", typeid(std::nullopt), "Never decreasing armor" },

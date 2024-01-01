@@ -2,7 +2,7 @@
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "infstealth", typeid(std::nullopt), "Infinite stealth" },
 		{ "infhealth", typeid(std::nullopt), "Infinite health" },

@@ -4,7 +4,7 @@ extern "C" void InfAmmo();
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "infammo", typeid(std::nullopt), "Infinite ammunition" },
 		{ "crosshair", typeid(std::nullopt), "The crosshair does not spread when shooting" },

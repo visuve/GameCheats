@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ByteStream.hpp"
-#include "CmdArgs.hpp"
+#include "CommandLine.hpp"
 #include "Exceptions.hpp"
 #include "FsOps.hpp"
 #include "Logger.hpp"

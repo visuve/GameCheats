@@ -38,7 +38,7 @@ std::ostream& operator << (std::ostream& os, const Resources& r)
 
 int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "addresources", typeid(std::nullopt), "Adds 48879 to each resource" },
 	});

@@ -10,7 +10,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	int exitCode = 0;
 
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "infammo", typeid(std::nullopt), "Infinite ammo" },
 		{ "freeupgrades", typeid(std::nullopt), "Free weapon & gear upgrades. Note: do not use before third level (Cultist Base)..." },

@@ -6,7 +6,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	int exitCode = 0;
 
-	const CmdArgs args(givenArguments,
+	const CommandLine args(givenArguments,
 	{
 		{ "calculator", typeid(std::nullopt), "Just an example" }
 	});

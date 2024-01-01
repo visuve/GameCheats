@@ -1,4 +1,4 @@
-#include "CmdArgs.hpp"
+#include "CommandLine.hpp"
 #include "Logger.hpp"
 #include "SourceFileGenerator.hpp"
 
@@ -74,15 +74,15 @@ int main(int argc, char** argv)
 {
 	int exitCode = 0;
 
-	const CmdArgs args(argc, argv,
-	{
-		{ "library", typeid(std::filesystem::path), "The DLL to replicate" },
-		{ "executable", typeid(std::filesystem::path), "[Optional] The EXE to use as a filter for proxied functions" },
-		{ "output", typeid(std::filesystem::path), "The output directory for the generated files" },
-	});
-
 	try
 	{
+		const CommandLine args(argc, argv,
+		{
+			{ "library", typeid(std::filesystem::path), "The DLL to replicate" },
+			{ "executable", typeid(std::filesystem::path), "[Optional] The EXE to use as a filter for proxied functions" },
+			{ "output", typeid(std::filesystem::path), "The output directory for the generated files" },
+		});
+
 		const std::filesystem::path library = args.Value<std::filesystem::path>("library");
 		const std::filesystem::path executable = args.Value<std::filesystem::path>("executable", "");
 		const std::filesystem::path output = args.Value<std::filesystem::path>("output");
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 
 		LogInfo << "Please compile the project file in" << output;
 	}
-	catch (const CmdArgs::Exception& e)
+	catch (const CommandLine::Exception& e)
 	{
 		LogError << e.what() << "\n";
 		std::cerr << e.Usage();
