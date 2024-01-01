@@ -1,6 +1,24 @@
 #include "CommandLine.hpp"
 #include "Exceptions.hpp"
 
+CommandLine::Exception::Exception(
+	const std::string& what,
+	const std::string& usage) :
+	_usage(usage),
+	_what("Error: " + what)
+{
+}
+
+std::string_view CommandLine::Exception::Usage() const
+{
+	return _usage;
+}
+
+const char* CommandLine::Exception::what() const throw ()
+{
+	return _what.c_str();
+}
+
 std::ostream& operator << (std::ostream& stream, const CommandLine::Argument& argument)
 {
 	stream << std::left << std::setw(20);
@@ -37,24 +55,6 @@ std::ostream& operator << (std::ostream& stream, const CommandLine::Argument& ar
 	return stream << argument.Description;
 }
 
-CommandLine::Exception::Exception(
-	const std::string& what,
-	const std::string& usage) :
-	_usage(usage),
-	_what("Error: " + what)
-{
-}
-
-std::string_view CommandLine::Exception::Usage() const
-{
-	return _usage;
-}
-
-const char* CommandLine::Exception::what() const throw ()
-{
-	return _what.c_str();
-}
-
 CommandLine::Argument::Argument(const std::string& key, const std::type_index type, const std::string& description) :
 	Key(key),
 	Type(type),
@@ -66,6 +66,7 @@ bool CommandLine::Argument::Parse(std::string_view value)
 {
 	if (!value.starts_with(Key))
 	{
+		// This odd case should never occurr
 		return false;
 	}
 
@@ -77,7 +78,6 @@ bool CommandLine::Argument::Parse(std::string_view value)
 			return true;
 		}
 
-		// This odd case should never occurr
 		return false;
 	}
 
@@ -137,9 +137,9 @@ CommandLine::CommandLine(const std::vector<std::string>& given, std::initializer
 	// Intentionally skip the first
 	for (size_t i = 1; i < given.size(); ++i)
 	{
-		std::string kvCombo = given[i];
+		const std::string kvCombo = given[i];
 
-		auto startsWith = [&](const Argument& e)
+		const auto startsWith = [&](const Argument& e)
 		{
 			return kvCombo.starts_with(e.Key);
 		};
@@ -155,17 +155,16 @@ CommandLine::CommandLine(const std::vector<std::string>& given, std::initializer
 			continue;
 		}
 		
-		if (it->Parse(kvCombo))
-		{
-			++valid;
-		}
-		else
+		if (!it->Parse(kvCombo))
 		{
 			usage << "\n  Argument \"" << kvCombo
 				<< "\" could not be parsed." << std::endl;
 
 			++invalid;
+			continue;
 		}
+
+		++valid;
 	}
 
 	_usage = usage.str();
@@ -184,11 +183,6 @@ CommandLine::CommandLine(const std::vector<std::string>& given, std::initializer
 CommandLine::CommandLine(int argc, char** argv, std::initializer_list<Argument> expected) :
 	CommandLine({ argv, argv + argc }, expected)
 {
-}
-
-bool CommandLine::Contains(std::string_view key) const
-{
-	return Get(key) != _arguments.cend();
 }
 
 std::string CommandLine::Usage() const

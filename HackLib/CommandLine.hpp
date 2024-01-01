@@ -10,6 +10,7 @@ public:
 	{
 	public:
 		Exception(const std::string& what, const std::string& usage);
+		NonCopyable(Exception);
 		std::string_view Usage() const;
 		const char* what() const throw ();
 
@@ -35,12 +36,15 @@ public:
 	CommandLine(int argc, char** argv, std::initializer_list<Argument> expected);
 	NonCopyable(CommandLine);
 
-	bool Contains(std::string_view key) const;
+	inline bool Contains(std::string_view key) const
+	{
+		return Get(key) != _arguments.cend();
+	}
 
 	template<typename T>
 	T Value(std::string_view key) const
 	{
-		auto it = Get(key);
+		const auto it = Get(key);
 
 		if (it == _arguments.cend())
 		{
@@ -54,7 +58,7 @@ public:
 	template<typename T>
 	T Value(std::string_view key, const T& defaultValue) const
 	{
-		auto it = Get(key);
+		const auto it = Get(key);
 
 		if (it == _arguments.cend())
 		{
