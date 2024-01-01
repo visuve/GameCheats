@@ -48,7 +48,8 @@ public:
 private:
 	bool AppearsValid(std::string_view raw) const;
 	std::type_index TypeByKey(std::string_view key) const;
-	std::any ValueByKey(std::string_view key) const;
+	std::any Parse(std::type_index type, const std::string& value) const;
+	std::any ValueByKey(std::string_view key) const; 
 
 	std::string _usage;
 	const std::vector<Argument> _expected;

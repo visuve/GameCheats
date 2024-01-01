@@ -153,42 +153,8 @@ std::type_index CmdArgs::TypeByKey(std::string_view key) const
 	return expectedArgument->Type;
 }
 
-std::any CmdArgs::ValueByKey(std::string_view key) const
+std::any CmdArgs::Parse(std::type_index type, const std::string& value) const
 {
-	std::type_index type = TypeByKey(key);
-
-	if (type == typeid(std::nullopt))
-	{
-		if (!Contains(key))
-		{
-			throw CmdArgs::Exception("Missing value requested", _usage);
-		}
-
-		return true;
-	}
-
-	std::string value;
-
-	for (std::string_view providedArgument : _givenArguments)
-	{
-		if (!providedArgument.starts_with(key))
-		{
-			continue;
-		}
-		
-		providedArgument.remove_prefix(key.size());
-
-		if (providedArgument.empty() || providedArgument.front() != L'=')
-		{
-			throw CmdArgs::Exception(
-				"Arguments with values should be passed with \'=\' sign", _usage);
-		}
-
-		providedArgument.remove_prefix(1);
-		value = providedArgument;
-		break;
-	}
-	
 	if (type == typeid(std::filesystem::path))
 	{
 		return std::filesystem::path(value);
@@ -211,4 +177,42 @@ std::any CmdArgs::ValueByKey(std::string_view key) const
 	}
 
 	throw CmdArgs::Exception("Unsupported argument type requested", _usage);
+}
+
+std::any CmdArgs::ValueByKey(std::string_view key) const
+{
+	std::type_index type = TypeByKey(key);
+
+	if (type == typeid(std::nullopt))
+	{
+		if (!Contains(key))
+		{
+			throw CmdArgs::Exception("Missing value requested", _usage);
+		}
+
+		return true;
+	}
+
+	for (std::string_view givenArgument : _givenArguments)
+	{
+		if (!givenArgument.starts_with(key))
+		{
+			continue;
+		}
+		
+		givenArgument.remove_prefix(key.size());
+
+		if (givenArgument.empty() || givenArgument.front() != L'=')
+		{
+			throw CmdArgs::Exception(
+				"Arguments with values should be passed with \'=\' sign", _usage);
+		}
+
+		givenArgument.remove_prefix(1);
+
+		return Parse(type, std::string(givenArgument));
+	}
+	
+	// Should never reach here
+	throw CmdArgs::Exception("Missing value requested", _usage);
 }

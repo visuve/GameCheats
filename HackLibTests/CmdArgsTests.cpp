@@ -20,6 +20,17 @@ TEST(CmdArgsTests, Missing)
 		{ "foo", typeid(std::nullopt), "Foos, not bars. Definetely not foobars" },
 		{ "bar", typeid(std::nullopt), "Bars, not foos. Definetely not barfoos" }
 	}), CmdArgs::Exception);
+
+	const CmdArgs args({ "alpha", "bravo" },
+	{
+		{ "alpha", typeid(std::nullopt), "A" },
+		{ "bravo", typeid(std::nullopt), "B" }
+	});
+
+	EXPECT_THROW(args.Value<bool>("charlie"), CmdArgs::Exception);
+	EXPECT_THROW(args.Value<int>("charlie"), CmdArgs::Exception);
+
+	EXPECT_TRUE(args.Value<bool>("charlie", true));
 }
 
 TEST(CmdArgsTests, ContainsValuedArgument)
