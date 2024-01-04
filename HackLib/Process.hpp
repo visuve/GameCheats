@@ -182,6 +182,15 @@ public:
 		ChangeBytes(Address(offset), from, to);
 	}
 
+	inline void ChangeBytes(
+		std::wstring_view module,
+		size_t offset,
+		std::span<uint8_t> from,
+		std::span<uint8_t> to) const
+	{
+		ChangeBytes(Address(module, offset), from, to);
+	}
+
 	void WaitForIdle();
 
 	bool Verify(std::string_view expectedSHA256) const;
