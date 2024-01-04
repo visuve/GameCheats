@@ -47,10 +47,13 @@ int wmain(int argc, wchar_t** argv)
 			return ERROR_BAD_ARGUMENTS;
 	}
 
+	testing::InitGoogleTest(&argc, argv);
+
 #if defined(_DEBUG)
 	testing::UnitTest::GetInstance()->listeners().Append(new MemoryLeakListener());
 #endif
 
-	testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+	int result = testing::UnitTest::GetInstance()->Run();
+
+	return result;
 }

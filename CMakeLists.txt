@@ -44,7 +44,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	add_subdirectory("Quake1")
+	add_subdirectory("Quake1R")
 	add_subdirectory("Hitman2016")
 	add_subdirectory("Metro2033Redux")
 	add_subdirectory("Doom2016")
