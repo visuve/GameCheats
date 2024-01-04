@@ -82,8 +82,6 @@ public:
 		return *this;
 	}
 
-	static std::string Prefix(const std::source_location& location);
-
 	static constexpr std::string_view Foreground(Color c)
 	{
 		switch (c)

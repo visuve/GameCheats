@@ -2,6 +2,18 @@
 
 std::mutex LogMutex;
 
+std::string Prefix(const std::source_location& location)
+{
+	std::chrono::zoned_time currentTime(
+		std::chrono::current_zone(),
+		std::chrono::system_clock::now());
+
+	std::string fileName = std::filesystem::path(
+		location.file_name()).filename().string();
+
+	return std::format("[{:%T}][{}:{}]", currentTime, fileName, location.line());
+}
+
 Logger::Logger(std::ostream& stream, const std::source_location& location, Color color) :
 	_stream(stream),
 	_color(color),
@@ -36,18 +48,6 @@ Logger::~Logger()
 
 		LogMutex.unlock();
 	}
-}
-
-std::string Logger::Prefix(const std::source_location& location)
-{
-	const std::chrono::zoned_time currentTime(
-	std::chrono::current_zone(),
-	std::chrono::system_clock::now());
-
-	const std::string fileName = std::filesystem::path(
-		location.file_name()).filename().string();
-
-	return std::format("[{:%T}][{}:{}]", currentTime, fileName, location.line());
 }
 
 DurationLogger::DurationLogger(std::ostream& stream, const std::source_location& location, const std::string& message) :
