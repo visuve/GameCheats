@@ -53,6 +53,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	add_subdirectory("Hitman2018")
 	add_subdirectory("Hitman2021")
 	add_subdirectory("RAGE")
+	add_subdirectory("Quake2R")
 	add_subdirectory("Template")
 endif()
 
