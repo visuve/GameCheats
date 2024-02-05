@@ -1,4 +1,6 @@
 #include "Win32Process.hpp"
+#include "Win32Process.hpp"
+#include "Win32Process.hpp"
 #include "System.hpp"
 #include "Win32Process.hpp"
 
@@ -7,8 +9,9 @@ Win32Process::Win32Process(DWORD desiredAccess, DWORD pid) :
 {
 }
 
-Win32Process::~Win32Process()
+HANDLE Win32Process::Value() const
 {
+	return _handle;
 }
 
 std::filesystem::path Win32Process::Path() const

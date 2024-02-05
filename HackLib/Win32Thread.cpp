@@ -6,10 +6,6 @@ Win32Thread::Win32Thread(HANDLE handle) :
 {
 }
 
-Win32Thread::~Win32Thread()
-{
-}
-
 void Win32Thread::Wait(std::chrono::milliseconds timeout) const
 {
 	DWORD result = WaitForSingleObject(_handle, static_cast<DWORD>(timeout.count()));

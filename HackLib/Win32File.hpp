@@ -7,24 +7,12 @@ class Win32File : public Win32Handle
 {
 public:
 	explicit Win32File(const std::filesystem::path& path, DWORD access = GENERIC_READ);
-	virtual ~Win32File();
 
 	NonCopyable(Win32File);
 
-	inline HANDLE Value() const
-	{
-		return _handle;
-	}
-
-	inline size_t Size() const
-	{
-		return _size;
-	}
-
-	inline operator bool() const
-	{
-		return _ovl.Offset <= _size;
-	}
+	HANDLE Value() const;
+	size_t Size() const;
+	bool IsValid() const final;
 
 	size_t Read(void* buffer, size_t size);
 	size_t ReadAt(void* buffer, size_t size, size_t offset);

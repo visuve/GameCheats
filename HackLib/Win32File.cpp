@@ -33,8 +33,19 @@ Win32File::Win32File(const std::filesystem::path& path, DWORD access) :
 	_size = size.LowPart;
 }
 
-Win32File::~Win32File()
+HANDLE Win32File::Value() const
 {
+	return _handle;
+}
+
+size_t Win32File::Size() const
+{
+	return _size;
+}
+
+bool Win32File::IsValid() const
+{
+	return Win32Handle::IsValid() && _ovl.Offset <= _size;
 }
 
 size_t Win32File::Read(void* buffer, size_t size)

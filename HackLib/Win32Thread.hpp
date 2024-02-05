@@ -7,7 +7,6 @@ class Win32Thread : public Win32Handle
 {
 public:
 	Win32Thread(HANDLE handle);
-	~Win32Thread();
 
 	NonCopyable(Win32Thread);
 

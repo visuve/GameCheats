@@ -13,7 +13,7 @@ public:
 	Win32Handle& operator = (const Win32Handle& other) = delete;
 	Win32Handle& operator = (Win32Handle&& other);
 
-	bool IsValid() const;
+	virtual bool IsValid() const;
 	operator bool() const;
 
 	void Reset(HANDLE handle = nullptr);

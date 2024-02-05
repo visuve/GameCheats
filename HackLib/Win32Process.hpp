@@ -9,14 +9,9 @@ class Win32Process : public Win32Handle
 public:
 	explicit Win32Process(DWORD desiredAccess, DWORD pid);
 
-	~Win32Process();
-
 	NonCopyable(Win32Process);
 
-	inline HANDLE Value() const
-	{
-		return _handle;
-	}
+	HANDLE Value() const;
 
 	std::filesystem::path Path() const;
 

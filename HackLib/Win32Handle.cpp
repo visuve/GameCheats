@@ -56,7 +56,7 @@ void Win32Handle::Reset(HANDLE handle)
 		return;
 	}
 
-	if (IsValid())
+	if (Win32Handle::IsValid())
 	{
 		[[maybe_unused]]
 		bool result = CloseHandle(_handle);
