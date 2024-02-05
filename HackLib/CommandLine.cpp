@@ -85,7 +85,7 @@ bool CommandLine::Argument::Parse(std::string_view value)
 
 	if (value.empty() || value.front() != L'=')
 	{
-		false;
+		return false;
 	}
 
 	value.remove_prefix(1);
