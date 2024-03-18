@@ -10,7 +10,6 @@ public:
 	{
 	public:
 		Exception(const std::string& what, const std::string& usage);
-		NonCopyable(Exception);
 		std::string_view Usage() const;
 		const char* what() const throw ();
 
@@ -71,7 +70,7 @@ public:
 	std::string Usage() const;
 
 private:
-	auto Get(std::string_view key) const
+	inline std::vector<Argument>::const_iterator Get(std::string_view key) const
 	{
 		const auto equals = [&](const Argument& argument)
 		{
