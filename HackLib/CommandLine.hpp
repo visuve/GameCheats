@@ -35,10 +35,7 @@ public:
 	CommandLine(int argc, char** argv, std::initializer_list<Argument> expected);
 	NonCopyable(CommandLine);
 
-	inline bool Contains(std::string_view key) const
-	{
-		return Get(key) != _arguments.cend();
-	}
+	bool Contains(std::string_view key) const;
 
 	template<typename T>
 	T Value(std::string_view key) const
@@ -70,15 +67,7 @@ public:
 	std::string Usage() const;
 
 private:
-	inline std::vector<Argument>::const_iterator Get(std::string_view key) const
-	{
-		const auto equals = [&](const Argument& argument)
-		{
-			return argument.Key == key;
-		};
-
-		return std::find_if(_arguments.cbegin(), _arguments.cend(), equals);
-	}
+	std::vector<Argument>::const_iterator Get(std::string_view key) const;
 
 	std::vector<Argument> _arguments;
 	std::string _usage;

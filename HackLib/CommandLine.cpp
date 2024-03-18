@@ -137,27 +137,27 @@ CommandLine::CommandLine(const std::vector<std::string>& given, std::initializer
 	// Intentionally skip the first
 	for (size_t i = 1; i < given.size(); ++i)
 	{
-		const std::string kvCombo = given[i];
+		const std::string kvp = given[i];
 
 		const auto startsWith = [&](const Argument& e)
 		{
-			return kvCombo.starts_with(e.Key);
+			return kvp.starts_with(e.Key);
 		};
 
 		auto it = std::find_if(_arguments.begin(), _arguments.end(), startsWith);
 
 		if (it == _arguments.end())
 		{
-			usage << "\n  Argument \"" << kvCombo
+			usage << "\n  Argument \"" << kvp
 				<< "\" is unknown." << std::endl;
 
 			++invalid;
 			continue;
 		}
 		
-		if (!it->Parse(kvCombo))
+		if (!it->Parse(kvp))
 		{
-			usage << "\n  Argument \"" << kvCombo
+			usage << "\n  Argument \"" << kvp
 				<< "\" could not be parsed." << std::endl;
 
 			++invalid;
@@ -185,7 +185,23 @@ CommandLine::CommandLine(int argc, char** argv, std::initializer_list<Argument> 
 {
 }
 
+bool CommandLine::Contains(std::string_view key) const
+{
+	const auto it = Get(key);
+	return it != _arguments.cend() && it->Value.has_value();
+}
+
 std::string CommandLine::Usage() const
 {
 	return _usage;
+}
+
+std::vector<CommandLine::Argument>::const_iterator CommandLine::Get(std::string_view key) const
+{
+	const auto equals = [&](const Argument& argument)
+	{
+		return argument.Key == key;
+	};
+
+	return std::find_if(_arguments.cbegin(), _arguments.cend(), equals);
 }

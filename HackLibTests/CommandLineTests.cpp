@@ -16,6 +16,18 @@ TEST(CommandLineTests, ContainsSimple)
 	EXPECT_FALSE(args.Contains("foobar"));
 }
 
+TEST(CommandLineTests, ContainsNotSet)
+{
+	const CommandLine args({ CurrentExe, "foo" },
+	{
+		{ "foo", typeid(std::nullopt), "Foos, not bars" },
+		{ "bar", typeid(std::nullopt), "Bars, not foos" }
+	});
+
+	EXPECT_TRUE(args.Contains("foo"));
+	EXPECT_FALSE(args.Contains("bar"));
+}
+
 TEST(CommandLineTests, Missing)
 {
 	EXPECT_THROW(CommandLine({ CurrentExe, "foobar", "barfoo" },
