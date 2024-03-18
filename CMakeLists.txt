@@ -40,6 +40,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4)
 	add_subdirectory("XCOMA")
 	add_subdirectory("Doom3BFG")
 	add_subdirectory("Doom3ROE")
+	add_subdirectory("Fallout2")
 	add_subdirectory("Template")
 endif()
 
