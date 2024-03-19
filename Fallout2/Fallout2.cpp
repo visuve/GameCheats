@@ -4,7 +4,8 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 {
 	const CommandLine args(givenArguments,
 	{
-		{ "charpoints", typeid(int), "Set character points" }
+		{ "charpoints", typeid(int), "Set character points" },
+		{ "skillpoints", typeid(int), "Set skill points" }
 	});
 
 	DWORD pid = System::WaitForExe(L"fallout2HR.exe");
@@ -25,6 +26,13 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	{
 		int charpoints = args.Value<int>("charpoints");
 		process.Write<int32_t>(0x118538, charpoints);
+	}
+
+	if (args.Contains("skillpoints"))
+	{
+		// The individual skills are at 0x11C4AC-0x11C4F0
+		int skillpoints = args.Value<int>("skillpoints");
+		process.Write<int32_t>(0x2681AC, skillpoints);
 	}
 
 	return 0;
