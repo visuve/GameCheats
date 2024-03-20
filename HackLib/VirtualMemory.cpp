@@ -1,6 +1,4 @@
 #include "VirtualMemory.hpp"
-#include "VirtualMemory.hpp"
-#include "VirtualMemory.hpp"
 
 VirtualMemory::VirtualMemory(const Win32Process& parentProcess, size_t size) :
 	_parentProcess(parentProcess),
@@ -32,14 +30,14 @@ Pointer VirtualMemory::Address() const
 	return _address;
 }
 
-bool VirtualMemory::operator < (const VirtualMemory& other) const
-{
-	return _address < other._address;
-}
-
 bool VirtualMemory::operator == (const VirtualMemory& other) const
 {
 	return _address == other._address;
+}
+
+std::strong_ordering VirtualMemory::operator<=>(const VirtualMemory& other) const
+{
+	return _address <=> other._address;
 }
 
 MEMORY_BASIC_INFORMATION VirtualMemory::Query() const
@@ -49,13 +47,5 @@ MEMORY_BASIC_INFORMATION VirtualMemory::Query() const
 		throw RuntimeException("The parent process is invalid");
 	}
 
-	constexpr DWORD memInfoSize = sizeof(MEMORY_BASIC_INFORMATION);
-	MEMORY_BASIC_INFORMATION info = {};
-
-	if (VirtualQueryEx(_parentProcess.Value(), _address, &info, memInfoSize) != memInfoSize)
-	{
-		throw Win32Exception("VirtualQueryEx");
-	}
-
-	return info;
+	return _parentProcess.VirtualQueryEx(_address);
 }

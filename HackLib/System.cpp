@@ -241,7 +241,8 @@ size_t System::PageSize()
 
 	if (pageSize == 0)
 	{
-		SYSTEM_INFO systemInfo = {};
+		SYSTEM_INFO systemInfo;
+		Clear(systemInfo);
 		GetSystemInfo(&systemInfo);
 		pageSize = systemInfo.dwPageSize;
 	}

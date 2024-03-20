@@ -16,7 +16,8 @@ Win32File::Win32File(const std::filesystem::path& path, DWORD access) :
 		throw Win32Exception("CreateFileW");
 	}
 
-	LARGE_INTEGER size = { 0 };
+	LARGE_INTEGER size;
+	Clear(size);
 
 	if (!GetFileSizeEx(_handle, &size))
 	{

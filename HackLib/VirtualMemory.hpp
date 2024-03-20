@@ -11,8 +11,8 @@ public:
 	NonCopyable(VirtualMemory);
 
 	Pointer Address() const;
-	bool operator < (const VirtualMemory& other) const;
 	bool operator == (const VirtualMemory& other) const;
+	std::strong_ordering operator <=> (const VirtualMemory& other) const;
 
 	MEMORY_BASIC_INFORMATION Query() const;
 

@@ -104,7 +104,9 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImportDescriptor(std::string_view moduleNam
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-imagervatova
 
-	IMAGE_IMPORT_DESCRIPTOR iid = {};
+	IMAGE_IMPORT_DESCRIPTOR iid;
+	Clear(iid);
+
 	std::string buffer(MAX_PATH , '\0');
 
 	do
@@ -137,7 +139,8 @@ Pointer Process::FindImportEntry(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view f
 	std::string buffer(MAX_PATH, '\0');
 
 	const Pointer offset = thunkPtr - iid.FirstThunk;
-	IMAGE_THUNK_DATA thunk = {};
+	IMAGE_THUNK_DATA thunk;
+	Clear(thunk);
 
 	do
 	{

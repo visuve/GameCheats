@@ -19,7 +19,7 @@ MemoryLeakListener::~MemoryLeakListener()
 
 void MemoryLeakListener::OnTestStart(const testing::TestInfo&)
 {
-	_testBegin = {};
+	Clear(_testBegin);
 	_CrtMemCheckpoint(&_testBegin);
 }
 
