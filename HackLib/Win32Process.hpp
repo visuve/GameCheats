@@ -23,6 +23,8 @@ public:
 
 	size_t WriteProcessMemory(Pointer pointer, const void* value, size_t size) const;
 
+	MEMORY_BASIC_INFORMATION VirtualQueryEx(Pointer pointer) const;
+
 	DWORD VirtualProtectEx(Pointer pointer, size_t size, DWORD newAccess) const;
 
 	HANDLE CreateRemoteThread(Pointer startAddress, Pointer parameter) const;

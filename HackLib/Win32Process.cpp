@@ -66,6 +66,21 @@ size_t Win32Process::WriteProcessMemory(Pointer pointer, const void* value, size
 	return bytesWritten;
 }
 
+MEMORY_BASIC_INFORMATION Win32Process::VirtualQueryEx(Pointer pointer) const
+{
+	MEMORY_BASIC_INFORMATION mbi;
+	Clear(mbi);
+
+	constexpr SIZE_T size = sizeof(MEMORY_BASIC_INFORMATION);
+
+	if (::VirtualQueryEx(_handle, pointer, &mbi, size) != size)
+	{
+		throw Win32Exception("VirtualQueryEx");
+	}
+
+	return mbi;
+}
+
 DWORD Win32Process::VirtualProtectEx(Pointer pointer, size_t size, DWORD newAccess) const
 {
 	DWORD oldAccess = 0;
