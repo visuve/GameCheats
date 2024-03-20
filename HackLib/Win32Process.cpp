@@ -106,7 +106,7 @@ DWORD Win32Process::ExitCode()
 
 	bool result = GetExitCodeProcess(_handle, &exitCode);
 
-	_handle = nullptr; // There is nothing to do beyond this point
+	Reset(); // There is nothing to do beyond this point
 
 	if (!result)
 	{
