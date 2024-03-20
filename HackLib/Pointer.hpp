@@ -120,29 +120,19 @@ public:
 		return _internal.Value == other._internal.Value;
 	}
 
-	constexpr bool operator != (const Pointer& other) const
+	constexpr auto operator <=> (const Pointer& other) const
 	{
-		return _internal.Value != other._internal.Value;
+		return _internal.Value <=> other._internal.Value;
 	}
 
-	constexpr bool operator < (const Pointer& other) const
+	constexpr bool operator == (size_t offset) const
 	{
-		return _internal.Value < other._internal.Value;
+		return _internal.Value == offset;
 	}
 
-	constexpr bool operator > (const Pointer& other) const
+	constexpr auto operator <=> (size_t offset) const
 	{
-		return _internal.Value > other._internal.Value;
-	}
-
-	constexpr bool operator < (size_t offset) const
-	{
-		return _internal.Value < offset;
-	}
-
-	constexpr bool operator > (size_t offset) const
-	{
-		return _internal.Value > offset;
+		return _internal.Value <=> offset;
 	}
 
 	inline const uint8_t* Value() const
@@ -215,11 +205,14 @@ struct std::formatter<Pointer>
 
 	auto format(const Pointer& p, std::format_context& ctx) const
 	{
-#ifdef _WIN64
-		return std::format_to(ctx.out(), "0x{:016X}", p._internal.Value);
-#else
-		return std::format_to(ctx.out(), "0x{:08X}", p._internal.Value);
-#endif
+		if constexpr (Pointer::Size == 8)
+		{
+			return std::format_to(ctx.out(), "0x{:016X}", p._internal.Value);
+		}
+		else
+		{
+			return std::format_to(ctx.out(), "0x{:08X}", p._internal.Value);
+		}
 	}
 };
 
