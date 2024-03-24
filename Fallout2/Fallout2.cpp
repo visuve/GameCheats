@@ -5,9 +5,11 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	const CommandLine args(givenArguments,
 	{
 		{ "charpoints", typeid(int), "Set character points" },
+		{ "hitpoints", typeid(int), "Set hitpoints" },
 		{ "actionpoints", typeid(int), "Set action points" },
 		{ "skillpoints", typeid(int), "Set skill points" },
 		{ "money", typeid(int), "Set money" },
+		{ "godmode", typeid(std::nullopt), "God mode. NOTE: not tested much." },
 	});
 
 	DWORD pid = System::WaitForExe(L"fallout2HR.exe");
@@ -30,6 +32,12 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 		process.Write<int32_t>(0x118538, charpoints);
 	}
 
+	if (args.Contains("hitpoints"))
+	{
+		int hitpoints = args.Value<int>("hitpoints");
+		process.Write<int32_t>(0x11902C, hitpoints);
+	}
+
 	if (args.Contains("actionpoints"))
 	{
 		int actionpoints = args.Value<int>("actionpoints");
@@ -45,13 +53,20 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 
 	if (args.Contains("money"))
 	{
-		Pointer moneyPtr = process.ResolvePointer(0x119058, 0x34, 0x1C);
+		Pointer moneyPtr = process.ResolvePointer(0x11D6E59C, 0x34, 0x1C);
 
 		int before = process.Read<int32_t>(moneyPtr);
 		int after = args.Value<int>("money");
 		process.Write(moneyPtr, after);
 
 		LogInfo << "Money:" << before << "->" << after;
+	}
+
+	if (args.Contains("godmode"))
+	{
+		process.ChangeBytes(0x2D1D1,
+			ByteStream("89 43 2C"), // mov [ebx+2C], eax
+			ByteStream("01 7B 2C")); // add [ebx+2X], edi
 	}
 
 	return 0;
