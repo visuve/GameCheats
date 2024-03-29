@@ -1,5 +1,5 @@
-#include "Exceptions.hpp"
 #include "Win32Thread.hpp"
+#include "Exceptions.hpp"
 
 Win32Thread::Win32Thread(HANDLE handle) :
 	Win32Handle(handle)
@@ -12,30 +12,37 @@ Win32Thread::Win32Thread(DWORD identifier, DWORD access) :
 {
 }
 
-Win32Thread::Win32Thread(std::function<uint32_t(std::stop_token)> callback) :
-	Win32Handle(CreateThread(nullptr, 0, ThreadProcedure, this, 0, &_identifier)),
-	_callback(std::bind(callback, _stopSource.get_token()))
+Win32Thread::Win32Thread(std::function<uint32_t(const Win32Event&)> callback) :
+	Win32Handle(CreateThread(nullptr, 0, ThreadProcedure, this, CREATE_SUSPENDED, &_identifier)),
+	_callback(std::bind(callback, std::cref(_event)))
 {
+	// Hack: CREATE_SUSPENDED and this is to ensure that this class has been properly initialized
+	ResumeThread(_handle);
 }
 
 Win32Thread::~Win32Thread()
 {
 	if (_callback) // Yuck...
 	{
-		_stopSource.request_stop();
+		_event.Set();
 
-		WaitForSingleObject(_handle, INFINITE);
+		[[maybe_unused]]
+		DWORD result = WaitForSingleObject(_handle, INFINITE);
+
+		_ASSERTE(result == WAIT_OBJECT_0);
 	}
 }
 
-void Win32Thread::Wait(std::chrono::milliseconds timeout) const
+DWORD Win32Thread::Wait(std::chrono::milliseconds timeout) const
 {
 	DWORD result = WaitForSingleObject(_handle, static_cast<DWORD>(timeout.count()));
 
-	if (result != WAIT_OBJECT_0)
+	if (result == WAIT_FAILED)
 	{
-		throw Win32Exception("WaitForSingleObject", result);
+		throw Win32Exception("WaitForSingleObject");
 	}
+
+	return result;
 }
 
 DWORD Win32Thread::ExitCode()
@@ -75,15 +82,7 @@ DWORD Win32Thread::ThreadProcedure(void* context)
 {
 	auto self = reinterpret_cast<Win32Thread*>(context);
 
-	if (!self)
-	{
-		throw RuntimeException("Thread context was null!");
-	}
-
-	if (!self->_callback)
-	{
-		throw RuntimeException("Thread callback was null!");
-	}
+	_ASSERTE(self && self->_callback);
 
 	return self->_callback();
 }

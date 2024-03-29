@@ -1,34 +1,52 @@
 #include "Win32Thread.hpp"
 
-TEST(ThreadTests, Basic)
+TEST(ThreadTests, Creation)
+{
+	uint32_t i = 0;
+
+	auto function = [&](const Win32Event&)->uint32_t
+	{ 
+		return ++i;
+	};
+
+	for (size_t x = 0; x < 100; ++x)
+	{
+		Win32Thread thread(function);
+	}
+
+	EXPECT_EQ(i, 100u);
+}
+
+TEST(ThreadTests, ExitCode)
 {
 	size_t i = 0;
 
-	auto function = [&](std::stop_token)->uint32_t
+	auto function = [&](const Win32Event&)->uint32_t
 	{
-		while (i < 10)
+		while (i < 1000)
 		{
 			++i;
 		}
 
-		return 0xABCDEFu;
+		return 0x1337C0D3;
 	};
 
 	Win32Thread thread(function);
+	EXPECT_EQ(thread.ExitCode(), STILL_ACTIVE);
 
-	thread.Wait(100ms);
+	thread.Wait(5ms);
 
-	EXPECT_EQ(thread.ExitCode(), 0xABCDEFu);
-	EXPECT_EQ(i, 10u);
+	EXPECT_EQ(thread.ExitCode(), 0x1337C0D3);
+	EXPECT_EQ(i, 1000u);
 }
 
 TEST(ThreadTests, Abandon)
 {
 	size_t i = 0;
 
-	auto function = [&](std::stop_token token)->uint32_t
+	auto function = [&](const Win32Event& event)->uint32_t
 	{
-		while (!token.stop_requested())
+		while (!event.IsSet())
 		{
 			++i;
 		}
@@ -38,7 +56,7 @@ TEST(ThreadTests, Abandon)
 
 	{
 		Win32Thread thread(function);
-		EXPECT_THROW(thread.Wait(1ms), std::system_error);
+		EXPECT_EQ(thread.Wait(2ms), WAIT_TIMEOUT);
 	}
 
 	EXPECT_GT(i, 0u);
@@ -48,9 +66,9 @@ TEST(ThreadTests, Identifier)
 {
 	size_t i = 0;
 
-	auto function = [&](std::stop_token token)->uint32_t
+	auto function = [&](const Win32Event& event)->uint32_t
 	{
-		while (!token.stop_requested())
+		while (!event.IsSet())
 		{
 			++i;
 		}
@@ -67,7 +85,7 @@ TEST(ThreadTests, Identifier)
 
 		EXPECT_EQ(threadID, cloneID);
 
-		Sleep(1);
+		Sleep(2);
 	}
 
 	EXPECT_GT(i, 0u);
