@@ -4,9 +4,9 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Install tools
       run: |
@@ -15,5 +15,5 @@ jobs:
 
     - name: Static analysis
       run: |
-        cppcheck --project=GameCheats.cppcheck --platform=win32W --error-exitcode=11 --enable=warning,style
-        cppcheck --project=GameCheats.cppcheck --platform=win64 --error-exitcode=11 --enable=warning,style
+        cppcheck --project=GameCheats.cppcheck --platform=win32W --error-exitcode=1 --enable=warning,style
+        cppcheck --project=GameCheats.cppcheck --platform=win64 --error-exitcode=1 --enable=warning,style
