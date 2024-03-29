@@ -43,8 +43,6 @@ DWORD Win32Thread::ExitCode()
 	DWORD exitCode = 0;
 	bool result = GetExitCodeThread(_handle, &exitCode);
 
-	_handle = nullptr; // There is nothing to do beyond this point
-
 	if (!result)
 	{
 		DWORD status = GetLastError();
@@ -55,7 +53,6 @@ DWORD Win32Thread::ExitCode()
 		}
 	}
 
-	_handle = nullptr;
 	return exitCode;
 }
 
