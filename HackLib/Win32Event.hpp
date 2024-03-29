@@ -16,6 +16,9 @@ public:
 
 	HANDLE Value() const;
 
+	void Set();
+	bool IsSet() const;
+
 private:
 	const std::string _name;
 };
