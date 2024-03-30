@@ -78,7 +78,7 @@ DWORD Win32Thread::Identifier()
 	return _identifier;
 }
 
-DWORD Win32Thread::ThreadProcedure(void* context)
+DWORD WINAPI Win32Thread::ThreadProcedure(void* context)
 {
 	auto self = reinterpret_cast<Win32Thread*>(context);
 

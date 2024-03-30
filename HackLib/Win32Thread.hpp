@@ -20,7 +20,7 @@ public:
 	DWORD Identifier();
 
 private:
-	static DWORD ThreadProcedure(void*);
+	static DWORD WINAPI ThreadProcedure(void*);
 
 	DWORD _identifier = 0;
 	Win32Event _event;
