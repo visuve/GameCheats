@@ -6,6 +6,7 @@
 #include "MemoryRegion.hpp"
 #include "OpCodes.hpp"
 #include "System.hpp"
+#include "Variable.hpp"
 #include "VirtualMemory.hpp"
 #include "Win32Process.hpp"
 #include "Win32Thread.hpp"
@@ -49,11 +50,16 @@ public:
 		return ResolvePointer(Address(base), offsets...);
 	}
 
-	void Read(Pointer pointer, auto* value, size_t size) const
+	inline void Read(Pointer pointer, void* value, size_t size) const
 	{
 		size_t bytesRead = _targetProcess.ReadProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesRead == size, L"ReadProcessMemory size mismatch!");
 		LogDebug << "Read" << bytesRead << "bytes from" << pointer;
+	}
+
+	inline void Read(size_t offset, void* value, size_t size) const
+	{
+		Read(Address(offset), value, size);
 	}
 
 	template<std::semiregular T, size_t N = sizeof(T)>
@@ -77,21 +83,28 @@ public:
 		return bytes;
 	}
 
-	inline void Write(Pointer pointer, const auto* value, size_t size) const
+	inline void Write(Pointer pointer, const void* value, size_t size) const
 	{
 		size_t bytesWritten = _targetProcess.WriteProcessMemory(pointer, value, size);
 		_ASSERT_EXPR(bytesWritten == size, L"WriteProcessMemory size mismatch!");
 		LogDebug << "Wrote" << bytesWritten << "bytes at" << pointer;
 	}
 
-	inline void Write(Pointer pointer, const auto& value) const
+	inline void Write(size_t offset, const void* value, size_t size) const
 	{
-		Write(pointer, &value, sizeof(value));
+		Write(Address(offset), value, size);
+	}
+
+	template <typename T>
+	inline void Write(Pointer pointer, const T& value) const
+	{
+		Write(pointer, &value, sizeof(T));
 	}
 	
-	inline void Write(size_t offset, const auto& value) const
+	template <typename T>
+	inline void Write(size_t offset, const T& value) const
 	{
-		Write(Address(offset), value);
+		Write<T>(Address(offset), value);
 	}
 
 	inline void WriteBytes(Pointer pointer, std::span<uint8_t> bytes) const
@@ -190,6 +203,11 @@ public:
 	{
 		ChangeBytes(Address(module, offset), from, to);
 	}
+
+	void Watch(const std::set<Variable>& variables, std::chrono::milliseconds interval = 1000ms);
+	void Watch(const Variable& variable, std::chrono::milliseconds interval = 1000ms);
+	void Freeze(const std::set<Variable>& variables, std::chrono::milliseconds interval = 1000ms);
+	void Freeze(const Variable& variable, std::chrono::milliseconds interval = 1000ms);
 
 	void WaitForIdle();
 

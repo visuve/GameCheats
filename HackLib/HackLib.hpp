@@ -14,4 +14,5 @@
 #include "SHA256.hpp"
 #include "StrConvert.hpp"
 #include "System.hpp"
+#include "Variable.hpp"
 #include "VirtualMemory.hpp"

@@ -32,6 +32,89 @@ Process::~Process()
 	_targetProcess.Reset();
 }
 
+void Process::Watch(const std::set<Variable>& variables, std::chrono::milliseconds interval)
+{
+	auto readPtr = static_cast<void(Process::*)(size_t, void*, size_t) const>(&Process::Read);
+	auto readFunction = std::bind(readPtr, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
+	auto watchFunction = [=](const Win32Event& event)->uint32_t
+	{
+		try
+		{
+			std::vector<Variable> copy(variables.begin(), variables.end()); // Sigh... a copy of a copy
+
+			while (event.Wait(interval) == WAIT_TIMEOUT)
+			{
+				for (Variable& variable : copy)
+				{
+					variable.Read(readFunction);
+
+					LogInfo << variable;
+				}
+			}
+
+			return 0;
+		}
+		catch (const std::system_error& e)
+		{
+			LogError << e.what();
+			return e.code().value();
+		}
+	};
+
+	_threads.emplace(watchFunction);
+}
+
+void Process::Watch(const Variable& variable, std::chrono::milliseconds interval)
+{
+	const std::set<Variable> variables = { variable };
+	Watch(std::move(variables), interval);
+}
+
+void Process::Freeze(const std::set<Variable>& variables, std::chrono::milliseconds interval)
+{
+	auto writePtr = static_cast<void(Process::*)(size_t, const void*, size_t) const>(&Process::Write);
+	auto writeFunction = std::bind(writePtr, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
+	auto readPtr = static_cast<void(Process::*)(size_t, void*, size_t) const>(&Process::Read);
+	auto readFunction = std::bind(readPtr, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
+	auto freezeFunction = [=](const Win32Event& event)->uint32_t
+	{
+		try
+		{
+			while (event.Wait(interval) == WAIT_TIMEOUT)
+			{
+				for (const Variable& variable : variables)
+				{
+					variable.Write(writeFunction);
+
+					Sleep(1);
+
+					Variable copy(variable);
+					copy.Read(readFunction);
+					LogInfo << copy;
+				}
+			}
+
+			return 0;
+		}
+		catch (const std::system_error& e)
+		{
+			LogError << e.what();
+			return e.code().value();
+		}
+	};
+
+	_threads.emplace(freezeFunction);
+}
+
+void Process::Freeze(const Variable& variable, std::chrono::milliseconds interval)
+{
+	const std::set<Variable> variables = { variable };
+	Freeze(std::move(variables), interval);
+}
+
 void Process::WaitForIdle()
 {
 	DWORD result = 0;
