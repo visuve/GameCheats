@@ -1,5 +1,30 @@
 #include "TypeHelp.hpp"
 
+TEST(TypeHelpTests, SizeOfBasicType)
+{
+	EXPECT_EQ(SizeOfBasicType(typeid(Pointer)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(uint8_t)), 1);
+	EXPECT_EQ(SizeOfBasicType(typeid(uint16_t)), 2);
+	EXPECT_EQ(SizeOfBasicType(typeid(uint32_t)), 4);
+	EXPECT_EQ(SizeOfBasicType(typeid(uint64_t)), 8);
+	EXPECT_EQ(SizeOfBasicType(typeid(int8_t)), 1);
+	EXPECT_EQ(SizeOfBasicType(typeid(int16_t)), 2);
+	EXPECT_EQ(SizeOfBasicType(typeid(int32_t)), 4);
+	EXPECT_EQ(SizeOfBasicType(typeid(int64_t)), 8);
+	EXPECT_EQ(SizeOfBasicType(typeid(float)), 4);
+	EXPECT_EQ(SizeOfBasicType(typeid(double)), 8);
+	EXPECT_EQ(SizeOfBasicType(typeid(uint8_t*)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(uint16_t*)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(uint32_t*)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(uint64_t*)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(int8_t*)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(int16_t*)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(int64_t*)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(float*)), Pointer::Size);
+	EXPECT_EQ(SizeOfBasicType(typeid(double*)), Pointer::Size);
+	EXPECT_THROW(SizeOfBasicType(typeid(HANDLE)), std::invalid_argument);
+}
+
 TEST(TypeHelpTests, ToString)
 {
 	EXPECT_STREQ(BasicTypeToString(typeid(Pointer)).data(), "\"Pointer\"");
@@ -23,7 +48,7 @@ TEST(TypeHelpTests, ToString)
 	EXPECT_STREQ(BasicTypeToString(typeid(int64_t*)).data(), "int64_t*");
 	EXPECT_STREQ(BasicTypeToString(typeid(float*)).data(), "float*");
 	EXPECT_STREQ(BasicTypeToString(typeid(double*)).data(), "double*");
-	EXPECT_STREQ(BasicTypeToString(typeid(HANDLE)).data(), "unknown type");
+	EXPECT_THROW(BasicTypeToString(typeid(HANDLE)), std::invalid_argument);
 }
 
 TEST(TypeHelpTests, IsBasicType)
@@ -90,4 +115,14 @@ TEST(TypeHelpTests, IsPointer)
 	EXPECT_FALSE(IsBasicPointer(typeid(double)));
 
 	EXPECT_FALSE(IsBasicPointer(typeid(HANDLE)));
+}
+
+TEST(TypeHelpTests, Ordering)
+{
+	EXPECT_LT(HacklibOrder(typeid(uint8_t)), HacklibOrder(typeid(uint64_t)));
+	EXPECT_LT(HacklibOrder(typeid(int8_t)), HacklibOrder(typeid(int64_t)));
+	EXPECT_LT(HacklibOrder(typeid(float)), HacklibOrder(typeid(double)));
+	EXPECT_LT(HacklibOrder(typeid(uint8_t*)), HacklibOrder(typeid(uint64_t*)));
+	EXPECT_LT(HacklibOrder(typeid(int8_t*)), HacklibOrder(typeid(int64_t*)));
+	EXPECT_LT(HacklibOrder(typeid(float*)), HacklibOrder(typeid(double*)));
 }

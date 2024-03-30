@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Pointer.hpp"
+#include "Exceptions.hpp"
 
 inline size_t SizeOfBasicType(std::type_index type)
 {
@@ -26,7 +27,7 @@ inline size_t SizeOfBasicType(std::type_index type)
 	if (type == typeid(float*)) return sizeof(float*);
 	if (type == typeid(double*)) return sizeof(double*);
 
-	return 0;
+	throw ArgumentException("Unsupported type");
 }
 
 inline std::string_view BasicTypeToString(std::type_index type)
@@ -52,8 +53,8 @@ inline std::string_view BasicTypeToString(std::type_index type)
 	if (type == typeid(int64_t*)) return "int64_t*";
 	if (type == typeid(float*)) return "float*";
 	if (type == typeid(double*)) return "double*";
-	
-	return "unknown type";
+
+	throw ArgumentException("Unsupported type");
 }
 
 inline bool IsBasicType(std::type_index type)
@@ -86,4 +87,32 @@ inline bool IsBasicPointer(std::type_index type)
 	if (type == typeid(double*)) return true;
 
 	return false;
+}
+
+// This order is completely arbitrary, but allows comparing std::type_index
+inline uint8_t HacklibOrder(std::type_index type)
+{
+	if (type == typeid(Pointer)) return 1;
+	if (type == typeid(uint8_t)) return 2;
+	if (type == typeid(uint16_t)) return 3;
+	if (type == typeid(uint32_t)) return 4;
+	if (type == typeid(uint64_t)) return 5;
+	if (type == typeid(int8_t)) return 6;
+	if (type == typeid(int16_t)) return 7;
+	if (type == typeid(int32_t)) return 8;
+	if (type == typeid(int64_t)) return 9;
+	if (type == typeid(float)) return 10;
+	if (type == typeid(double)) return 11;
+	if (type == typeid(uint8_t*)) return 12;
+	if (type == typeid(uint16_t*)) return 13;
+	if (type == typeid(uint32_t*)) return 14;
+	if (type == typeid(uint64_t*)) return 15;
+	if (type == typeid(int8_t*)) return 16;
+	if (type == typeid(int16_t*)) return 17;
+	if (type == typeid(int32_t*)) return 18;
+	if (type == typeid(int64_t*)) return 19;
+	if (type == typeid(float*)) return 20;
+	if (type == typeid(double*)) return 21;
+
+	throw ArgumentException("Unsupported type");
 }
