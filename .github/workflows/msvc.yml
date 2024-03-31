@@ -24,7 +24,7 @@ jobs:
     - name: Test x86
       run: x86/Release/HackLibTests.exe
 
-    - name: Test 64
+    - name: Test x64
       run: x64/Release/HackLibTests.exe
 
     - name: Print Hashes
