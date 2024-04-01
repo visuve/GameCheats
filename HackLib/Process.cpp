@@ -144,7 +144,7 @@ MODULEENTRY32W Process::FindModuleEntry(std::wstring_view name) const
 	return System::ModuleEntryByName(_pid, name);
 }
 
-IMAGE_NT_HEADERS Process::NtHeader() const
+std::pair<IMAGE_DOS_HEADER, IMAGE_NT_HEADERS> Process::Headers() const
 {
 	const auto dosHeader = Read<IMAGE_DOS_HEADER>(_baseAddress);
 
@@ -153,33 +153,51 @@ IMAGE_NT_HEADERS Process::NtHeader() const
 		throw LogicException("Invalid DOS header");
 	}
 
-	const auto ntHeaders = Read<IMAGE_NT_HEADERS>(_baseAddress + dosHeader.e_lfanew);
+	const auto ntHeader = Read<IMAGE_NT_HEADERS>(_baseAddress + dosHeader.e_lfanew);
 
-	if (ntHeaders.Signature != IMAGE_NT_SIGNATURE) 
+	if (ntHeader.Signature != IMAGE_NT_SIGNATURE) 
 	{
 		throw LogicException("Invalid NT headers");
 	}
 
 #ifdef _WIN64
-	if (ntHeaders.OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+	if (ntHeader.OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
 #else
-	if (ntHeaders.OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR32_MAGIC)
+	if (ntHeader.OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR32_MAGIC)
 #endif
 	{
 		throw LogicException("Invalid magic");
 	}
 
-	if (!(ntHeaders.FileHeader.Characteristics & IMAGE_FILE_EXECUTABLE_IMAGE))
+	if (!(ntHeader.FileHeader.Characteristics & IMAGE_FILE_EXECUTABLE_IMAGE))
 	{	
 		throw LogicException("Not an executable");
 	}
 
-	return ntHeaders;
+	return { dosHeader, ntHeader };
+}
+
+std::vector<IMAGE_SECTION_HEADER> Process::Sections() const
+{
+	const auto [dosHeader, ntHeader] = Headers();
+
+	Pointer sectionStart = _baseAddress + dosHeader.e_lfanew + sizeof(IMAGE_NT_HEADERS);
+
+	std::vector<IMAGE_SECTION_HEADER> sections(ntHeader.FileHeader.NumberOfSections);
+
+	if (sections.empty())
+	{
+		throw LogicException("No sections");
+	}
+
+	Read(sectionStart, sections.data(), sections.size() * sizeof(IMAGE_SECTION_HEADER));
+
+	return sections;
 }
 
 IMAGE_IMPORT_DESCRIPTOR Process::FindImportDescriptor(std::string_view moduleName) const
 {
-	IMAGE_NT_HEADERS ntHeader = NtHeader();
+	const auto [_, ntHeader] = Headers();
 
 	IMAGE_DATA_DIRECTORY importEntry = ntHeader.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
 

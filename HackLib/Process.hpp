@@ -215,7 +215,8 @@ public:
 
 	MODULEENTRY32W FindModuleEntry(std::wstring_view name) const;
 
-	IMAGE_NT_HEADERS NtHeader() const;
+	std::pair<IMAGE_DOS_HEADER, IMAGE_NT_HEADERS> Headers() const;
+	std::vector<IMAGE_SECTION_HEADER> Sections() const;
 
 	IMAGE_IMPORT_DESCRIPTOR FindImportDescriptor(std::string_view moduleName) const;
 	Pointer FindImportEntry(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const;

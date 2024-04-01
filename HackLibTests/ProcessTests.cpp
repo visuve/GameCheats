@@ -5,7 +5,36 @@ TEST(ProcessTests, Header)
 	DWORD pid = GetCurrentProcessId();
 	Process current(pid);
 
-	EXPECT_EQ(current.NtHeader().OptionalHeader.Subsystem, WORD(IMAGE_SUBSYSTEM_WINDOWS_CUI));
+	const auto [dosHeader, ntHeader] = current.Headers();
+
+	EXPECT_NE(ntHeader.OptionalHeader.Subsystem, WORD(IMAGE_SUBSYSTEM_WINDOWS_GUI));
+	EXPECT_EQ(ntHeader.OptionalHeader.Subsystem, WORD(IMAGE_SUBSYSTEM_WINDOWS_CUI));
+}
+
+TEST(ProcessTests, Sections)
+{
+	DWORD pid = GetCurrentProcessId();
+	Process current(pid);
+
+	auto sections = current.Sections();
+
+#ifdef _WIN64
+	EXPECT_EQ(sections.size(), size_t(7));
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".pdata");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), "_RDATA");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[5].Name), ".rsrc");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[6].Name), ".reloc");
+#else
+	EXPECT_EQ(sections.size(), size_t(5));
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".rsrc");
+	EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".reloc");
+#endif
 }
 
 TEST(ProcessTests, ModuleNotFound)
