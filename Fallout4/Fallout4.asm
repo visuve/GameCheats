@@ -1,21 +1,24 @@
 .CODE
 
 InfAmmoFirearms PROC
-	mov [rsp + 000001E0h], r13 ; stolen
-	mov [rsp + 000001A0h], r15 ; stolen
+	mov edx, eax
+	mov [rsp + 50h], eax
+	mov eax, esi
+	cmovne eax, edx ; "energy2"
+	mov [rsp + 40h], eax
 
-	mov r15, [rbp] ; "loan" *
 
-	cmp r15, 0
-	je TheEnd
-	xor r12, r12 ; r12 will be subtracted from the clip ammo
+	mov rax, [rbp] ; "loan" *
+
+	cmp rax, 0
+	je IsEnemy
+	xor r12d, r12d ; r12 will be subtracted from the clip ammo
 	jmp TheEnd
 IsEnemy:
-	; For some odd reason, this do not seem to have any effect
-	; on the enemies, even though it should. 
-	; mov r12, 255
+	; mov r12d, [rsp + 40h] ; uncomment to make enemies have a little less ammo...
 TheEnd:
-	mov r15, [rsp+000001A0h] ; * put back
+	xor rax, rax
+	mov eax, [rsp + 40h] ; * put back
 
 	int 3
 	int 3

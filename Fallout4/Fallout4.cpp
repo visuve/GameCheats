@@ -26,7 +26,7 @@ int IWillNotUseHackLibForEvil(const std::vector<std::string>& givenArguments)
 	if (args.Contains("infammo"))
 	{
 		auto infAmmo = Process::ReadFunction(InfAmmoFirearms);
-		process.InjectX64(0xDFD8EC, 2, infAmmo);
+		process.InjectX64(0xDFD9BC, 1, infAmmo);
 	}
 
 	process.WairForExit();
