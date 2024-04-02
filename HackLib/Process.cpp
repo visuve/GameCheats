@@ -517,13 +517,14 @@ std::vector<uint8_t> Process::ReadFunction(void(*function)(void), size_t size)
 	uint8_t jump[5] = {};
 	process.ReadProcessMemory(address, jump, sizeof(jump));
 
-	_ASSERTE(jump[0] == X86::JmpJz);
+	if (jump[0] == X86::JmpJz)
+	{
+		// Make absolute
+		address += jump[1] | (jump[2] << 8) | (jump[3] << 16) | (jump[4] << 24);
+		address += 5; // Size of relative jump
 
-	// Make absolute
-	address += jump[1] | (jump[2] << 8) | (jump[3] << 16) | (jump[4] << 24);
-	address += 5; // Size of relative jump
-
-	LogDebug << function << "jumps to" << address;
+		LogDebug << function << "jumps to" << address;
+	}
 #endif
 
 	size_t bytesRead = 0;

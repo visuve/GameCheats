@@ -1,5 +1,10 @@
 #include "Process.hpp"
 
+extern "C" __declspec(dllexport) int ThisFunctionActuallyExists(int x)
+{
+	return x * 2;
+}
+
 TEST(ProcessTests, Header)
 {
 	DWORD pid = GetCurrentProcessId();
@@ -47,7 +52,7 @@ TEST(ProcessTests, ModuleNotFound)
 		"Neither does this function"), std::range_error);
 }
 
-TEST(ProcessTests, FunctionNotFound)
+TEST(ProcessTests, ImportNotFound)
 {
 	DWORD pid = GetCurrentProcessId();
 	Process currentProcess(pid);
@@ -57,16 +62,59 @@ TEST(ProcessTests, FunctionNotFound)
 		"Neither does this function"), std::range_error);
 }
 
-TEST(ProcessTests, FunctionFound)
+TEST(ProcessTests, ImportFound)
 {
 	DWORD pid = GetCurrentProcessId();
 	Process currentProcess(pid);
 
 	// It's just called above. It has to be found
-	Pointer fnptr = 
+	Pointer actual =
 		currentProcess.FindImportAddress("KERNEL32.dll", "GetCurrentProcessId");
 
-	EXPECT_NE(fnptr, Pointer());
+	EXPECT_NE(actual, Pointer());
+}
+
+TEST(ProcessTests, FunctionNotFound)
+{
+	DWORD pid = GetCurrentProcessId();
+	Process currentProcess(pid);
+
+	EXPECT_THROW(currentProcess.FindFunctionAddress("Derp", "GetCurrentProcessId"), std::runtime_error);
+	EXPECT_THROW(currentProcess.FindFunctionAddress("KERNEL32.dll", "Derp"), std::runtime_error);
+}
+
+TEST(ProcessTests, FunctionFoundExternal)
+{
+	void* getCurrentProcessId = GetCurrentProcessId;
+
+	DWORD pid = GetCurrentProcessId();
+	Process currentProcess(pid);
+
+	Pointer actual =
+		currentProcess.FindFunctionAddress("KERNEL32.dll", "GetCurrentProcessId");
+
+	EXPECT_NE(actual, Pointer());
+
+	Pointer expected(getCurrentProcessId);
+
+	EXPECT_EQ(actual, expected);
+}
+
+TEST(ProcessTests, FunctionFoundInternal)
+{
+	void* thisFunctionActuallyExists = ThisFunctionActuallyExists;
+
+	DWORD pid = GetCurrentProcessId();
+	Process currentProcess(pid);
+
+	Pointer actual =
+		currentProcess.FindFunctionAddress("HackLibTests.exe", "ThisFunctionActuallyExists");
+
+	EXPECT_NE(actual, Pointer());
+
+	Pointer expected(thisFunctionActuallyExists);
+
+	EXPECT_EQ(actual, expected);
 }
 
 TEST(ProcessTests, ResolveSecret)
