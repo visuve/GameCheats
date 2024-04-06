@@ -69,6 +69,8 @@ std::string Prefix(const std::source_location& location)
 }
 
 Logger::Logger(std::ostream& stream, const std::source_location& location, Color color) :
+	std::ostringstream(),
+	_buffer(*this),
 	_stream(stream),
 	_color(color),
 	_isConsoleOutput(&stream == &std::cout || &stream == &std::cerr || &stream == &std::clog)

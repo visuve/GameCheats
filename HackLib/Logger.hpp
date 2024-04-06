@@ -3,7 +3,7 @@
 #include "NonCopyable.hpp"
 #include "Exceptions.hpp"
 
-class Logger
+class Logger : protected std::ostringstream
 {
 public:
 	enum class Color
@@ -47,16 +47,16 @@ public:
 		{
 			_buffer << ' ';
 
-			for (auto tag = _modifiers.cbegin(); tag != _modifiers.cend(); ++tag)
+			for (const auto& [startTag, _] : _modifiers)
 			{
-				_buffer << tag->first;
+				_buffer << startTag;
 			}
 
 			_buffer << x;
 
-			for (auto tag = _modifiers.crbegin(); tag != _modifiers.crend(); ++tag)
+			for (const auto& [_, endTag] : _modifiers)
 			{
-				_buffer << tag->second;
+				_buffer << endTag;
 			}
 
 			_modifiers.clear();
@@ -66,37 +66,48 @@ public:
 	}
 
 	template <typename T>
-	constexpr void Plain(std::string_view name, T value)
+	constexpr void Plain(std::string_view name, T value) requires std::integral<T> || std::floating_point<T>
 	{
-		// std::to_string limits to basic numerals
-		_buffer << ' ' << name << '=' << std::to_string(value);
+		*this << name << '=' << std::to_string(value);
+	}
+
+	constexpr void Plain(std::string_view name, auto value)
+	{
+		*this << name << '=' << value;
 	}
 
 	template <typename T>
-	void Hex(std::string_view name, T value) = delete;
-
-	template <>
-	void Hex(std::string_view name, uint8_t value)
+	constexpr void Hex(std::string_view name, T value) requires std::integral<T>
 	{
-		_buffer << std::format(" {} = 0x{:02X}", name, value);
+		switch (sizeof(T))
+		{
+			case 1:
+				*this << std::format("{} = 0x{:02X}", name, value);
+				return;
+			case 2:
+				*this << std::format("{} = 0x{:04X}", name, value);
+				return;
+			case 4:
+				*this << std::format("{} = 0x{:08X}", name, value);
+				return;
+			case 8:
+				*this << std::format("{} = 0x{:016X}", name, value);
+				return;
+		}
 	}
 
-	template <>
-	void Hex(std::string_view name, uint16_t value)
+	constexpr void Hex(std::string_view name, float value)
 	{
-		_buffer << std::format(" {} = 0x{:04X}", name, value);
+		union { float f; uint32_t u; } hack;
+		hack.f = value;
+		Hex(name, hack.u);
 	}
 
-	template <>
-	void Hex(std::string_view name, uint32_t value)
+	constexpr void Hex(std::string_view name, double value)
 	{
-		_buffer << std::format(" {} = 0x{:08X}", name, value);
-	}
-
-	template <>
-	void Hex(std::string_view name, uint64_t value)
-	{
-		_buffer << std::format(" {} = 0x{:016X}", name, value);
+		union { double d; uint64_t u; } hack;
+		hack.d = value;
+		Hex(name, hack.u);
 	}
 
 	template <typename T>
@@ -106,7 +117,7 @@ public:
 	}
 
 private:
-	std::stringstream _buffer;
+	std::ostringstream& _buffer;
 	std::ostream& _stream;
 	const Color _color;
 	std::vector<std::pair<std::string, std::string>> _modifiers;
