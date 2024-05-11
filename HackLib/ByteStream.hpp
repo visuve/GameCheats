@@ -26,7 +26,11 @@ public:
 	void Add(size_t n, uint8_t byte);
 
 	bool operator == (const ByteStream& other) const;
-	operator std::span<uint8_t>();
+	
+	inline operator std::span<uint8_t>()
+	{
+		return _bytes;
+	}
 
 	uint8_t& operator [](size_t i);
 	uint8_t operator [](size_t i) const;
@@ -43,6 +47,8 @@ public:
 	{
 		return _bytes.end();
 	}
+
+	void Replace(ByteStream from, ByteStream to);
 
 private:
 	std::vector<uint8_t> _bytes;

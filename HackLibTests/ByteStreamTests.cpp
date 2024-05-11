@@ -178,3 +178,48 @@ TEST(ByteStreamTests, ToStream)
 		EXPECT_STREQ(stringStream.str().c_str(), "0A 0B 0C FF - 1481632");
 	}
 }
+
+TEST(ByteStreamTests, ReplaceOne)
+{
+	ByteStream stream("00 11 22 33 44 55");
+	stream.Replace(ByteStream("22 33"), ByteStream("66 77"));
+	ASSERT_EQ(stream.Size(), 6);
+	EXPECT_EQ(stream[0], 0x00u);
+	EXPECT_EQ(stream[1], 0x11u);
+	EXPECT_EQ(stream[2], 0x66u);
+	EXPECT_EQ(stream[3], 0x77u);
+	EXPECT_EQ(stream[4], 0x44u);
+	EXPECT_EQ(stream[5], 0x55u);
+}
+
+TEST(ByteStreamTests, ReplaceMany)
+{
+	ByteStream stream("00 11 22 33 44 55 00 11 22 33 44 55");
+	stream.Replace(ByteStream("22 33"), ByteStream("66 77"));
+	ASSERT_EQ(stream.Size(), 12);
+	EXPECT_EQ(stream[0], 0x00u);
+	EXPECT_EQ(stream[1], 0x11u);
+	EXPECT_EQ(stream[2], 0x66u);
+	EXPECT_EQ(stream[3], 0x77u);
+	EXPECT_EQ(stream[4], 0x44u);
+	EXPECT_EQ(stream[5], 0x55u);
+	EXPECT_EQ(stream[6], 0x00u);
+	EXPECT_EQ(stream[7], 0x11u);
+	EXPECT_EQ(stream[8], 0x66u);
+	EXPECT_EQ(stream[9], 0x77u);
+	EXPECT_EQ(stream[10], 0x44u);
+	EXPECT_EQ(stream[11], 0x55u);
+}
+
+TEST(ByteStreamTests, ReplaceNone)
+{
+	ByteStream stream("00 11 22 33 44 55");
+	stream.Replace(ByteStream("66 77"), ByteStream("88 99"));
+	ASSERT_EQ(stream.Size(), 6);
+	EXPECT_EQ(stream[0], 0x00u);
+	EXPECT_EQ(stream[1], 0x11u);
+	EXPECT_EQ(stream[2], 0x22u);
+	EXPECT_EQ(stream[3], 0x33u);
+	EXPECT_EQ(stream[4], 0x44u);
+	EXPECT_EQ(stream[5], 0x55u);
+}

@@ -85,11 +85,6 @@ bool ByteStream::operator == (const ByteStream& other) const
 	return _bytes == other._bytes;
 }
 
-ByteStream::operator std::span<uint8_t>()
-{
-	return _bytes;
-}
-
 uint8_t& ByteStream::operator [](size_t i)
 {
 	if (i >= _bytes.size())
@@ -118,6 +113,22 @@ uint8_t* ByteStream::Data()
 size_t ByteStream::Size() const
 {
 	return _bytes.size();
+}
+
+void ByteStream::Replace(ByteStream from, ByteStream to)
+{
+	if (from.Size() != to.Size())
+	{
+		throw ArgumentException("Replacement needs to equal in size");
+	}
+
+	auto it = std::ranges::search(_bytes, from);
+
+	while (!it.empty())
+	{
+		std::copy(to.begin(), to.end(), it.begin());
+		it = std::ranges::search(_bytes, from);
+	}
 }
 
 std::ostream& operator << (std::ostream& os, const ByteStream& bs)
