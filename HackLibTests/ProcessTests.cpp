@@ -24,14 +24,24 @@ TEST(ProcessTests, Sections)
 	auto sections = current.Sections();
 
 #ifdef _WIN64
-	EXPECT_EQ(sections.size(), size_t(7));
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".pdata");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), "_RDATA");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[5].Name), ".rsrc");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[6].Name), ".reloc");
+#if (_MSC_FULL_VER >= 194435211)
+		EXPECT_EQ(sections.size(), size_t(7));
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".pdata");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".fptable");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[5].Name), ".rsrc");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[6].Name), ".reloc");
+	#else
+		EXPECT_EQ(sections.size(), size_t(6));
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".pdata");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".rsrc");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[5].Name), ".reloc");
+	#endif
 #else
 	EXPECT_EQ(sections.size(), size_t(5));
 	EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
