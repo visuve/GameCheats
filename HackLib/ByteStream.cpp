@@ -20,6 +20,11 @@ ByteStream::ByteStream(std::string&& data)
 	*this << std::move(data);
 }
 
+ByteStream::ByteStream(const Pointer& ptr) :
+	_bytes(ptr.cbegin(), ptr.cend())
+{
+}
+
 ByteStream& ByteStream::operator << (const uint8_t byte)
 {
 	_bytes.emplace_back(byte);

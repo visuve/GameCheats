@@ -10,6 +10,7 @@ public:
 	explicit ByteStream(std::span<const uint8_t> data);
 	explicit ByteStream(std::initializer_list<uint8_t> data);
 	explicit ByteStream(std::string&& data);
+	explicit ByteStream(const Pointer& ptr);
 
 	ByteStream& operator << (const uint8_t byte);
 	ByteStream& operator << (std::span<const uint8_t> data);
