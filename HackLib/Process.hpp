@@ -25,7 +25,7 @@ public:
 
 	inline Pointer Address(std::wstring_view module, size_t offset) const
 	{
-		return FindModuleEntry(module).modBaseAddr + offset;
+		return Pointer(FindModuleEntry(module).modBaseAddr) + offset;
 	}
 
 	Pointer ResolvePointer(Pointer pointer, auto ... offsets) const

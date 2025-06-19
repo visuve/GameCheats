@@ -16,7 +16,7 @@ public:
 	}
 
 	template <typename T>
-	constexpr Pointer(const T* value) requires std::is_unsigned<T>::value || std::is_void<T>::value
+	constexpr explicit Pointer(const T* value) requires std::is_unsigned<T>::value || std::is_void<T>::value
 	{
 		_internal.Value = reinterpret_cast<size_t>(value);
 	}
