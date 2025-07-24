@@ -419,7 +419,7 @@ void Process::FreeMemory(Pointer pointer)
 }
 
 #ifdef _WIN64
-Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<const uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
@@ -451,17 +451,17 @@ Pointer Process::InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code)
 	return trampoline;
 }
 
-Pointer Process::InjectX64(size_t offset, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX64(size_t offset, size_t nops, std::span<const uint8_t> code)
 {
 	return InjectX64(Address(offset), nops, code);
 }
 
-Pointer Process::InjectX64(std::wstring_view module, size_t offset, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX64(std::wstring_view module, size_t offset, size_t nops, std::span<const uint8_t> code)
 {
 	return InjectX64(Address(module, offset), nops, code);
 }
 #else
-Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<const uint8_t> code)
 {
 	const size_t codeSize = code.size_bytes();
 	const size_t bytesRequired = codeSize + JumpOpSize;
@@ -494,12 +494,12 @@ Pointer Process::InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code)
 }
 
 
-Pointer Process::InjectX86(size_t from, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX86(size_t from, size_t nops, std::span<const uint8_t> code)
 {
 	return InjectX86(Address(from), nops, code);
 }
 
-Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops, std::span<uint8_t> code)
+Pointer Process::InjectX86(std::wstring_view module, size_t offset, size_t nops, std::span<const uint8_t> code)
 {
 	return InjectX86(Address(module, offset), nops, code);
 }

@@ -107,12 +107,12 @@ public:
 		Write<T>(Address(offset), value);
 	}
 
-	inline void WriteBytes(Pointer pointer, std::span<uint8_t> bytes) const
+	inline void WriteBytes(Pointer pointer, std::span<const uint8_t> bytes) const
 	{
 		Write(pointer, bytes.data(), bytes.size_bytes());
 	}
 
-	inline void WriteBytes(size_t offset, std::span<uint8_t> bytes) const
+	inline void WriteBytes(size_t offset, std::span<const uint8_t> bytes) const
 	{
 		WriteBytes(Address(offset), bytes);
 	}
@@ -142,7 +142,7 @@ public:
 		Write(from, filler.data(), bytes);
 	}
 
-	inline void ChangeByte(Pointer pointer, uint8_t from, uint8_t to)
+	inline void ChangeByte(Pointer pointer, uint8_t from, uint8_t to) const
 	{
 		const uint8_t current = Read<uint8_t>(pointer);
 
@@ -158,15 +158,15 @@ public:
 		Write<uint8_t>(pointer, to);
 	}
 
-	inline void ChangeByte(size_t offset, uint8_t from, uint8_t to)
+	inline void ChangeByte(size_t offset, uint8_t from, uint8_t to) const
 	{
 		ChangeByte(Address(offset), from, to);
 	}
 
 	inline void ChangeBytes(
 		Pointer pointer,
-		std::span<uint8_t> from,
-		std::span<uint8_t> to) const
+		std::span<const uint8_t> from,
+		std::span<const uint8_t> to) const
 	{
 		_ASSERT_EXPR(from.size() == to.size(), L"Expected and replacement differ in size!");
 
@@ -189,8 +189,8 @@ public:
 
 	inline void ChangeBytes(
 		size_t offset,
-		std::span<uint8_t> from,
-		std::span<uint8_t> to) const
+		std::span<const uint8_t> from,
+		std::span<const uint8_t> to) const
 	{
 		ChangeBytes(Address(offset), from, to);
 	}
@@ -198,8 +198,8 @@ public:
 	inline void ChangeBytes(
 		std::wstring_view module,
 		size_t offset,
-		std::span<uint8_t> from,
-		std::span<uint8_t> to) const
+		std::span<const uint8_t> from,
+		std::span<const uint8_t> to) const
 	{
 		ChangeBytes(Address(module, offset), from, to);
 	}
@@ -244,9 +244,9 @@ public:
 	// so far away, that a relative "x86 jump" will not do.
 	// In x86 I could not get absolute jumps to work.
 #ifdef _WIN64
-	Pointer InjectX64(Pointer origin, size_t nops, std::span<uint8_t> code);
-	Pointer InjectX64(size_t offset, size_t nops, std::span<uint8_t> code);
-	Pointer InjectX64(std::wstring_view module, size_t offset, size_t nops, std::span<uint8_t> code);
+	Pointer InjectX64(Pointer origin, size_t nops, std::span<const uint8_t> code);
+	Pointer InjectX64(size_t offset, size_t nops, std::span<const uint8_t> code);
+	Pointer InjectX64(std::wstring_view module, size_t offset, size_t nops, std::span<const uint8_t> code);
 
 	static constexpr size_t JumpOpSize = 14;
 
@@ -259,21 +259,21 @@ public:
 		};
 	}
 
-	inline std::array<uint8_t, JumpOpSize> JumpAbsolute(size_t offset)
+	inline std::array<uint8_t, JumpOpSize> JumpAbsolute(size_t offset) const
 	{
 		return JumpAbsolute(Address(offset));
 	}
 
-	inline std::array<uint8_t, CallOpSize> CallOp(size_t from, Pointer to)
+	inline std::array<uint8_t, CallOpSize> CallOp(size_t from, Pointer to) const
 	{
 		Pointer dst(to - (Address(from) + CallOpSize));
 		_ASSERT_EXPR(dst < 0xFFFFFFFF, L"Will not fit in a call op");
 		return { 0xFF, 0x15, dst[0], dst[1], dst[2], dst[3] };
 	}
 #else
-	Pointer InjectX86(Pointer origin, size_t nops, std::span<uint8_t> code);
-	Pointer InjectX86(size_t offset, size_t nops, std::span<uint8_t> code);
-	Pointer InjectX86(std::wstring_view module, size_t offset, size_t nops, std::span<uint8_t> code);
+	Pointer InjectX86(Pointer origin, size_t nops, std::span<const uint8_t> code);
+	Pointer InjectX86(size_t offset, size_t nops, std::span<const uint8_t> code);
+	Pointer InjectX86(std::wstring_view module, size_t offset, size_t nops, std::span<const uint8_t> code);
 
 	static constexpr size_t JumpOpSize = 5;
 
