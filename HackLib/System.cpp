@@ -235,19 +235,21 @@ DWORD System::WaitForWindow(std::wstring_view name)
 	throw Win32Exception("WaitForSingleObject", waitResult);
 }
 
-size_t System::PageSize()
+SYSTEM_INFO System::SystemInfo()
 {
-	static size_t pageSize = 0;
+	static SYSTEM_INFO systemInfo = {};
 
-	if (pageSize == 0)
+	if (!systemInfo.dwPageSize)
 	{
-		SYSTEM_INFO systemInfo;
-		Clear(systemInfo);
 		GetSystemInfo(&systemInfo);
-		pageSize = systemInfo.dwPageSize;
 	}
 
-	return pageSize;
+	return systemInfo;
+}
+
+size_t System::PageSize()
+{
+	return SystemInfo().dwPageSize;
 }
 
 std::string System::GenerateGuid()

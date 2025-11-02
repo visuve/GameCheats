@@ -12,6 +12,21 @@ extern "C" void FindFunctionAsm();
 extern "C" void FindFunctionAsm();
 #endif
 
+constexpr bool IsReadable(const MEMORY_BASIC_INFORMATION& mbi)
+{
+	if (mbi.State != MEM_COMMIT)
+	{
+		return false;
+	}
+
+	return (mbi.Protect & PAGE_READONLY) ||
+		(mbi.Protect & PAGE_READWRITE) ||
+		(mbi.Protect & PAGE_WRITECOPY) ||
+		(mbi.Protect & PAGE_EXECUTE_READ) ||
+		(mbi.Protect & PAGE_EXECUTE_READWRITE) ||
+		(mbi.Protect & PAGE_EXECUTE_WRITECOPY);
+}
+
 Process::Process(DWORD pid) :
 	_pid(pid),
 	_baseAddress(System::ModuleEntryByPid(pid).modBaseAddr),
@@ -304,6 +319,57 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 	}
 
 	throw RuntimeException("Unknown error in remote thread");
+}
+
+Pointer Process::FindBytes(std::span<const uint8_t> pattern) const
+{
+	Pointer address = _baseAddress;
+	MEMORY_BASIC_INFORMATION mbi;
+	Clear(mbi);
+
+	const SYSTEM_INFO info = System::SystemInfo();
+
+	const auto isValid = [&info](const Pointer& startAddress, const MEMORY_BASIC_INFORMATION& mbi)->bool
+	{
+		const bool validSize = mbi.RegionSize && mbi.RegionSize % info.dwPageSize == 0;
+		const size_t minAddress = reinterpret_cast<size_t>(info.lpMinimumApplicationAddress);
+		const size_t maxAddress = reinterpret_cast<size_t>(info.lpMaximumApplicationAddress);
+		const Pointer endAddress = startAddress + mbi.RegionSize;
+		
+		if (validSize && startAddress > minAddress && endAddress < maxAddress)
+		{
+			return true;
+		}
+
+		LogDebug << "Invalid region at" << startAddress << "of size" << mbi.RegionSize;
+		return false;
+	};
+
+	do
+	{
+		address += mbi.RegionSize; // Advance to next region
+		mbi = _targetProcess.VirtualQueryEx(address);
+
+		if (!IsReadable(mbi))
+		{
+			LogDebug << "Unreadable region" << Pointer(mbi.BaseAddress) << "of size" << mbi.RegionSize;
+			continue;
+		}
+
+		const Pointer regionBase(mbi.BaseAddress);
+		const std::vector<uint8_t> data = ReadBytes(regionBase, mbi.RegionSize);
+		const auto it = std::search(data.cbegin(), data.cend(), pattern.begin(), pattern.end());
+
+		if (it != data.end())
+		{
+			size_t offset = std::distance(data.begin(), it);
+
+			return regionBase + offset;
+		}
+
+	} while (isValid(address, mbi));
+
+	throw RangeException("Bytes not found");
 }
 
 Pointer Process::AllocateMemory(size_t size)

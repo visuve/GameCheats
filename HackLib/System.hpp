@@ -9,6 +9,7 @@ namespace System
 	DWORD WaitForExe(std::wstring_view name);
 	DWORD WaitForWindow(std::wstring_view name);
 
+	SYSTEM_INFO SystemInfo();
 	size_t PageSize();
 
 	// NOTE: probably not the most secure, 

@@ -1,4 +1,5 @@
 #include "Process.hpp"
+#include "ByteStream.hpp"
 
 extern "C" __declspec(dllexport) int ThisFunctionActuallyExists(int x)
 {
@@ -125,6 +126,24 @@ TEST(ProcessTests, FunctionFoundInternal)
 	Pointer expected(thisFunctionActuallyExists);
 
 	EXPECT_EQ(actual, expected);
+}
+
+TEST(ProcessTest, FindBytes)
+{
+	DWORD pid = GetCurrentProcessId();
+	Process currentProcess(pid);
+
+	// Found
+	{
+		ByteStream pattern("41 63 74 75 61 6C 6C 79 45 78 69 73 74 73");
+		Pointer address = currentProcess.FindBytes(pattern);
+		EXPECT_NE(address, Pointer());
+	}
+	// Not found
+	{
+		ByteStream pattern("DD EE AA DD BB EE EE FF");
+		EXPECT_THROW(currentProcess.FindBytes(pattern), std::range_error);
+	}
 }
 
 TEST(ProcessTests, ResolveSecret)
