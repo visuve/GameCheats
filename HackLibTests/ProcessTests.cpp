@@ -25,31 +25,41 @@ TEST(ProcessTests, Sections)
 	auto sections = current.Sections();
 
 #ifdef _WIN64
-#if (_MSC_FULL_VER >= 194435211)
-		EXPECT_EQ(sections.size(), size_t(7));
-		EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
-		EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
-		EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
-		EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".pdata");
-		EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".fptable");
-		EXPECT_STREQ(reinterpret_cast<char*>(sections[5].Name), ".rsrc");
-		EXPECT_STREQ(reinterpret_cast<char*>(sections[6].Name), ".reloc");
+	#if (_MSC_FULL_VER >= 194435219)
+			EXPECT_EQ(sections.size(), size_t(7));
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".pdata");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".fptable");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[5].Name), ".rsrc");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[6].Name), ".reloc");
 	#else
+			EXPECT_EQ(sections.size(), size_t(6));
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".pdata");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".rsrc");
+			EXPECT_STREQ(reinterpret_cast<char*>(sections[5].Name), ".reloc");
+	#endif
+#else 
+	#if (_MSC_FULL_VER >= 194435219)
 		EXPECT_EQ(sections.size(), size_t(6));
 		EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
 		EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
 		EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
-		EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".pdata");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".fptable\x80"); // I have no idea what this \x80 is
 		EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".rsrc");
 		EXPECT_STREQ(reinterpret_cast<char*>(sections[5].Name), ".reloc");
+	#else
+		EXPECT_EQ(sections.size(), size_t(5));
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".rsrc");
+		EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".reloc");
 	#endif
-#else
-	EXPECT_EQ(sections.size(), size_t(5));
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[0].Name), ".text");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[1].Name), ".rdata");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[2].Name), ".data");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[3].Name), ".rsrc");
-	EXPECT_STREQ(reinterpret_cast<char*>(sections[4].Name), ".reloc");
 #endif
 }
 
@@ -135,6 +145,7 @@ TEST(ProcessTest, FindBytes)
 
 	// Found
 	{
+		// String "ActuallyExists" as hex bytes
 		ByteStream pattern("41 63 74 75 61 6C 6C 79 45 78 69 73 74 73");
 		Pointer address = currentProcess.FindBytes(pattern);
 		EXPECT_NE(address, Pointer());

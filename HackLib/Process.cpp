@@ -19,6 +19,11 @@ constexpr bool IsReadable(const MEMORY_BASIC_INFORMATION& mbi)
 		return false;
 	}
 
+	if (mbi.Type == MEM_PRIVATE)
+	{
+		return false;
+	}
+
 	return (mbi.Protect & PAGE_READONLY) ||
 		(mbi.Protect & PAGE_READWRITE) ||
 		(mbi.Protect & PAGE_WRITECOPY) ||
@@ -341,7 +346,7 @@ Pointer Process::FindBytes(std::span<const uint8_t> pattern) const
 			return true;
 		}
 
-		LogDebug << "Invalid region at" << startAddress << "of size" << mbi.RegionSize;
+		LogDebug << "Invalid region" << startAddress << '-' << (startAddress + mbi.RegionSize);
 		return false;
 	};
 
@@ -350,21 +355,22 @@ Pointer Process::FindBytes(std::span<const uint8_t> pattern) const
 		address += mbi.RegionSize; // Advance to next region
 		mbi = _targetProcess.VirtualQueryEx(address);
 
+		const Pointer regionStart(mbi.BaseAddress);
+
 		if (!IsReadable(mbi))
 		{
-			LogDebug << "Unreadable region" << Pointer(mbi.BaseAddress) << "of size" << mbi.RegionSize;
+			LogDebug << "Unreadable region" << regionStart << '-' << (regionStart + mbi.RegionSize);
 			continue;
 		}
 
-		const Pointer regionBase(mbi.BaseAddress);
-		const std::vector<uint8_t> data = ReadBytes(regionBase, mbi.RegionSize);
+		const std::vector<uint8_t> data = ReadBytes(regionStart, mbi.RegionSize);
 		const auto it = std::search(data.cbegin(), data.cend(), pattern.begin(), pattern.end());
 
 		if (it != data.end())
 		{
 			size_t offset = std::distance(data.begin(), it);
 
-			return regionBase + offset;
+			return regionStart + offset;
 		}
 
 	} while (isValid(address, mbi));
