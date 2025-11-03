@@ -21,13 +21,18 @@ public:
 	class Argument
 	{
 	public:
-		Argument(const std::string& key, const std::type_index type, const std::string& description);
+		Argument(
+			const std::string& key,
+			const std::type_index type,
+			const std::string& description,
+			bool required = false);
 
 		bool Parse(std::string_view value);
 
 		const std::string Key;
 		const std::type_index Type;
 		const std::string Description;
+		const bool Required;
 		std::any Value;
 	};
 
@@ -45,6 +50,11 @@ public:
 		if (it == _arguments.cend())
 		{
 			throw CommandLine::Exception("Unknown key", _usage);
+		}
+
+		if (!it->Value.has_value())
+		{
+			throw CommandLine::Exception("Missing value", _usage);
 		}
 
 		return std::any_cast<T>(it->Value);

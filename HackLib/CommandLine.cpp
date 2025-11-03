@@ -19,6 +19,83 @@ const char* CommandLine::Exception::what() const throw ()
 	return _what.c_str();
 }
 
+CommandLine::Argument::Argument(
+	const std::string& key,
+	const std::type_index type,
+	const std::string& description,
+	bool required) :
+	Key(key),
+	Type(type),
+	Description(description),
+	Required(required)
+{
+}
+
+bool CommandLine::Argument::Parse(std::string_view value)
+{
+	if (!value.starts_with(Key))
+	{
+		// This odd case should never occurr
+		return false;
+	}
+
+	if (Type == typeid(std::nullopt))
+	{
+		if (value == Key)
+		{
+			Value = true;
+			return true;
+		}
+
+		return false;
+	}
+
+	try
+	{
+		value.remove_prefix(Key.size());
+
+		if (value.empty() || value.front() != L'=')
+		{
+			return false;
+		}
+
+		value.remove_prefix(1);
+
+		if (Type == typeid(std::filesystem::path))
+		{
+			Value = std::filesystem::path(value);
+		}
+		else if (Type == typeid(double))
+		{
+			Value = std::stod(value.data());
+		}
+		else if (Type == typeid(float))
+		{
+			Value = std::stof(value.data());
+		}
+		else if (Type == typeid(int))
+		{
+			Value = std::stoi(value.data());
+		}
+		else if (Type == typeid(std::string))
+		{
+			Value = std::string(value);
+		}
+		else
+		{
+			// Unsupported type
+			return false;
+		}
+	}
+	catch (const std::exception&)
+	{
+		// Probably a stod, stof or stoi failure
+		return false;
+	}
+
+	return true;
+}
+
 std::ostream& operator << (std::ostream& stream, const CommandLine::Argument& argument)
 {
 	stream << std::left << std::setw(20);
@@ -55,69 +132,6 @@ std::ostream& operator << (std::ostream& stream, const CommandLine::Argument& ar
 	return stream << argument.Description;
 }
 
-CommandLine::Argument::Argument(const std::string& key, const std::type_index type, const std::string& description) :
-	Key(key),
-	Type(type),
-	Description(description)
-{
-}
-
-bool CommandLine::Argument::Parse(std::string_view value)
-{
-	if (!value.starts_with(Key))
-	{
-		// This odd case should never occurr
-		return false;
-	}
-
-	if (Type == typeid(std::nullopt))
-	{
-		if (value == Key)
-		{
-			Value = true;
-			return true;
-		}
-
-		return false;
-	}
-
-	value.remove_prefix(Key.size());
-
-	if (value.empty() || value.front() != L'=')
-	{
-		return false;
-	}
-
-	value.remove_prefix(1);
-
-	if (Type == typeid(std::filesystem::path))
-	{
-		Value = std::filesystem::path(value);
-	}
-	else if (Type == typeid(double))
-	{
-		Value = std::stod(value.data());
-	}
-	else if (Type == typeid(float))
-	{
-		Value = std::stof(value.data());
-	}
-	else if (Type == typeid(int))
-	{
-		Value = std::stoi(value.data());
-	}
-	else if (Type == typeid(std::string))
-	{
-		Value = std::string(value);
-	}
-	else
-	{
-		return false;
-	}
-
-	return true;
-}
-
 CommandLine::CommandLine(const std::vector<std::string>& given, std::initializer_list<Argument> expected) :
 	_arguments(expected)
 {
@@ -126,13 +140,28 @@ CommandLine::CommandLine(const std::vector<std::string>& given, std::initializer
 	usage << std::filesystem::path(given[0]).stem().string();
 	usage << " - usage:\n\n " << given[0] << std::endl;
 
-	for (const Argument& argument : _arguments)
-	{
-		usage << "  " << argument << std::endl;
-	}
-
+	size_t required = 0;
 	size_t valid = 0;
 	size_t invalid = 0;
+
+	for (const Argument& argument : _arguments)
+	{
+		usage << "  ";
+
+		if (argument.Required)
+		{
+			++required;
+		}
+
+		if (required)
+		{
+			usage << (argument.Required ? "[required]  " : "[optional]  ");
+		}
+
+		usage << argument << std::endl;
+	}
+
+	std::vector<std::string> skipWarning;
 
 	// Intentionally skip the first
 	for (size_t i = 1; i < given.size(); ++i)
@@ -160,11 +189,30 @@ CommandLine::CommandLine(const std::vector<std::string>& given, std::initializer
 			usage << "\n  Argument \"" << kvp
 				<< "\" could not be parsed." << std::endl;
 
+			if (it->Required)
+			{
+				skipWarning.emplace_back(it->Key);
+			}
+
 			++invalid;
 			continue;
 		}
 
 		++valid;
+	}
+
+	for (const Argument& argument : _arguments)
+	{
+		if (std::find(skipWarning.cbegin(), skipWarning.cend(), argument.Key) != skipWarning.cend())
+		{
+			continue;
+		}
+
+		if (argument.Required && !argument.Value.has_value())
+		{
+			usage << "\n  Argument \"" << argument.Key
+				<< "\" is missing." << std::endl;
+		}
 	}
 
 	_usage = usage.str();
@@ -174,7 +222,7 @@ CommandLine::CommandLine(const std::vector<std::string>& given, std::initializer
 		throw CommandLine::Exception("Invalid arguments", _usage);
 	}
 
-	if (valid == 0)
+	if (valid == 0 || valid < required)
 	{
 		throw CommandLine::Exception("Missing arguments", _usage);
 	}
