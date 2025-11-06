@@ -1,5 +1,5 @@
-#include "Exceptions.hpp"
 #include "StrConvert.hpp"
+#include "Exceptions.hpp"
 
 std::string StrConvert::ToUtf8(const std::wstring_view str)
 {
@@ -63,6 +63,13 @@ std::wstring StrConvert::ToUtf8(const std::string_view str)
 	_ASSERT(result.size() == static_cast<size_t>(required));
 
 	return result;
+}
+
+bool StrConvert::IEquals(char a, char b)
+{
+	// https://en.cppreference.com/w/cpp/string/byte/tolower#Notes
+	return std::tolower(static_cast<uint8_t>(a)) ==
+		std::tolower(static_cast<uint8_t>(b));
 }
 
 bool StrConvert::IEquals(std::string_view a, std::string_view b)
