@@ -120,6 +120,26 @@ size_t ByteStream::Size() const
 	return _bytes.size();
 }
 
+ByteStream::operator std::string() const
+{
+	const size_t required = (_bytes.size() * 2) + (_bytes.size() - 1);
+	std::string result(required, ' ');
+
+	std::string::iterator it = result.begin();
+
+	for (uint8_t byte : _bytes)
+	{
+		it = std::format_to(it, "{:02X}", byte);
+
+		if (it != result.end())
+		{
+			++it; // Skip the space
+		}
+	}
+
+	return result;
+}
+
 void ByteStream::Replace(ByteStream from, ByteStream to)
 {
 	if (from.Size() != to.Size())
@@ -138,13 +158,5 @@ void ByteStream::Replace(ByteStream from, ByteStream to)
 
 std::ostream& operator << (std::ostream& os, const ByteStream& bs)
 {
-	char separator[2] = "";
-
-	for (uint8_t byte : bs)
-	{
-		os << separator << std::format("{:02X}", byte);
-		separator[0] = ' ';
-	}
-
-	return os;
+	return os << std::string(bs);
 }

@@ -49,6 +49,8 @@ public:
 		return _bytes.end();
 	}
 
+	operator std::string() const;
+
 	void Replace(ByteStream from, ByteStream to);
 
 private:
