@@ -8,7 +8,7 @@ public:
 	Wildcard(std::string_view wildcard);
 	virtual ~Wildcard();
 
-	bool Matches(std::string_view text);
+	bool Matches(std::string_view text) const;
 protected:
 	const std::string _wildcard;
 };

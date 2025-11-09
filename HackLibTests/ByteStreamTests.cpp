@@ -158,8 +158,35 @@ TEST(ByteStreamTests, FromGoo)
 	EXPECT_THROW(stream << "FF\tFF", std::invalid_argument);
 }
 
-TEST(ByteStreamTests, ToStream)
+TEST(ByteStreamTests, ToString)
 {
+	{
+		EXPECT_STREQ(std::string(ByteStream({ 0x00 })).c_str(), "00");
+		EXPECT_STREQ(std::string(ByteStream({ 0xF0 })).c_str(), "F0");
+		EXPECT_STREQ(std::string(ByteStream({ 0x0F })).c_str(), "0F");
+		EXPECT_STREQ(std::string(ByteStream({ 0xFF })).c_str(), "FF");
+
+		EXPECT_STREQ(std::string(ByteStream({ 0xBE, 0xEF })).c_str(), "BE EF");
+
+		ByteStream stream({ 0xBB, 0xEE, 0xEE, 0xFF });
+		EXPECT_STREQ(std::string(stream).c_str(), "BB EE EE FF");
+	}
+	{
+		ByteStream stream(
+		{
+			0x00, 0x11, 0x22, 0x33,
+			0x44, 0x55, 0x66, 0x77,
+			0x88, 0x99, 0xAA, 0xBB,
+			0xCC, 0xDD, 0xEE, 0xFF,
+			0x00, 0x11, 0x22, 0x33,
+			0x44, 0x55, 0x66, 0x77,
+			0x88, 0x99, 0xAA, 0xBB,
+			0xCC, 0xDD, 0xEE, 0xFF
+		});
+		EXPECT_STREQ(std::string(stream).c_str(),
+			"00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF "
+			"00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF");
+	}
 	{
 		std::stringstream stringStream;
 		stringStream << ByteStream({ 0xFF });
