@@ -1,7 +1,7 @@
 #include "Process.hpp"
 #include "ByteStream.hpp"
 #include "SHA256.hpp"
-#include "StrConvert.hpp"
+#include "Strings.hpp"
 #include "Win32Thread.hpp"
 #include "Win32Event.hpp"
 #include "TypeHelp.hpp"
@@ -242,7 +242,7 @@ IMAGE_IMPORT_DESCRIPTOR Process::FindImportDescriptor(std::string_view moduleNam
 		Read(Address(iid.Name), buffer.data(), buffer.size());
 
 		// Cast to .c_str() because the buffer contains trailing nulls
-		if (StrConvert::IEquals(moduleName, buffer.c_str()))
+		if (Strings::IEquals(moduleName, buffer.c_str()))
 		{
 			return iid;
 		}
@@ -275,7 +275,7 @@ Pointer Process::FindImportEntry(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view f
 		Read(Address(thunk.u1.AddressOfData + 2), buffer.data(), buffer.size());
 
 		// Cast to .c_str() because the buffer contains trailing nulls
-		if (StrConvert::IEquals(functionName, buffer.c_str()))
+		if (Strings::IEquals(functionName, buffer.c_str()))
 		{
 			return thunkPtr - offset;
 		}

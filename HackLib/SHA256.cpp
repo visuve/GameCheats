@@ -1,7 +1,7 @@
 #include "SHA256.hpp"
 #include "Exceptions.hpp"
 #include "Logger.hpp"
-#include "StrConvert.hpp"
+#include "Strings.hpp"
 
 SHA256::SHA256(const std::filesystem::path& path) :
 	SHA256()
@@ -38,7 +38,7 @@ bool SHA256::operator == (std::string_view expected) const
 
 	std::string actual = Value();
 
-	if (!StrConvert::IEquals(expected, actual))
+	if (!Strings::IEquals(expected, actual))
 	{
 		LogError << "Expected " << expected << ", got " << actual;
 		return false;

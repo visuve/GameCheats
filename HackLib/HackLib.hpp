@@ -12,7 +12,7 @@
 #include "Process.hpp"
 #include "Registry.hpp"
 #include "SHA256.hpp"
-#include "StrConvert.hpp"
+#include "Strings.hpp"
 #include "System.hpp"
 #include "Variable.hpp"
 #include "VirtualMemory.hpp"

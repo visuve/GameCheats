@@ -2,7 +2,7 @@
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "Pointer.hpp"
-#include "StrConvert.hpp"
+#include "Strings.hpp"
 #include "Win32File.hpp"
 
 inline std::ostream& operator << (std::ostream& os, const MZ::Header& mh)
@@ -386,7 +386,7 @@ namespace PE
 
 			std::string importedLibraryName = ReadAtUntil(libraryNamePosition, '\0');
 
-			if (!StrConvert::IEquals(importedLibraryName, libraryName))
+			if (!Strings::IEquals(importedLibraryName, libraryName))
 			{
 				LogDebug << "Skipped: " << importedLibraryName;
 				continue;

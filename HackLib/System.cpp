@@ -2,8 +2,7 @@
 #include "Exceptions.hpp"
 #include "Logger.hpp"
 #include "NonCopyable.hpp"
-#include "StrConvert.hpp"
-#include "System.hpp"
+#include "Strings.hpp"
 #include "Win32Handle.hpp"
 #include "Win32Event.hpp"
 
@@ -100,7 +99,7 @@ DWORD System::PidByName(std::wstring_view moduleName)
 	if (!result.has_value())
 	{
 		throw RangeException(
-			std::format("Process \"{}\" not found", StrConvert::ToUtf8(moduleName)));
+			std::format("Process \"{}\" not found", Strings::ToUtf8(moduleName)));
 	}
 
 	return result.value().th32ProcessID;
@@ -151,7 +150,7 @@ MODULEENTRY32W System::ModuleEntryByName(DWORD pid, std::wstring_view name)
 	if (!result.has_value())
 	{
 		throw RangeException(
-			std::format("Module \"{}\" not found", StrConvert::ToUtf8(name)));
+			std::format("Module \"{}\" not found", Strings::ToUtf8(name)));
 	}
 
 	return result.value();
@@ -180,7 +179,7 @@ DWORD System::WaitForExe(std::wstring_view name)
 			return result.value().th32ProcessID;
 		}
 
-		LogInfo << "Process" << Logger::Modifier::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
+		LogInfo << "Process" << Logger::Modifier::Quoted << Strings::ToUtf8(name) << "has not appeared yet..." ;
 
 		waitResult = event.Wait(1000ms);
 
@@ -221,7 +220,7 @@ DWORD System::WaitForWindow(std::wstring_view name)
 			return pid;
 		}
 
-		LogInfo << "Window" << Logger::Modifier::Quoted << StrConvert::ToUtf8(name) << "has not appeared yet..." ;
+		LogInfo << "Window" << Logger::Modifier::Quoted << Strings::ToUtf8(name) << "has not appeared yet..." ;
 
 		waitResult = event.Wait(1000ms);
 

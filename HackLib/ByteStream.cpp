@@ -1,4 +1,5 @@
 #include "ByteStream.hpp"
+#include "Strings.hpp"
 
 ByteStream::ByteStream(size_t size, uint8_t byte) :
 	_bytes(size, byte)
@@ -49,11 +50,6 @@ ByteStream& ByteStream::operator << (std::string&& bytes)
 
 	std::string raw;
 
-	constexpr auto notDigit = [](char c)->bool
-	{
-		return !std::isxdigit(c);
-	};
-
 	while (std::getline(stream, raw, ' '))
 	{
 		if (raw.length() != 2)
@@ -62,7 +58,7 @@ ByteStream& ByteStream::operator << (std::string&& bytes)
 				"Arguments have to be between 00-FF (zero padded) and separated with space");
 		}
 
-		if (std::any_of(raw.cbegin(), raw.cend(), notDigit))
+		if (!Strings::IsAlphaNumeric(raw[0]) || !Strings::IsAlphaNumeric(raw[1]))
 		{
 			throw ArgumentException("Only hexadecimal characters accepted");
 		}

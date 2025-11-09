@@ -1,7 +1,7 @@
-#include "StrConvert.hpp"
+#include "Strings.hpp"
 #include "Exceptions.hpp"
 
-std::string StrConvert::ToUtf8(const std::wstring_view str)
+std::string Strings::ToUtf8(const std::wstring_view str)
 {
 	int required = WideCharToMultiByte(
 		CP_UTF8,
@@ -35,7 +35,7 @@ std::string StrConvert::ToUtf8(const std::wstring_view str)
 	return result;
 }
 
-std::wstring StrConvert::ToUtf8(const std::string_view str)
+std::wstring Strings::ToUtf8(const std::string_view str)
 {
 	int required = MultiByteToWideChar(
 		CP_UTF8,
@@ -65,14 +65,14 @@ std::wstring StrConvert::ToUtf8(const std::string_view str)
 	return result;
 }
 
-bool StrConvert::IEquals(char a, char b)
+bool Strings::IEquals(char a, char b)
 {
 	// https://en.cppreference.com/w/cpp/string/byte/tolower#Notes
 	return std::tolower(static_cast<uint8_t>(a)) ==
 		std::tolower(static_cast<uint8_t>(b));
 }
 
-bool StrConvert::IEquals(std::string_view a, std::string_view b)
+bool Strings::IEquals(std::string_view a, std::string_view b)
 {
 	if (a.size() != b.size())
 	{
