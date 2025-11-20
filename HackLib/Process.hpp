@@ -222,7 +222,9 @@ public:
 	Pointer FindImportEntry(IMAGE_IMPORT_DESCRIPTOR iid, std::string_view functionName) const;
 	Pointer FindImportAddress(std::string_view moduleName, std::string_view functionName) const;
 	Pointer FindFunctionAddress(std::string_view moduleName, std::string_view functionName);
-	Pointer FindBytes(std::span<const uint8_t> pattern) const;
+
+	Pointer FindBytes(std::function<std::optional<size_t>(std::span<const uint8_t>)> matcher) const;
+	Pointer FindBytes(std::span<const uint8_t> needle) const;
 
 	Pointer AllocateMemory(size_t size);
 

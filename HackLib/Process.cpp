@@ -326,7 +326,7 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 	throw RuntimeException("Unknown error in remote thread");
 }
 
-Pointer Process::FindBytes(std::span<const uint8_t> pattern) const
+Pointer Process::FindBytes(std::function<std::optional<size_t>(std::span<const uint8_t>)> matcher) const
 {
 	Pointer address = _baseAddress;
 	MEMORY_BASIC_INFORMATION mbi;
@@ -340,7 +340,7 @@ Pointer Process::FindBytes(std::span<const uint8_t> pattern) const
 		const size_t minAddress = reinterpret_cast<size_t>(info.lpMinimumApplicationAddress);
 		const size_t maxAddress = reinterpret_cast<size_t>(info.lpMaximumApplicationAddress);
 		const Pointer endAddress = startAddress + mbi.RegionSize;
-		
+
 		if (validSize && startAddress > minAddress && endAddress < maxAddress)
 		{
 			return true;
@@ -364,18 +364,34 @@ Pointer Process::FindBytes(std::span<const uint8_t> pattern) const
 		}
 
 		const std::vector<uint8_t> data = ReadBytes(regionStart, mbi.RegionSize);
-		const auto it = std::search(data.cbegin(), data.cend(), pattern.begin(), pattern.end());
 
-		if (it != data.end())
+		const std::optional<size_t> offset = matcher(data);
+
+		if (offset.has_value())
 		{
-			size_t offset = std::distance(data.begin(), it);
-
-			return regionStart + offset;
+			return regionStart + offset.value();
 		}
 
 	} while (isValid(address, mbi));
 
 	throw RangeException("Bytes not found");
+}
+
+Pointer Process::FindBytes(std::span<const uint8_t> needle) const
+{
+	const auto matcher = [&needle](std::span<const uint8_t> haystack)->std::optional<size_t>
+	{
+		const auto it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end());
+		
+		if (it == haystack.end())
+		{
+			return std::nullopt;
+		}
+
+		return std::distance(haystack.begin(), it);
+	};
+
+	return FindBytes(matcher);
 }
 
 Pointer Process::AllocateMemory(size_t size)
