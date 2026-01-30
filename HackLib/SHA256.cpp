@@ -49,15 +49,7 @@ bool SHA256::operator == (std::string_view expected) const
 
 std::string SHA256::Value() const
 {
-	std::string hash;
-	hash.reserve(HashCharacters);
-
-	for (uint8_t x : _hashData)
-	{
-		std::format_to(std::back_inserter(hash), "{:02X}", x);
-	}
-
-	return hash;
+	return Strings::ToHex(_hashData);
 }
 
 SHA256::SHA256()

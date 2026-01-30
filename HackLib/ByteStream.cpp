@@ -58,7 +58,7 @@ ByteStream& ByteStream::operator << (std::string&& bytes)
 				"Arguments have to be between 00-FF (zero padded) and separated with space");
 		}
 
-		if (!Strings::IsAlphaNumeric(raw[0]) || !Strings::IsAlphaNumeric(raw[1]))
+		if (!Strings::IsHex(raw[0]) || !Strings::IsHex(raw[1]))
 		{
 			throw ArgumentException("Only hexadecimal characters accepted");
 		}
@@ -118,22 +118,7 @@ size_t ByteStream::Size() const
 
 ByteStream::operator std::string() const
 {
-	const size_t required = (_bytes.size() * 2) + (_bytes.size() - 1);
-	std::string result(required, ' ');
-
-	std::string::iterator it = result.begin();
-
-	for (uint8_t byte : _bytes)
-	{
-		it = std::format_to(it, "{:02X}", byte);
-
-		if (it != result.end())
-		{
-			++it; // Skip the space
-		}
-	}
-
-	return result;
+	return Strings::ToHex(_bytes, ' ');
 }
 
 void ByteStream::Replace(ByteStream from, ByteStream to)
