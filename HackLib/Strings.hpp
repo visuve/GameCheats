@@ -9,15 +9,17 @@ namespace Strings
 
 	constexpr bool IsHex(char c)
 	{
-		const uint8_t uc = static_cast<uint8_t>(c);
-		return ((uc - '0') < 10u) + (((uc | 0x20u) - 'a') < 6u);
+		const uint32_t uc = static_cast<uint32_t>(c);
+		const uint32_t isNumber = (~(uc - 48u) & (uc - 58u)) >> 31;
+		const uint32_t isUpperAlpha = (~(uc - 65u) & (uc - 71u)) >> 31;
+		return static_cast<bool>(isNumber | isUpperAlpha);
 	}
 
 	constexpr uint8_t ValueFromNibble(char nibble)
 	{
 		if (!IsHex(nibble))
 		{
-			throw ArgumentException("Value must be 0-9, A-F or a-F");
+			throw ArgumentException("Value must be 0-9, A-F");
 		}
 
 		const uint8_t un = static_cast<uint8_t>(nibble);

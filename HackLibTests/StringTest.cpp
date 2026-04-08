@@ -48,9 +48,9 @@ TEST(Strings, IsHex)
 	EXPECT_TRUE(Strings::IsHex('0'));
 	EXPECT_TRUE(Strings::IsHex('9'));
 	EXPECT_TRUE(Strings::IsHex('A'));
-	EXPECT_TRUE(Strings::IsHex('a'));
+	EXPECT_FALSE(Strings::IsHex('a'));
 	EXPECT_TRUE(Strings::IsHex('F'));
-	EXPECT_TRUE(Strings::IsHex('f'));
+	EXPECT_FALSE(Strings::IsHex('f'));
 
 	EXPECT_FALSE(Strings::IsHex('G'));
 	EXPECT_FALSE(Strings::IsHex('g'));
@@ -68,9 +68,9 @@ TEST(Strings, ValueFromNibble)
 	EXPECT_EQ(Strings::ValueFromNibble('0'), 0x0);
 	EXPECT_EQ(Strings::ValueFromNibble('9'), 0x9);
 	EXPECT_EQ(Strings::ValueFromNibble('A'), 0xA);
-	EXPECT_EQ(Strings::ValueFromNibble('a'), 0xA);
+	EXPECT_THROW(Strings::ValueFromNibble('a'), std::invalid_argument);
 	EXPECT_EQ(Strings::ValueFromNibble('F'), 0xF);
-	EXPECT_EQ(Strings::ValueFromNibble('f'), 0xF);
+	EXPECT_THROW(Strings::ValueFromNibble('f'), std::invalid_argument);
 
 	EXPECT_THROW(Strings::ValueFromNibble('G'), std::invalid_argument);
 	EXPECT_THROW(Strings::ValueFromNibble('?'), std::invalid_argument);
