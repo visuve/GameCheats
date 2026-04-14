@@ -1,16 +1,14 @@
 .CODE
 
 InfAmmo PROC
-	cmp bx, 5200h
-	je IsEnemy
+	test rbx, rbx
+	jz IsEnemy
 	mov eax, 1000
 	ret
+
 IsEnemy:
-	mov eax,[rax+rcx*4]
+	mov eax, [rax+rcx*4] ; Original instruction for enemies
 	ret
-	int 3
-	int 3
-	int 3
 InfAmmo ENDP
 
 END
