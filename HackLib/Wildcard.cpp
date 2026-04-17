@@ -173,7 +173,7 @@ std::vector<size_t> ByteWildcard::Matches(const ByteStream& bytes) const
 	return matches;
 }
 
-ByteWildcard::PatternByte ByteWildcard::ParseByte(char high, char low) const
+ByteWildcard::PatternByte ByteWildcard::ParseByte(char high, char low)
 {
 	if ((high == '*' && low == '?') || (high == '?' && low == '*'))
 	{
@@ -209,7 +209,7 @@ ByteWildcard::PatternByte ByteWildcard::ParseByte(char high, char low) const
 	return pb;
 }
 
-std::pair<uint8_t, uint8_t> ByteWildcard::ParseNibble(char c) const
+std::pair<uint8_t, uint8_t> ByteWildcard::ParseNibble(char c)
 {
 	if (c == '?' || c == '*')
 	{
@@ -219,12 +219,12 @@ std::pair<uint8_t, uint8_t> ByteWildcard::ParseNibble(char c) const
 	return std::make_pair<uint8_t, uint8_t>(Strings::ValueFromNibble(c), uint8_t(LowNibbleMask));
 }
 
-bool ByteWildcard::MatchesByte(uint8_t byte, const PatternByte& p) const
+bool ByteWildcard::MatchesByte(uint8_t byte, const PatternByte& p)
 {
 	return (byte & p.PrefixMask) == p.PrefixValue;
 }
 
-bool ByteWildcard::MatchStream(const ByteStream& bytes, size_t start, size_t& len, const PatternByte& p) const
+bool ByteWildcard::MatchStream(const ByteStream& bytes, size_t start, size_t& len, const PatternByte& p)
 {
 	const size_t size = bytes.Size();
 

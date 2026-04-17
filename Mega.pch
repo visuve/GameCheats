@@ -8,6 +8,7 @@
 #include <format>
 #include <fstream>
 #include <functional>
+#include <future>
 #include <cstdint>
 #include <iostream>
 #include <iomanip>

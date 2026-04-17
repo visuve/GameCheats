@@ -32,10 +32,10 @@ private:
 		uint8_t SuffixValue = 0x00;
 	};
 
-	PatternByte ParseByte(char high, char low) const;
-	std::pair<uint8_t, uint8_t> ParseNibble(char c) const;
-	bool MatchesByte(uint8_t byte, const PatternByte& p) const;
-	bool MatchStream(const ByteStream& bytes, size_t start, size_t& len, const PatternByte& p) const;
+	static PatternByte ParseByte(char high, char low);
+	static std::pair<uint8_t, uint8_t> ParseNibble(char c);
+	static bool MatchesByte(uint8_t byte, const PatternByte& p);
+	static bool MatchStream(const ByteStream& bytes, size_t start, size_t& len, const PatternByte& p);
 
 	std::vector<PatternByte> _pattern;
 };

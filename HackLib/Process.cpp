@@ -351,6 +351,8 @@ std::vector<Pointer> Process::FindBytes(std::function<std::vector<size_t>(std::s
 		return false;
 	};
 
+	std::vector<std::future<std::vector<Pointer>>> futures;
+
 	do
 	{
 		address += mbi.RegionSize; // Advance to next region
@@ -364,14 +366,24 @@ std::vector<Pointer> Process::FindBytes(std::function<std::vector<size_t>(std::s
 			continue;
 		}
 
-		const std::vector<uint8_t> data = ReadBytes(regionStart, mbi.RegionSize);
-
-		result.append_range(matcher(data) | std::views::transform([&regionStart](size_t offset)->Pointer
+		futures.push_back(std::async(std::launch::async, [matcher, regionStart, haystack = ReadBytes(regionStart, mbi.RegionSize)]() -> std::vector<Pointer>
 		{
-			return regionStart + offset;
+			std::vector<Pointer> matches;
+
+			matches.append_range(matcher(haystack) | std::views::transform([regionStart](size_t offset)->Pointer
+			{
+				return regionStart + offset;
+			}));
+
+			return matches;
 		}));
 
 	} while (isValid(address, mbi));
+
+	for (auto& future : futures)
+	{
+		result.append_range(future.get());
+	}
 
 	return result;
 }
