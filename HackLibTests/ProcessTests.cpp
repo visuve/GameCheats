@@ -3,7 +3,7 @@
 
 extern "C" __declspec(dllexport) int ThisFunctionActuallyExists(int x)
 {
-	return x * 2;
+	return x * 0x5D69BD;
 }
 
 TEST(ProcessTests, Header)
@@ -147,13 +147,21 @@ TEST(ProcessTest, FindBytes)
 	{
 		// String "ActuallyExists" as hex bytes
 		ByteStream pattern("41 63 74 75 61 6C 6C 79 45 78 69 73 74 73");
-		Pointer address = currentProcess.FindBytes(pattern);
-		EXPECT_NE(address, Pointer());
+		std::vector<Pointer> addresses = currentProcess.FindBytes(pattern);
+		EXPECT_FALSE(addresses.empty());
+		EXPECT_EQ(addresses.size(), size_t(2)); // One in the .rdata section and one in the .text section
 	}
 	// Not found
 	{
 		ByteStream pattern("DD EE AA DD BB EE EE FF");
-		EXPECT_THROW(currentProcess.FindBytes(pattern), std::range_error);
+		EXPECT_TRUE(currentProcess.FindBytes(pattern).empty());
+	}
+
+
+	{
+		ByteWildcard pattern("?? BD 69 5D 00 ??");
+		std::vector<Pointer> addresses = currentProcess.FindBytes(pattern);
+		EXPECT_FALSE(addresses.empty());
 	}
 }
 

@@ -8,6 +8,7 @@
 #include "System.hpp"
 #include "Variable.hpp"
 #include "VirtualMemory.hpp"
+#include "Wildcard.hpp"
 #include "Win32Process.hpp"
 #include "Win32Thread.hpp"
 
@@ -223,8 +224,9 @@ public:
 	Pointer FindImportAddress(std::string_view moduleName, std::string_view functionName) const;
 	Pointer FindFunctionAddress(std::string_view moduleName, std::string_view functionName);
 
-	Pointer FindBytes(std::function<std::optional<size_t>(std::span<const uint8_t>)> matcher) const;
-	Pointer FindBytes(std::span<const uint8_t> needle) const;
+	std::vector<Pointer> FindBytes(std::function<std::vector<size_t>(std::span<const uint8_t>)> matcher) const;
+	std::vector<Pointer> FindBytes(std::span<const uint8_t> needle) const;
+	std::vector<Pointer> FindBytes(const ByteWildcard& pattern) const;
 
 	Pointer AllocateMemory(size_t size);
 

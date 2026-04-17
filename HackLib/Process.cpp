@@ -326,8 +326,9 @@ Pointer Process::FindFunctionAddress(std::string_view moduleName, std::string_vi
 	throw RuntimeException("Unknown error in remote thread");
 }
 
-Pointer Process::FindBytes(std::function<std::optional<size_t>(std::span<const uint8_t>)> matcher) const
+std::vector<Pointer> Process::FindBytes(std::function<std::vector<size_t>(std::span<const uint8_t>)> matcher) const
 {
+	std::vector<Pointer> result;
 	Pointer address = _baseAddress;
 	MEMORY_BASIC_INFORMATION mbi;
 	Clear(mbi);
@@ -365,30 +366,55 @@ Pointer Process::FindBytes(std::function<std::optional<size_t>(std::span<const u
 
 		const std::vector<uint8_t> data = ReadBytes(regionStart, mbi.RegionSize);
 
-		const std::optional<size_t> offset = matcher(data);
-
-		if (offset.has_value())
+		result.append_range(matcher(data) | std::views::transform([&regionStart](size_t offset)->Pointer
 		{
-			return regionStart + offset.value();
-		}
+			return regionStart + offset;
+		}));
 
 	} while (isValid(address, mbi));
 
-	throw RangeException("Bytes not found");
+	return result;
 }
 
-Pointer Process::FindBytes(std::span<const uint8_t> needle) const
+std::vector<Pointer> Process::FindBytes(std::span<const uint8_t> needle) const
 {
-	const auto matcher = [&needle](std::span<const uint8_t> haystack)->std::optional<size_t>
+	if (needle.empty())
 	{
-		const auto it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end());
-		
-		if (it == haystack.end())
-		{
-			return std::nullopt;
-		}
+		throw ArgumentException("Needle cannot be empty");
+	}
 
-		return std::distance(haystack.begin(), it);
+	const auto matcher = [&needle](std::span<const uint8_t> haystack)->std::vector<size_t>
+	{
+		std::vector<size_t> offsets;
+
+		auto it = haystack.cbegin();
+
+		do
+		{
+			it = std::search(it, haystack.cend(), needle.cbegin(), needle.cend());
+
+			if (it != haystack.cend())
+			{
+				size_t offset = std::distance(haystack.cbegin(), it);
+				offsets.push_back(offset);
+				it += needle.size();
+			}
+
+		} while (it != haystack.cend());
+
+		return offsets;
+	};
+
+	return FindBytes(matcher);
+}
+
+std::vector<Pointer> Process::FindBytes(const ByteWildcard& pattern) const
+{
+	std::vector<Pointer> result;
+
+	const auto matcher = [&pattern](std::span<const uint8_t> haystack)->std::vector<size_t>
+	{
+		return pattern.Matches(ByteStream(haystack));
 	};
 
 	return FindBytes(matcher);
